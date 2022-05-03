@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form id="payment-form" action="/api/payment/checkout" method="post">
+        <input type="radio" name="paymentMethod" value="vnPay" checked id="">
+        <label for="">VnPay</label>
+        <br>
+        <input type="submit" name="btn_payment" value="Payment">
+    </form>
+
+
+    <form id="login" action="" method="post">
+        <input id="date" type="datetime-local">
+        <input id="email" name="email" type="text" placeholder="Username">
+        <input type="button" name="Login" value="Login" id="add" onclick="addUser()">
+    </form>
+    <form id="form" action="" method="post">
+        <input id="receiverId" name="email" type="text" placeholder="Username người nhận"><br>
+        <input id="message" name="message" type="text" placeholder="Tin nhắn"> <br>
+        <input type="button" value="Gủi" name="Login" id="send" onclick="sendMessage()">
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let email = document.querySelector('#email')
+        let date = document.querySelector('#date')
+
+
+        const socket = io();
+
+        socket.on("information", (data) => {
+            console.log(data);
+        })
+
+        socket.on("getPrivateMessage", data => {
+            console.log(data);
+        })
+        function addUser() {
+            console.log(date.value);
+            socket.emit("postUserData", email.value)
+        }
+
+        function sendMessage() {
+            let message = document.querySelector('#message')
+            let receiverId = document.querySelector('#receiverId')
+            socket.emit("sendPrivateMessage", {
+                senderId: email.value,
+                receiverId: receiverId.value,
+                text: message.value,
+            })
+
+        }
+    </script>
+    <!-- script for payment -->
+    <script>
+        let headersList = {
+            "Accept": "*/*",
+            "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+            "Content-Type": "application/json",
+        }
+        let bodyContent = JSON.stringify({
+            "courses":
+                [
+                    {
+                        "slug": "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
+                        "coupon": "TESTCODE"
+                    },
+                    {
+                        "slug": "react-the-complete-guide-incl-hooks-react-router-redux-update",
+                        "coupon": "TESTCODE2"
+                    }
+                ],
+            "paymentMethod": "vnPay"
+        });
+
+        fetch("/api/payment/checkout", {
+            method: "POST",
+            body: bodyContent,
+            headers: headersList,
+            mode: "no-cors"
+        }).then(function (response) {
+            return response.text();
+        }).then(function (data) {
+            console.log(data);
+            // window.location.href = data.url
+        })
+    </script>
+</body>
+
+</html>
