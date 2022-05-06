@@ -4,11 +4,20 @@ const DetailInvoiceModel = require('../../models/detailInvoice.model');
 const CouponModel = require('../../models/coupon.model');
 var uniqid = require('uniqid');
 const CourseModel = require('../../models/courses/course.model');
+const MyCourseModel = require('../../models/users/myCourse.model');
 
-
-/** "user":"userid"
- *  "orderId":"54as4d6asd65as4d3",
- *  "totalPrice": 50,
+/** Tạo hoá đơn cho người dùng (chưa thanh toán)
+ * @param {Object} data
+ * @property {String} data.user id người dùng
+ * @property {String} data.orderId id đơn hàng
+ * @property { [Object] } data.courses mảng thông tin khoá học (thông tin khoá học và mã giảm giá cho từng khoá) 
+ * @property {Number} data.totalPrice giá tiền cần thanh toán để mua các khoá học ở data.courses
+ * @returns {Boolean}
+ * @property data.courses data.totalPrice là được xử lý từ hàm handlerCheckoutCart
+ * @example data = {
+    "user":"userid"
+    "orderId":"54as4d6asd65as4d3",
+    "totalPrice": 50,
     "courses": [
         {
             "_id": "625306b0427f22199612e141",
@@ -28,38 +37,21 @@ const CourseModel = require('../../models/courses/course.model');
                 "type": "money",
                 "amount": 10
             }
-        },
-        {
-            "_id": "62530745427f22199612e153",
-            "name": "React - The Complete Guide (incl Hooks, React Router, Redux) (update)",
-            "thumbnail": "uri/test.jpg",
-            "currentPrice": 50,
-            "originalPrice": 100,
-            "saleOff": 50,
-            "author": "625060fe1d697fe08f940a5e",
-            "slug": "react-the-complete-guide-incl-hooks-react-router-redux-update",
-            "category": "6253baa59bcefe119ccc76b5",
-            "amount": 30,
-            "coupon": {
-                "message": "Áp dụng thành công",
-                "discountAmount": 20,
-                "code": "TESTCODE2",
-                "title": "test",
-                "type": "percent",
-                "amount": 60
-            }
         }
     ]
+}
  */
-const handlerCreateInvoice = async (data) => {
+
+const handlerCreateInvoice = async (data, user) => {
     try {
+        // tạo hoá đơn tổng
         const invoice = await InvoiceModel.create({
             _id: data.orderId,
-            transactionId: "",
-            user: data.user,
+            transactionId: "hahaha",
+            user: user,
             totalPrice: data.totalPrice,
         })
-        // tạo detail
+        // tạo chi tiết hoá đơn
         for (let i = 0; i < data.courses.length; i++) {
             const course = data.courses[i];
             await DetailInvoiceModel.create({
@@ -81,9 +73,12 @@ const handlerCreateInvoice = async (data) => {
 }
 
 
-// xử lý giỏ hàng 
-/**
- * @returns {amount, data}
+
+/** xử lý giỏ hàng => thông tin các giá (sau giảm giá) khoá học và tổng tiền cần thanh toán
+ *  @param {Array} courses
+ *  @property {String} courses.slug mã khoá học
+ *  @property {String} courses.coupon mã giảm giá
+ *  @returns {Object} {totalPrice, courses}
  */
 const handlerCheckoutCart = async (courses) => {
     // if (!Array.isArray(courses)) {
@@ -110,50 +105,56 @@ const handlerCheckoutCart = async (courses) => {
             course.amount = course.currentPrice
             // có mã giảm giá
             if (item.coupon) {
-                const coupon = await CouponModel.findOne({ code: item.coupon }).lean()
+                // kiểm tra mã giảm giá chỉ được sài 1 lần /1 checkout
+                let isExisted = courses.some(i => i.coupon === item.coupon && i.slug !== item.slug)
+                if (isExisted) {
+                    course.coupon = { message: "Coupon used" }
+                } else {
+                    const coupon = await CouponModel.findOne({ code: item.coupon }).lean()
 
-                // mã hợp lệ ? check áp dụng thành công 
-                if (coupon) {
-                    // check mã có dùng được cho khoá học này
-                    let isApply = false
-                    // kiểm tra loại áp dung
-                    switch (coupon.apply.to) {
-                        case 'all':
-                            isApply = coupon.minPrice <= course.currentPrice && coupon.number >= 1
-                            break
-                        case 'author':
-                            isApply = JSON.stringify(coupon.author) == JSON.stringify(course.author) && coupon.minPrice <= course.currentPrice && coupon.number >= 1
-                            break
-                        case 'category':
-                            isApply = coupon.apply.value.some(item => JSON.stringify(item) == JSON.stringify(course.category)) && coupon.minPrice <= course.currentPrice && coupon.number >= 1
-                            break
-                    }
-                    // tính tiền giảm nếu áp dụng thành công
-                    let discountAmount = 0
-                    if (isApply) {
-                        // tính tiền giảm giá theo tiền mặt và giảm giá %
-                        discountAmount = coupon.type === 'money' ? coupon.amount : coupon.amount * course.currentPrice / 100
-                        // tiền giảm giá có vượt giá trị giảm tối đa ?
-                        if (discountAmount > coupon.maxDiscount) {
-                            discountAmount = coupon.maxDiscount
+                    // mã hợp lệ ? check áp dụng thành công 
+                    if (coupon) {
+                        // check mã có dùng được cho khoá học này
+                        let isApply = false
+                        // kiểm tra loại áp dung
+                        switch (coupon.apply.to) {
+                            case 'all':
+                                isApply = coupon.minPrice <= course.currentPrice && coupon.number >= 1
+                                break
+                            case 'author':
+                                isApply = JSON.stringify(coupon.author) == JSON.stringify(course.author) && coupon.minPrice <= course.currentPrice && coupon.number >= 1
+                                break
+                            case 'category':
+                                isApply = coupon.apply.value.some(item => JSON.stringify(item) == JSON.stringify(course.category)) && coupon.minPrice <= course.currentPrice && coupon.number >= 1
+                                break
                         }
+                        // tính tiền giảm nếu áp dụng thành công
+                        let discountAmount = 0
+                        if (isApply) {
+                            // tính tiền giảm giá theo tiền mặt và giảm giá %
+                            discountAmount = coupon.type === 'money' ? coupon.amount : coupon.amount * course.currentPrice / 100
+                            // tiền giảm giá có vượt giá trị giảm tối đa ?
+                            if (discountAmount > coupon.maxDiscount) {
+                                discountAmount = coupon.maxDiscount
+                            }
+                        }
+                        // add coupon cho course
+                        course.coupon = {
+                            message: isApply ? "Áp dụng thành công" : "Mã không thể dùng",
+                            discountAmount,
+                            code: coupon.code,
+                            title: coupon.title,
+                            type: coupon.type,
+                            amount: coupon.amount,
+                        }
+                        // giá tiền ước tính
+                        course.amount = course.currentPrice - discountAmount
                     }
-                    // add coupon cho course
-                    course.coupon = {
-                        message: isApply ? "Áp dụng thành công" : "Mã không thể dùng",
-                        discountAmount,
-                        code: coupon.code,
-                        title: coupon.title,
-                        type: coupon.type,
-                        amount: coupon.amount,
+                    // mã không hợp lệ 
+                    else {
+                        // thông báo mã không hợp lệ
+                        course.coupon = { message: "Invalid Coupon" }
                     }
-                    // giá tiền ước tính
-                    course.amount = course.currentPrice - discountAmount
-                }
-                // mã không hợp lệ 
-                else {
-                    // thông báo mã không hợp lệ
-                    course.coupon = { message: "Invalid Coupon" }
                 }
             }
             // tính tổng tiền thanh toán
@@ -179,8 +180,7 @@ const postCheckoutCart = async (req, res, next) => {
         var { courses } = req.body
         // xử lý giỏ hàng
         const result = await handlerCheckoutCart(courses)
-
-        return res.status(200).json({ message: "ok", totalPrice: result.amount, data: result.data })
+        return res.status(200).json({ message: "ok", totalPrice: result.totalPrice, data: result.courses })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -194,22 +194,37 @@ const postCheckoutCart = async (req, res, next) => {
 */
 
 const postPaymentCheckout = async (req, res, next) => {
+    const { user } = req
     const params = Object.assign({}, req.body);
 
-    let orderId = uniqid()
     const clientIp =
         req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
-    var result = await handlerCheckoutCart(courses)
-    result.user = req.user
-    result.orderId = orderId
-    let isCreated = await handlerCreateInvoice(result)
-    if (!isCreated) return res.status(500).json({ message: "server error" })
 
-    const amount = parseInt(result.amount, 10);
+
+    // xử lý thông tin đơn hàng => tạo hoá đơn thanh toán
+
+    let orderId = uniqid()
+    // for test
+    // let courses = [
+    //     {
+    //         slug: "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
+    //         coupon: "TESTCODE"
+    //     },
+    //     {
+    //         slug: "react-the-complete-guide-incl-hooks-react-router-redux-update",
+    //         coupon: "TESTCODE2"
+    //     }
+    // ]
+    // var result = await handlerCheckoutCart(courses)
+    var result = await handlerCheckoutCart(params.courses)
+    result.orderId = orderId
+    let isCreated = handlerCreateInvoice(result, user)
+    if (!isCreated) return res.status(500).json({ message: "server error" })
+    const amount = parseInt(result.totalPrice, 10);
     const now = new Date();
 
     // NOTE: only set the common required fields and optional fields from all gateways here, redundant fields will invalidate the payload schema checker
@@ -268,15 +283,25 @@ const getPaymentCallback = async (req, res, next) => {
         if (data) {
             let invoice = null
             if (data.isSuccess) {
-                // tạo hoá đơn
-                invoice = await InvoiceModel.updateOne({ _id: data.invoiceId }, { transactionId: data.transactionId, status: "Paid" })
+                // update hoá đơn
+                invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
             }
             res.status(200).json({ data, invoice })
+            if (data.isSuccess) {
+                // thêm khoá học đã mua cho người dùng
+                let user = invoice.user
+                let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
+                for (let i = 0; i < detailInvoices.length; i++) {
+                    const course = detailInvoices[i].courseId;
+                    await MyCourseModel.create({ user, course })
+                }
+            }
         } else {
             res.status(500).json({ message: "Callback not found" })
         }
     } catch (error) {
-
+        console.log(error);
+        res.status(500).json({ message: "Server error" })
     }
 }
 

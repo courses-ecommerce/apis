@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const detailInvoiceSchema = new Schema({
     invoice: {
-        type: Schema.Types.ObjectId,
+        type: String,
         ref: 'invoice',
         required: true,
     },
@@ -17,7 +17,7 @@ const detailInvoiceSchema = new Schema({
         required: true
     },
     couponCode: {
-        type: Schema.Types.ObjectId, ref: 'invoice'
+        type: String
     },
 
     amount: { type: Number, required: true },

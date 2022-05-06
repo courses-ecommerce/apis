@@ -11,7 +11,7 @@ const vnpay = new VNPay({
 const checkoutVNPay = async (req, res, next) => {
     try {
         const checkoutData = res.locals.checkoutData;
-        checkoutData.returnUrl = `http://${req.headers.host}/payment/vnpay/callback`
+        checkoutData.returnUrl = `http://${req.headers.host}/api/payment/vnpay/callback`
 
         // checkout thông tin và redirect tới payment gate
         return vnpay.buildCheckoutUrl(checkoutData)
@@ -29,7 +29,6 @@ const checkoutVNPay = async (req, res, next) => {
 const callbackVNPay = async (req, res, next) => {
     // thông tin trả về sau khi thanh toán
     const query = req.query;
-    console.log(query);
     // kiểm tra thông tin trả về
     var results = await vnpay.verifyReturnUrl(query);
     if (results) {

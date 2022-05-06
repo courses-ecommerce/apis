@@ -12,7 +12,7 @@ courseApis.post('/', passport.jwtAuthentication, passport.authPage(['teacher', '
 courseApis.get('/', passport.jwtAuthenticationOrNull, courseController.getCourses)
 
 // api lấy danh sách khoá học hot
-courseApis.get('/hot', courseController.getHotCourses)
+courseApis.get('/hot', passport.jwtAuthentication, courseController.getHotCourses)
 
 // api lấy danh sách khoá học đề xuất
 courseApis.get('/suggest', passport.jwtAuthentication, passport.jwtAuthenticationOrNull, courseController.getSuggestCourses)
