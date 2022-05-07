@@ -10,7 +10,7 @@ const jwtAuthentication = async (req, res, next) => {
     try {
         res.locals.isAuth = false
         let authorization = req.headers.authorization;
-        let token = authorization?.split(" ")[1]
+        let token = authorization.split(" ")[1]
         //if not exist cookie[access_token] -> isAuth = false -> next
         if (!token) {
             next();
