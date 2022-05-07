@@ -4,25 +4,16 @@ const LessonModel = require('../models/courses/lesson.model');
 const RateModel = require('../models/courses/rate.model');
 const CommentModel = require('../models/courses/comment.model');
 const HistorySearchModel = require('../models/users/historySearch.model');
-const { cloudinary } = require('../configs/cloudinary.config');
 const urlSlug = require('url-slug');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
+const helper = require('../helper');
 
-const uploadThumbnailToCloudinary = async (imageFile, name) => {
-    try {
-        let slug = urlSlug(name)
-        const result = await cloudinary.uploader.upload(imageFile.path, {
-            folder: `thumbnail`,
-            public_id: `${slug}`
-        })
-        const { secure_url } = result;
-        return secure_url;
-    } catch (error) {
-        throw error
-    }
-}
+
+
+
+//#region  courses
 
 /** fn: Thêm khoá học
  * @param {categories} req is array id of topic
@@ -35,7 +26,7 @@ const postCourse = async (req, res, next) => {
     try {
         const author = req.user
         const image = req.file
-        const { name, categories = [], description, language, intendedLearners, requirements, targets, level, currentPrice, originalPrice, tags = [] } = req.body
+        const { name, category, description, language, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
         // // tags is array
         // if (Array.isArray(tags) != true || Array.isArray(categories) != true) {
         //     return res.status(403).json({ message: "some attribute of course is array" })
@@ -43,10 +34,10 @@ const postCourse = async (req, res, next) => {
         // tính giảm giá
         let saleOff = (1 - parseInt(currentPrice) / parseInt(originalPrice)) * 100 || 0
         // upload image lên cloud
-        let thumbnail = await uploadThumbnailToCloudinary(image, name)
+        let thumbnail = await helper.uploadImageToCloudinary(image, name)
         // tạo khoá học
         await CourseModel.create(
-            { name, categories, description, introduction, currentPrice, originalPrice, saleOff, author, thumbnail, tags, language, intendedLearners, requirements, targets, level }
+            { name, category, description, introduction, currentPrice, originalPrice, saleOff, author, thumbnail, tags, language, intendedLearners, requirements, targets, level, hashtags }
         )
         return res.status(201).json({ message: "ok" })
 
@@ -544,6 +535,101 @@ const getRates = async (req, res, next) => {
     }
 }
 
+//#endregion
+
+// #region chapter 
+
+const postChapter = async (req, res, next) => {
+    try {
+        const { courses, name } = req.body
+        await ChapterModel.create({ courses, name })
+        res.status(201).json({ message: "ok" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+/**
+ * 
+ * @param {boolean} lesson lấy giá trị của lesson trong chapter 
+ * @param {string} course id khoá học
+ */
+const getChapters = async (req, res, next) => {
+    try {
+        const { lesson = true, course } = req.query
+        let query = []
+        if (course) {
+            query.unshift({
+                $match: { _id: ObjectId(course) }
+            })
+        }
+        if (lesson) {
+            query.push({
+                $lookup: {
+                    from: "lessons",
+                    localField: "_id",
+                    foreignField: "chapter",
+                    as: "lessons"
+                }
+            })
+        }
+        const chapters = await ChapterModel.aggregate(query)
+        res.status(200).json({ message: "ok", chapters })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+const putChapter = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { name, number } = req.body
+        await ChapterModel.updateOne({ _id: id }, { name, number })
+        res.status(200).json({ message: " update ok" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+const deleteChapter = async (req, res, next) => {
+    try {
+        const { id, name } = req.body
+        // xoá chapter
+        await ChapterModel.deleteOne({ _id: id })
+        // xoá lesson liên quan
+        await LessonModel.deleteMany({ chapter: id })
+        res.status(200).json({ message: "delete ok" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+// #endregion 
+
+
+// #region lesson
+
+const getLessons = async (req, res, next) => {
+
+}
+const postLesson = async (req, res, next) => {
+    try {
+
+    } catch (error) {
+
+    }
+}
+const putLesson = async (req, res, next) => {
+
+}
+const deleteLesson = async (req, res, next) => {
+
+}
+
+
+// #endregion
 
 
 
@@ -556,4 +642,15 @@ module.exports = {
     getHotCourses,
     getRates,
     getSuggestCourses,
+
+    // chapter
+    postChapter,
+    getChapters,
+    putChapter,
+    deleteChapter,
+    // lesson
+    getLessons,
+    postLesson,
+    putLesson,
+    deleteLesson,
 }

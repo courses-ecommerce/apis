@@ -100,11 +100,8 @@ components:
           type: string
         slug:
           type: string
-        categories:
-          type: array
-          items:
-            type: object
-            $ref: "#/components/schemas/Category"
+        category:
+          $ref: "#/components/schemas/Category"
         thumbnail:
           type: string
         description:
@@ -133,7 +130,7 @@ components:
           $ref: "#/components/schemas/User"
         sellNumber:
           type: string
-        tags:
+        hashtags:
           type: array
           items:
             type: string
@@ -144,6 +141,9 @@ components:
         - name
         - thumbnail
         - author
+        - targets
+        - category
+        - description
     Rate:
       type: object
       properties:
@@ -665,8 +665,8 @@ paths:
               properties:
                 name:
                   type: string
-              required:
-                - name
+                publish:
+                  type: boolean
       responses:
         200:
           description: "ok"
@@ -711,25 +711,44 @@ paths:
                 thumbnail:
                   type: string
                   format: binary
-                categories:
+                category:
+                  type: string
+                description:
+                  type: string
+                language:
+                  type: string
+                  default: "Tiếng Việt"
+                intendedLearners:
                   type: array
                   items:
                     type: string
-                description:
+                requirements:
+                  type: array
+                  items:
+                    type: string
+                targets:
+                  type: array
+                  items:
+                    type: string
+                level:
                   type: string
-                introduction:
-                  type: string
+                  default: "Tất cả"
                 currentPrice:
                   type: number
+                  default: 0
                 originalPrice:
                   type: number
-                tags:
+                  default: 0
+                hashtags:
                   type: array
                   items:
                     type: string
               required:
                 - name
                 - thumbnail
+                - category
+                - description
+                - targets
       responses:
         201:
           description: "ok"

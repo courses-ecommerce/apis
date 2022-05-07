@@ -8,8 +8,6 @@ const grantAccess = function (action, resource) {
             const account = req.account
             console.log(account);
             const permission = ac.can(account.role)[action](resource)
-            console.log(permission.granted);
-            console.log(permission1.granted);
             if (!permission.granted) {
                 return res.status(401).json({ message: "Unauthorized" })
             }

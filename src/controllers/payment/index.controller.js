@@ -290,11 +290,14 @@ const getPaymentCallback = async (req, res, next) => {
             if (data.isSuccess) {
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
-                let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
+                let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).select('courseId').lean()
+                detailInvoices = detailInvoices.map(item => item.courseId)
                 for (let i = 0; i < detailInvoices.length; i++) {
-                    const course = detailInvoices[i].courseId;
+                    const course = detailInvoices[i];
                     await MyCourseModel.create({ user, course })
                 }
+                // cập nhật số lượng bán của khoá học
+                await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
             }
         } else {
             res.status(500).json({ message: "Callback not found" })

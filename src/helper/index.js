@@ -1,5 +1,34 @@
 const VerifyModel = require('../models/users/verify.model');
 const constants = require('../constants/index');
+const { cloudinary } = require('../configs/cloudinary.config');
+
+// fn: upload image to cloudinary
+const uploadImageToCloudinary = async (imageFile, name) => {
+    try {
+        let slug = urlSlug(name)
+        const result = await cloudinary.uploader.upload(imageFile.path, {
+            folder: `thumbnail`,
+            public_id: `${slug}`
+        })
+        const { secure_url } = result;
+        return secure_url;
+    } catch (error) {
+        throw error
+    }
+}
+
+// fn: upload video to cloudinary
+const uploadVideoToCloudinary = async (video, id) => {
+    try {
+        cloudinary.uploader.upload_large(video.path, {
+            resource_type: 'video',
+            public_id: `videos/${id}`,
+
+        })
+    } catch (error) {
+
+    }
+}
 
 
 //fn: tạo mã xác thực
@@ -39,4 +68,5 @@ const isVerifyEmail = async (email, verifyCode) => {
 module.exports = {
     generateVerifyCode,
     isVerifyEmail,
+    uploadImageToCloudinary,
 };
