@@ -370,12 +370,12 @@ const getRelatedCourses = async (req, res, next) => {
         const { page = 1, limit = 12 } = req.query
         // course
         const course = await CourseModel.findOne({ slug }).lean()
-        // tìm khoá học liên quan theo tag
+        // tìm khoá học liên quan theo hasgtag
         const courses = await CourseModel.aggregate([
             {
                 $match: {
                     $and: [
-                        { categories: { $in: course.categories } },
+                        { hashtags: { $in: course.hashtags } },
                         { _id: { $ne: ObjectId(course._id) } },
                         { publish: true },
                     ]
@@ -412,7 +412,7 @@ const getRelatedCourses = async (req, res, next) => {
             {
                 $match: {
                     $and: [
-                        { tags: { $in: course.tags } },
+                        { hashtags: { $in: course.hashtags } },
                         { _id: { $ne: ObjectId(course._id) } },
                         { publish: true },
                     ]

@@ -85,6 +85,7 @@ const handlerCheckoutCart = async (courses) => {
     //     throw Error('courses must be array')
     // }
     try {
+        console.log(courses);
         var data = []
         var amount = 0
         // xử lý thông tin
@@ -208,19 +209,22 @@ const postPaymentCheckout = async (req, res, next) => {
     // xử lý thông tin đơn hàng => tạo hoá đơn thanh toán
 
     let orderId = uniqid()
-    // for test
-    // let courses = [
-    //     {
-    //         slug: "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
-    //         coupon: "TESTCODE"
-    //     },
-    //     {
-    //         slug: "react-the-complete-guide-incl-hooks-react-router-redux-update",
-    //         coupon: "TESTCODE2"
-    //     }
-    // ]
-    // var result = await handlerCheckoutCart(courses)
-    var result = await handlerCheckoutCart(params.courses)
+    //for test
+    let courses = [
+        {
+            slug: "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
+            coupon: "TESTCODE"
+        },
+        {
+            slug: "react-the-complete-guide-incl-hooks-react-router-redux-update",
+            coupon: "TESTCODE2"
+        }
+    ]
+    var result = await handlerCheckoutCart(courses)
+    // if (!Array.isArray(params.courses)) {
+    //     return res.status(400).json({ message: "khoá học phải là mảng" })
+    // }
+    // var result = await handlerCheckoutCart(params.courses)
     result.orderId = orderId
     let isCreated = handlerCreateInvoice(result, user)
     if (!isCreated) return res.status(500).json({ message: "server error" })
@@ -258,6 +262,7 @@ const postPaymentCheckout = async (req, res, next) => {
         asyncCheckout
             .then(checkoutUrl => {
                 res.writeHead(301, { Location: checkoutUrl.href });
+                // res.status(301).json({ message: "chuyển hướng", url: checkoutUrl.href })
                 res.end();
             })
             .catch(err => {

@@ -90,8 +90,8 @@ const jwtAuthenticationOrNull = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
         if (decoded) {
             const { accountId } = decoded.sub;
-            const account = await AccountModel.findById(accountId);
-            const user = await UserModel.findOne({ account: accountId })
+            const account = await AccountModel.findById(accountId).lean();
+            const user = await UserModel.findOne({ account: accountId }).lean()
             if (user) {
                 res.locals.isAuth = true;
                 req.user = user;
