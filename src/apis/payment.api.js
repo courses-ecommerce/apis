@@ -7,7 +7,8 @@ const passport = require('../middlewares/passport.middleware');
 paymentApis.post('/checkout-cart', paymentController.postCheckoutCart)
 
 // api: checkout thông tin trước thanh toán
-paymentApis.post('/checkout', passport.jwtAuthentication, paymentController.postPaymentCheckout)
+paymentApis.post('/checkout', paymentController.postPaymentCheckout)
+// paymentApis.post('/checkout', passport.jwtAuthentication, paymentController.postPaymentCheckout)
 
 
 // api: thông tin sau khi thanh toán

@@ -9,10 +9,11 @@
 </head>
 
 <body>
-    <form id="payment-form" action="" method="post">
+    <form id="payment-form" action="/api/payment/checkout" method="post">
         <input type="radio" name="paymentMethod" value="vnPay" checked id="">
         <label for="">VnPay</label>
         <br>
+        <input type="submit" name="btn_payment" value="Payment">
         <input type="button" name="btn_payment" value="Payment" onclick="postPaymentForm()">
     </form>
 
@@ -63,38 +64,41 @@
         let headersList = {
             "Access-Control-Allow-Origin": "*",
             "Accept": "*/*",
-            "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+            "Access-Control-Allow-Methods": "*",
             "Content-Type": "application/json",
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyNTA2MTA5MWQ2OTdmZTA4Zjk0MGE2MCJ9LCJpYXQiOjE2NTE4MDU0MDYsImV4cCI6MTY1MjA2NDYwNn0.MVrxWeV1lJtZ7zZxfm9VL08XngfaRvpZhCrwMus4NeM",
         }
-        let bodyContent = JSON.stringify({
-            "courses":
+        let bodyContent = {
+            courses:
                 [
                     {
-                        "slug": "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
-                        "coupon": "TESTCODE"
+                        slug: "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
+                        coupon: "TESTCODE"
                     },
                     {
-                        "slug": "react-the-complete-guide-incl-hooks-react-router-redux-update",
-                        "coupon": "TESTCODE2"
+                        slug: "react-the-complete-guide-incl-hooks-react-router-redux-update",
+                        coupon: "TESTCODE2"
                     }
                 ],
-            "paymentMethod": "vnPay"
-        });
-
-        function postPaymentForm() {
-            fetch("/api/payment/checkout", {
-                method: "POST",
-                body: bodyContent,
-                headers: headersList,
-                redirect: 'follow'
-            }).then(function (response) {
-                console.log(response);
-                if (response.redirected) {
-                    window.open(response.Location)
-                }
-            })
+            paymentMethod: "vnPay"
         }
+
+        async function postPaymentForm() {
+            const res = await fetch("/api/payment/checkout", {
+                method: "POST",
+                body: JSON.stringify(bodyContent),
+                // headers: headersList,
+                headers: headersList,
+
+
+
+
+
+                // redirect: 'follow'
+            })
+            console.log(res);
+        }
+
 
     </script>
 </body>
