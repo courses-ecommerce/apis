@@ -17,7 +17,7 @@ const postCategory = async (req, res, next) => {
 // fn: lấy category
 const getCategories = async (req, res, next) => {
     try {
-        const { name } = req.query
+        const { name, publish = true } = req.query
         let aCountQuery = []
         let aQuery = []
         if (name) {
@@ -30,8 +30,8 @@ const getCategories = async (req, res, next) => {
                 { $sort: { score: { '$meta': 'textScore' } } },
             )
         } else {
-            aQuery.push({ $match: {} })
-            aCountQuery.push({ $match: {} })
+            aQuery.push({ $match: { publish: publish } })
+            aCountQuery.push({ $match: { publish: publish } })
         }
         aCountQuery.push({ $count: "total" })
 

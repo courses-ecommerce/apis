@@ -55,7 +55,7 @@ const postSendVerifyCode = async (req, res, next) => {
 const postSignup = async (req, res, next) => {
     try {
         const { email, password, verifyCode, fullName, birthday, gender, phone } = req.body
-
+        console.log(req.body);
         // kiểm tra tài khoản đã tồn tại chưa?
         const account = await AccountModel.findOne({ email: email })
 
@@ -89,6 +89,8 @@ const postSignup = async (req, res, next) => {
             message: 'Tạo tài khoản thành công!'
         })
     } catch (error) {
+        console.log(error);
+
         return res.status(500).json({
             message: 'Tạo tài khoản thất bại!',
             error
