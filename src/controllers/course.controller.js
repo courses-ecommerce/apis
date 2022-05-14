@@ -92,10 +92,10 @@ const putCourse = async (req, res, next) => {
 
 
 // fn: Lấy tất cả khoá học và phân trang
-// ex: ?sort=score&name=api&category=web-development&price=10-50&tags=nodejs-mongodb&rating=4.5
+// ex: ?sort=score&name=api&category=web-development&price=10-50&hashtags=nodejs-mongodb&rating=4.5
 const getCourses = async (req, res, next) => {
     try {
-        var { page = 1, limit = 10, sort, name, category, price, tags, rating } = req.query
+        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
@@ -182,7 +182,7 @@ const getCourses = async (req, res, next) => {
                     'rating.numOfRate': 1,
                     'author._id': 1,
                     'author.fullName': 1,
-                    'tags': 1,
+                    'hashtags': 1,
                     //'score': { $meta: "textScore" },
                 }
             },
@@ -191,7 +191,7 @@ const getCourses = async (req, res, next) => {
         ]
         // tìm theo tên
         if (name) {
-            // nếu người dùng đã đăng nhập thì lưu lịch sử tìm kiếm
+            // nếu người dùng đã đăng nhập thì lưu lịch sử tìm kiếm (chỉ lưu 10 lần gần nhất)
             if (req.user) {
                 await HistorySearchModel.findOneAndUpdate(
                     { user: req.user._id },
@@ -228,21 +228,30 @@ const getCourses = async (req, res, next) => {
             })
         }
         // tìm theo keyword
-        if (tags) {
+        if (hashtags) {
             aQuery.push({
-                $match: { tags: { $all: tags.split("-") } }
+                $match: { hashtags: { $all: hashtags.split("-") } }
             })
             aCountQuery.push({
-                $match: { tags: { $all: tags.split("-") } }
+                $match: { hashtags: { $all: hashtags.split("-") } }
             })
         }
         // tìm theo category slug
         if (category) {
             aQuery.push(
-                { $match: { 'categories.slug': category } }
+                { $match: { 'category.slug': category } }
             )
             aCountQuery.push(
-                { $match: { 'categories.slug': category } }
+                { $match: { 'category.slug': category } }
+            )
+        }
+        // tìm theo level
+        if (level) {
+            aQuery.push(
+                { $match: { level: level } }
+            )
+            aCountQuery.push(
+                { $match: { level: level } }
             )
         }
         // tìm theo giá từ min-max
@@ -250,7 +259,6 @@ const getCourses = async (req, res, next) => {
             let [min, max] = price.split('-')
             min = parseInt(min)
             max = parseInt(max)
-            console.log(min, max);
             aQuery.push(
                 { $match: { $and: [{ currentPrice: { $gt: min } }, { currentPrice: { $lt: max } }] } }
             )
@@ -264,11 +272,13 @@ const getCourses = async (req, res, next) => {
             let sortBy = {}
             if (f == 'score') {
                 aQuery.push({ $sort: { score: { $meta: "textScore" }, rating: -1 } })
+            } else if (f == 'rating') {
+                sortBy["rating.rate"] = v == "asc" || v == 1 ? 1 : -1
+                aQuery.push({ $sort: sortBy })
             } else {
                 sortBy[f] = v == "asc" || v == 1 ? 1 : -1
                 aQuery.push({ $sort: sortBy })
             }
-
         }
         aCountQuery.push({ $count: "total" })
         const courses = await CourseModel.aggregate(aQuery)
@@ -363,7 +373,7 @@ const getCourse = async (req, res, next) => {
     }
 }
 
-// fn: Xem danh sách khoá học liên quan theo slug (category, tags, rating)
+// fn: Xem danh sách khoá học liên quan theo slug (category, hashtags, rating)
 const getRelatedCourses = async (req, res, next) => {
     try {
         const { slug } = req.params

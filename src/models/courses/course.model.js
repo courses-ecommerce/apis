@@ -45,8 +45,8 @@ const courseSchema = new Schema({
     },
     level: {
         type: String,
-        enum: ["Sơ cấp", "Trung cấp", "Cao cấp", "Tất cả"],
-        default: "Tất cả"
+        enum: ['all', 'beginer', 'intermediate', 'expert'],
+        default: 'all'
     },
     currentPrice: {
         type: Number,
