@@ -1,6 +1,11 @@
 const VerifyModel = require('../models/users/verify.model');
 const constants = require('../constants/index');
 const { cloudinary } = require('../configs/cloudinary.config');
+const urlSlug = require('url-slug')
+const CartModel = require('../models/users/cart.model');
+const CourseModel = require('../models/courses/course.model')
+const CouponModel = require('../models/coupon.model')
+
 
 // fn: upload image to cloudinary
 const uploadImageToCloudinary = async (imageFile, name) => {
@@ -13,7 +18,7 @@ const uploadImageToCloudinary = async (imageFile, name) => {
         const { secure_url } = result;
         return secure_url;
     } catch (error) {
-        throw error
+        return '/url/image.jpeg';
     }
 }
 
@@ -65,8 +70,55 @@ const isVerifyEmail = async (email, verifyCode) => {
 };
 
 
+//fn: kiểm tra mã giảm giá cho khoá học
+const hanlderApplyDiscountCode = (course, coupon) => {
+    try {
+        // kiểm tra hết hạn
+        const isExpired = new Date(coupon.expireDate) < new Date()
+        if (isExpired) {
+            return { isApply: false, discountAmount: 0, message: "mã hết hạn" }
+        }
+        // giá tối tiểu <= giá khoá học && số lượng >= 1
+        let message = "không đủ điều kiện"
+        let isApply = coupon.minPrice <= course.currentPrice && (coupon.number >= 1 || coupon.number === null)
+        // kiểm tra loại áp dung
+        switch (coupon.apply.to) {
+            case 'all':
+                break
+            case 'author':
+                // tác giả mã == tác giả khoá học && giá tối tiểu <= giá khoá học && số lượng >= 1
+                isApply = JSON.stringify(coupon.author) == JSON.stringify(course.author._id) && isApply
+                break
+            case 'category':
+                // giá trị loại danh mục "có" danh mục khoá học &&  giá tối tiểu <= giá khoá học && số lượng >= 1
+                isApply = coupon.apply.value.some(item => JSON.stringify(item) == JSON.stringify(course.category)) && isApply
+                break
+            default:
+                isApply = false
+        }
+        // tính tiền giảm nếu áp dụng thành công
+        let discountAmount = 0
+        if (isApply) {
+            message = "ok"
+            // tính tiền giảm giá theo tiền mặt và giảm giá %
+            discountAmount = coupon.type === 'money' ? coupon.amount : coupon.amount * course.currentPrice / 100
+            // tiền giảm giá có vượt giá trị giảm tối đa ?
+            if (discountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount
+            }
+        }
+
+        return { isApply, discountAmount, message }
+    } catch (error) {
+        console.log(error);
+        return { isApply: false, discountAmount: 0, message: "mã hết hạn" }
+    }
+}
+
+
 module.exports = {
     generateVerifyCode,
     isVerifyEmail,
     uploadImageToCloudinary,
+    hanlderApplyDiscountCode
 };

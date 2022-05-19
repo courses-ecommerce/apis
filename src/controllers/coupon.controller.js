@@ -16,11 +16,19 @@ const getCoupons = async (req, res, next) => {
             { $limit: parseInt(limit) }
         ]
         if (active) {
-            aQuery.unshift({
-                $match: {
-                    expireDate: { $gt: new Date() }
-                }
-            })
+            if (active == 'true') {
+                aQuery.unshift({
+                    $match: {
+                        expireDate: { $gt: new Date() }
+                    }
+                })
+            } else {
+                aQuery.unshift({
+                    $match: {
+                        expireDate: { $lt: new Date() }
+                    }
+                })
+            }
         }
         if (code) {
             aQuery.unshift({
@@ -62,6 +70,7 @@ const postCoupon = async (req, res, next) => {
         })
         return res.status(201).json({ message: "oke" })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
 
     }

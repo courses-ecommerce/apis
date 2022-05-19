@@ -11,6 +11,10 @@ servers:
 tags:
   - name: account
     description: apis liên quan đến tài khoản người dùng
+  - name: user
+    description: apis liên quan đến thông tin người dùng
+  - name: cart
+    description: apis liên quan đến giỏ hàng
   - name: login
     description: xác thực và uỷ quyền
   - name: admin user
@@ -19,12 +23,16 @@ tags:
     description: "quản lý categories"
   - name: course
     description: apis liên quan đến khoá học
+  - name: rate
+    description: apis liên quan đánh giá khoá học
   - name: coupon
     description: apis liên quan đến mã giảm giá
   - name: payment
     description: apis liên quan đến thanh toán
   - name: chat
     description: apis liên quan nhắn tin
+  - name: teacher
+    description: apis liên quan teacher
 
 # Basic authentication
 components:
@@ -74,6 +82,24 @@ components:
           type: string
       required:
         - "fullName"
+    Cart:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        course:
+          $ref: "#/components/schemas/Course"
+        coupon:
+          type: string
+    createCartDto:
+      type: object
+      properties:
+        course:
+          type: string
+          description: "mã khoá học"
+        coupon:
+          type: string
+
     Verify:
       type: object
       properties:
@@ -108,7 +134,7 @@ components:
           type: string
         description:
           type: string
-        language:
+        lang:
           type: string
         intendedLearners:
           type: string
@@ -646,6 +672,177 @@ paths:
         500:
           description: "SERVER ERROR"
 
+  /teacher:
+    get:
+      tags:
+        - teacher
+      summary: lấy thông tin khoá học đã tạo
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: createdAt-desc
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Course"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /users:
+    get:
+      tags:
+        - user
+      summary: lấy thông tin user hiện tại
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/User"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - user
+      summary: lấy thông tin user hiện tại
+      description: ""
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                birthday:
+                  type: string
+                gender:
+                  type: boolean
+                phone:
+                  type: string
+                avatar:
+                  type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /carts:
+    get:
+      tags:
+        - cart
+      summary: lấy thông tin giỏ hàng
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPrice:
+                    type: number
+                  totalDiscount:
+                    type: number
+                  carts:
+                    $ref: "#/components/schemas/Cart"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    post:
+      tags:
+        - cart
+      summary: thêm khoá học vào giỏ hàng
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createCartDto"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - cart
+      summary: thêm mã giảm giá vào khoá học
+      description: ""
+      parameters:
+        - name: course
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                coupon:
+                  type: string
+      responses:
+        200:
+          description: "update ok"
+        400:
+          description: "..."
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    delete:
+      tags:
+        - cart
+      summary: xoá khoá học khỏi giỏ hàng
+      description: ""
+      parameters:
+        - name: course
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "remove ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /categories:
     get:
       tags:
@@ -777,7 +974,7 @@ paths:
                   type: string
                 language:
                   type: string
-                  default: "Tiếng Việt"
+                  default: "en"
                 intendedLearners:
                   type: array
                   items:
@@ -792,7 +989,7 @@ paths:
                     type: string
                 level:
                   type: string
-                  default: "Tất cả"
+                  default: "all"
                 currentPrice:
                   type: number
                   default: 0
@@ -805,10 +1002,56 @@ paths:
                     type: string
               required:
                 - name
-                - thumbnail
                 - category
                 - description
                 - targets
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                thumbnail:
+                  type: string
+                  format: binary
+                category:
+                  type: string
+                description:
+                  type: string
+                lang:
+                  type: string
+                  default: "en"
+                intendedLearners:
+                  type: array
+                  items:
+                    type: string
+                requirements:
+                  type: array
+                  items:
+                    type: string
+                targets:
+                  type: array
+                  items:
+                    type: string
+                level:
+                  type: string
+                  default: "all"
+                currentPrice:
+                  type: number
+                  default: 0
+                originalPrice:
+                  type: number
+                  default: 0
+                hashtags:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - name
+                - category
+                - description
+                - targets
+
       responses:
         201:
           description: "ok"
@@ -838,18 +1081,16 @@ paths:
           schema:
             type: string
             example: web-development
-        - name: tags
+        - name: hashtags
           in: query
-          description: tag1-tag2-tag3
+          description: "ex: nodejs-mongodb"
           schema:
             type: string
-            example: nodejs-mongodb-reactjs
         - name: price
           in: query
-          description: min-max
+          description: "min-max, ex: 10-50"
           schema:
             type: string
-            example: 100000-500000
         - name: publish
           in: query
           schema:
@@ -906,20 +1147,32 @@ paths:
               properties:
                 name:
                   type: string
-
-                categories:
+                category:
+                  type: string
+                description:
+                  type: string
+                lang:
+                  type: string
+                intendedLearners:
                   type: array
                   items:
                     type: string
-                description:
+                requirements:
+                  type: array
+                  items:
+                    type: string
+                targets:
+                  type: array
+                  items:
+                    type: string
+                level:
                   type: string
-                introduction:
-                  type: string
+                  enum: ["all", "beginer", "intermediate", "expert"]
                 currentPrice:
                   type: number
                 originalPrice:
                   type: number
-                tags:
+                hashtags:
                   type: array
                   items:
                     type: string
@@ -1076,6 +1329,68 @@ paths:
                   $ref: "#/components/schemas/Rate"
         401:
           description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /rate:
+    post:
+      tags:
+        - rate
+      summary: Đánh giá khoá học
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slug:
+                  type: string
+                rate:
+                  type: number
+                content:
+                  type: string
+              required:
+                - slug
+                - rate
+      responses:
+        201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        403:
+          description: "Không được phép đánh giá! Chưa mua khoá học này."
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - rate
+      summary: Cập nhật đánh giá khoá học
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rate:
+                  type: number
+                content:
+                  type: string
+      responses:
+        201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        403:
+          description: "Không được phép đánh giá! Chưa mua khoá học này."
         500:
           description: "SERVER ERROR"
 

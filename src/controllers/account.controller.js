@@ -192,6 +192,9 @@ const postChangePassword = async (req, res, next) => {
         if (!account) {
             return res.status(401).json({ message: "tài khoản không tồn tại!" })
         }
+        // kiểm tra mật khẩu cũ có trùng với mật khẩu mới
+        const isSame = JSON.stringify(oldPassword) === JSON.stringify(password)
+        if (isSame) return res.status(400).json({ message: "Mật khẩu mới giống mật khẩu cũ" })
 
         const isMatch = await bcrypt.compare(oldPassword, account.password)
 
