@@ -17,21 +17,21 @@ const postCategory = async (req, res, next) => {
 // fn: lấy category
 const getCategories = async (req, res, next) => {
     try {
-        const { name, publish = true } = req.query
+        const { name, publish = 'true' } = req.query
         let aCountQuery = []
         let aQuery = []
         if (name) {
             aQuery.push(
-                { $match: { $text: { $search: name } } },
+                { $match: { $text: { $search: name }, publish: publish == 'true' } },
                 { $sort: { score: { '$meta': 'textScore' } } },
             )
             aCountQuery.push(
-                { $match: { $text: { $search: name } } },
+                { $match: { $text: { $search: name }, publish: publish == 'true' } },
                 { $sort: { score: { '$meta': 'textScore' } } },
             )
         } else {
-            aQuery.push({ $match: { publish: publish } })
-            aCountQuery.push({ $match: { publish: publish } })
+            aQuery.push({ $match: { publish: publish == 'true' } })
+            aCountQuery.push({ $match: { publish: publish == 'true' } })
         }
         aCountQuery.push({ $count: "total" })
 

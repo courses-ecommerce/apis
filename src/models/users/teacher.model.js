@@ -11,6 +11,9 @@ const teacherSchema = new Schema({
         accountNumber: { type: String },
         cardNumber: { type: String },
         name: { type: String }
+    },
+    description: {
+        type: String
     }
 })
 

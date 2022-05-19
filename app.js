@@ -4,6 +4,7 @@ require('dotenv').config()
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
+const cookieParser = require('cookie-parser');
 
 
 const swaggerDocument = YAML.load('./swagger.yaml')
@@ -13,6 +14,9 @@ const categoryApis = require('./src/apis/category.api');
 const courseApis = require('./src/apis/course.api');
 const loginApis = require('./src/apis/login.api');
 const accountApis = require('./src/apis/account.api');
+const userApis = require('./src/apis/user.api');
+const cartApis = require('./src/apis/cart.api');
+const teacherApis = require('./src/apis/teacher.api');
 const paymentApis = require('./src/apis/payment.api');
 const couponApis = require('./src/apis/coupon.api');
 const chatApis = require('./src/apis/chat.api');
@@ -34,7 +38,7 @@ mongoose.connect(MONGO_URI, {})
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsConfig));
-
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
     return res.sendFile(__dirname + '/index.html')
@@ -43,6 +47,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 app.use('/api/accounts', accountApis)
+app.use('/api/users', userApis)
+app.use('/api/teachers', teacherApis)
+app.use('/api/carts', cartApis)
 app.use('/api/categories', categoryApis)
 app.use('/api/courses', courseApis)
 app.use('/api/coupons', couponApis)

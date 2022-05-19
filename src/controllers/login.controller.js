@@ -47,6 +47,10 @@ const postLogin = async (req, res, next) => {
         const expiresIn = keepLogin
             ? new Date(Date.now() + constants.COOKIE_EXPIRES_TIME)
             : 0
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            expires: expiresIn,
+        });
         return res.status(200).json({
             message: "Login success!",
             refreshToken,

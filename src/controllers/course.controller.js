@@ -4,7 +4,6 @@ const LessonModel = require('../models/courses/lesson.model');
 const RateModel = require('../models/courses/rate.model');
 const CommentModel = require('../models/courses/comment.model');
 const HistorySearchModel = require('../models/users/historySearch.model');
-const urlSlug = require('url-slug');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
@@ -16,7 +15,7 @@ const helper = require('../helper');
 //#region  courses
 
 /** fn: Thêm khoá học
- * @param {categories} req is array id of topic
+ * @param {category} req is array id of topic
  * @param {name, description, introduction } req is string type
  * @param {currentPrice, originalPrice } req is number type
  * @param {image } req is image type
@@ -26,7 +25,7 @@ const postCourse = async (req, res, next) => {
     try {
         const author = req.user
         const image = req.file
-        const { name, category, description, language, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
+        const { name, category, description, lang, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
         // // tags is array
         // if (Array.isArray(tags) != true || Array.isArray(categories) != true) {
         //     return res.status(403).json({ message: "some attribute of course is array" })
@@ -37,13 +36,13 @@ const postCourse = async (req, res, next) => {
         let thumbnail = await helper.uploadImageToCloudinary(image, name)
         // tạo khoá học
         await CourseModel.create(
-            { name, category, description, introduction, currentPrice, originalPrice, saleOff, author, thumbnail, tags, language, intendedLearners, requirements, targets, level, hashtags }
+            { name, category, description, currentPrice, originalPrice, saleOff, author, thumbnail, lang, intendedLearners, requirements, targets, level, hashtags }
         )
         return res.status(201).json({ message: "ok" })
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: "error 1" })
     }
 }
 
@@ -95,17 +94,17 @@ const putCourse = async (req, res, next) => {
 // ex: ?sort=score&name=api&category=web-development&price=10-50&hashtags=nodejs-mongodb&rating=4.5
 const getCourses = async (req, res, next) => {
     try {
-        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level } = req.query
+        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true' } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
-            { $match: { publish: true } },
+            { $match: { publish: publish == 'true' } },
             {
                 $lookup: {
                     from: 'categorys',
-                    localField: 'categories',
+                    localField: 'category',
                     foreignField: '_id',
-                    as: 'categories'
+                    as: 'category'
                 }
             },
             {
@@ -129,7 +128,7 @@ const getCourses = async (req, res, next) => {
         ]
         // aggrate query
         let aQuery = [
-            { $match: { publish: true } },
+            { $match: { publish: publish == 'true' } },
 
             {
                 // tính rate trung bình
@@ -160,29 +159,34 @@ const getCourses = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'categorys',
-                    localField: 'categories',
+                    localField: 'category',
                     foreignField: '_id',
-                    as: 'categories'
+                    as: 'category'
                 }
             },
             {
                 $project: {
                     'slug': 1,
                     'name': 1,
-                    'categories.name': 1,
-                    'categories.slug': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
                     'thumbnail': 1,
                     'description': 1,
-                    'introduction': 1,
+                    'language': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
                     'currentPrice': 1,
                     'originalPrice': 1,
                     'saleOff': 1,
-                    'sellNumber': 1,
-                    'rating.rate': 1,
-                    'rating.numOfRate': 1,
                     'author._id': 1,
                     'author.fullName': 1,
+                    'sellNumber': 1,
                     'hashtags': 1,
+                    'rating.rate': 1,
+                    'rating.numOfRate': 1,
                     //'score': { $meta: "textScore" },
                 }
             },
@@ -285,7 +289,6 @@ const getCourses = async (req, res, next) => {
 
         const totalCourse = await CourseModel.aggregate(aCountQuery)
         let totalCount = totalCourse[0] || 0
-
         return res.status(200).json({ message: 'ok', searchKey, totalCount, courses })
     } catch (error) {
         console.log(error);
@@ -335,20 +338,25 @@ const getCourse = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'categorys',
-                    localField: 'categories',
+                    localField: 'category',
                     foreignField: '_id',
-                    as: 'categories'
+                    as: 'category'
                 }
             },
             {
                 $project: {
                     'slug': 1,
                     'name': 1,
-                    'categories.name': 1,
-                    'categories.slug': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
                     'thumbnail': 1,
                     'description': 1,
-                    'introduction': 1,
+                    'lang': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
                     'currentPrice': 1,
                     'originalPrice': 1,
                     'saleOff': 1,
@@ -362,6 +370,8 @@ const getCourse = async (req, res, next) => {
                     'rating.start1': 1,
                     'author._id': 1,
                     'author.fullName': 1,
+                    'hashtags': 1,
+                    'publish': 1,
                 }
             },
         ])
@@ -389,6 +399,22 @@ const getRelatedCourses = async (req, res, next) => {
                         { _id: { $ne: ObjectId(course._id) } },
                         { publish: true },
                     ]
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
                 }
             },
             {
@@ -462,7 +488,7 @@ const getSuggestCourses = async (req, res, next) => {
                     keyword = searchKey.suggestion
                 }
                 // tìm khoá học liên quan lịch sử tìm kiếm
-                courses = await CourseModel.find({ $text: { $search: keyword }, publish: true })
+                courses = await CourseModel.find({ $text: { $search: keyword }, publish: true }).populate('author', 'fullName').populate('category', 'name slug')
                     .limit(parseInt(limit))
             } else {
                 courses = []
@@ -479,14 +505,15 @@ const getSuggestCourses = async (req, res, next) => {
 }
 
 // fn: Xem danh sách khoá học hot (sellNumber)
-// get /hot?category=id
+// get /hot?category=slug
 const getHotCourses = async (req, res, next) => {
     try {
         const { limit = 12, category } = req.query
         let aQuery = []
         if (category) {
-            aQuery.push({
-                $match: { categories: { $in: [category] } }
+            aQuery.unshift({
+                $match: { "category.slug": category }
+
             })
         }
         aQuery.push(
@@ -507,11 +534,29 @@ const getHotCourses = async (req, res, next) => {
                     ],
                     as: 'rating'
                 }
-            }, {
-            $sort: { sellNumber: -1, rating: -1 }
-        }, {
-            $limit: parseInt(limit)
-        })
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $sort: { sellNumber: -1, rating: -1 }
+            },
+            {
+                $limit: parseInt(limit)
+            })
 
         const courses = await CourseModel.aggregate(aQuery)
         return res.status(200).json({ message: "ok", courses })
@@ -530,7 +575,6 @@ const getRates = async (req, res, next) => {
         const { slug } = req.params
         // lấy id khoá học
         const course = await CourseModel.findOne({ slug })
-        console.log(course);
         if (!course) return res.status(404).json({ message: "Course not found" })
         // lấy thông tin đánh giá khoá học
         const rates = await RateModel.find({ course: course._id })

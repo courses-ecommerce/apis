@@ -23,6 +23,9 @@ const lessonSchema = new Schema({
         type: String,
         required: true
     },
+    text: {
+        type: String,
+    },
     image: {
         type: String,
     },

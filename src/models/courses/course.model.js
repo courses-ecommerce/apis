@@ -28,9 +28,9 @@ const courseSchema = new Schema({
         type: String,
         required: true
     },
-    language: {
+    lang: {
         type: String,
-        default: "Tiếng Việt"
+        default: "vi"
     },
     // dành cho đối tượng nào? 
     intendedLearners: {
