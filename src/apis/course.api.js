@@ -15,10 +15,10 @@ courseApis.get('/', passport.jwtAuthenticationOrNull, courseController.getCourse
 courseApis.get('/hot', passport.jwtAuthentication, courseController.getHotCourses)
 
 // api lấy danh sách khoá học đề xuất
-courseApis.get('/suggest', passport.jwtAuthentication, passport.jwtAuthenticationOrNull, courseController.getSuggestCourses)
+courseApis.get('/suggest', passport.jwtAuthenticationOrNull, courseController.getSuggestCourses)
 
 // api xem chi tiết khoá học theo slug
-courseApis.get('/:slug', courseController.getCourse)
+courseApis.get('/:slug', passport.jwtAuthenticationOrNull, courseController.getCourse)
 
 // api lấy danh sách khoá học liên quan theo category
 courseApis.get('/:slug/related', courseController.getRelatedCourses)

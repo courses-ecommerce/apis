@@ -15,6 +15,10 @@ const accountSchema = new Schema({
         type: String,
         default: null,
     },
+    accessToken: {
+        type: String,
+        default: null
+    },
     isActive: {
         type: Boolean,
         default: true,

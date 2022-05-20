@@ -15,8 +15,15 @@ const jwtAuthentication = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
         if (decoded) {
             const { account } = decoded.sub;
-            const acc = await AccountModel.findById(account);
-            const user = await UserModel.findOne({ account: account })
+            const acc = await AccountModel.findById(account).lean();
+            const user = await UserModel.findOne({ account: account }).lean()
+            // kiểm tra access token (mục đích chỉ 1 thiết bị được đăng nhập)
+            if (acc.accessToken !== token) {
+                return res.status(401).json({
+                    message: 'Unauthorized.',
+                    error: "chỉ 1 thiết bị được phép đăng nhập, hãy login lại",
+                });
+            }
             if (user) {
                 res.locals.isAuth = true;
                 req.user = user;
@@ -100,16 +107,10 @@ const isTeacher = async (req, res, next) => {
 
 const jwtAuthenticationOrNull = async (req, res, next) => {
     try {
-        let authorization = req.headers.authorization;
-        if (!authorization) {
+        let token = req.cookies.access_token;
+        if (!token) {
             next()
             return
-        }
-        let token = authorization.split(" ")[1]
-
-        if (!token) {
-            next();
-            return;
         }
         // verify jwt
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);

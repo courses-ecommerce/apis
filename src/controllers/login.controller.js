@@ -40,7 +40,7 @@ const postLogin = async (req, res, next) => {
         // save refresh token
         await AccountModel.updateOne(
             { _id: account._id },
-            { refreshToken }
+            { refreshToken, accessToken }
         )
         // send access token to client => use header beear authorization
         // keep access token as session if keepLogin is false
@@ -88,13 +88,17 @@ const postLoginWithGoogle = async (req, res, next) => {
         //save refresh token
         await AccountModel.updateOne(
             { _id: account._id },
-            { refreshToken }
+            { refreshToken, accessToken }
         )
         // send access token to client => use header beear authorization
         // keep access token as session if keepLogin is false
         const expiresIn = keepLogin
             ? new Date(Date.now() + constants.COOKIE_EXPIRES_TIME)
             : 0
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            expires: expiresIn,
+        });
         return res.status(200).json({
             message: "Login success!",
             refreshToken,
@@ -139,7 +143,7 @@ const postLogout = async (req, res, next) => {
         // Xoá refreshToken
         await AccountModel.updateOne(
             { _id: user._id },
-            { refreshToken: null }
+            { refreshToken: null, accessToken: null }
         )
         return res.status(200).json({
             message: "Đăng xuất thành công!"
