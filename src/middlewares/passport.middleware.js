@@ -15,8 +15,15 @@ const jwtAuthentication = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
         if (decoded) {
             const { account } = decoded.sub;
-            const acc = await AccountModel.findById(account);
-            const user = await UserModel.findOne({ account: account })
+            const acc = await AccountModel.findById(account).lean();
+            const user = await UserModel.findOne({ account: account }).lean()
+            // kiểm tra access token (mục đích chỉ 1 thiết bị được đăng nhập)
+            if (acc.accessToken !== token) {
+                return res.status(401).json({
+                    message: 'Unauthorized.',
+                    error: "chỉ 1 thiết bị được phép đăng nhập, hãy login lại",
+                });
+            }
             if (user) {
                 res.locals.isAuth = true;
                 req.user = user;
