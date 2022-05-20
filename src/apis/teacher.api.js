@@ -6,7 +6,10 @@ const accessControl = require('../middlewares/access_control.middleware')
 
 
 // api: lấy thông tin khoá học đã tạo
-teacherApis.get('/', passport.jwtAuthentication, teacherController.getMyCourses)
+teacherApis.get('/courses', passport.jwtAuthentication, teacherController.getMyCourses)
+
+// api: lấy thông tin teacher
+teacherApis.get('/info', passport.jwtAuthentication, teacherController.getMyCourses)
 
 
 module.exports = teacherApis

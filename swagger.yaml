@@ -33,6 +33,8 @@ tags:
     description: apis liên quan nhắn tin
   - name: teacher
     description: apis liên quan teacher
+  - name: invoice
+    description: apis liên quan hoá đơn
 
 # Basic authentication
 components:
@@ -82,6 +84,28 @@ components:
           type: string
       required:
         - "fullName"
+
+    Teacher:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        payments:
+          type: object
+          properties:
+            accountNumber:
+              type: string
+            cardNumber:
+              type: string
+            name:
+              type: string
+            bankName:
+              type: string
+        description:
+          type: string
+      required:
+        - "user"
+
     Cart:
       type: object
       properties:
@@ -91,7 +115,7 @@ components:
           $ref: "#/components/schemas/Course"
         coupon:
           type: string
-    createCartDto:
+    CreateCartDto:
       type: object
       properties:
         course:
@@ -99,7 +123,6 @@ components:
           description: "mã khoá học"
         coupon:
           type: string
-
     Verify:
       type: object
       properties:
@@ -307,6 +330,33 @@ components:
         - transactionId
         - user
         - totalPrice
+    DetailInvoice:
+      type: object
+      properties:
+        invoice:
+          $ref: "#/components/schemas/Invoice"
+        courseId:
+          type: string
+        courseSlug:
+          type: string
+        courseName:
+          type: string
+        courseCurrentPrice:
+          type: number
+        courseAuthor:
+          type: string
+        couponCode:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+      required:
+        - _id
+        - transactionId
+        - user
+        - totalPrice
+
     Conversation:
       type: object
       properties:
@@ -672,7 +722,7 @@ paths:
         500:
           description: "SERVER ERROR"
 
-  /teacher:
+  /teacher/courses:
     get:
       tags:
         - teacher
@@ -702,8 +752,115 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /teacher/info:
+    get:
+      tags:
+        - teacher
+      summary: lấy thông tin của giảng viên
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Course"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
 
-  /users:
+  /invoices:
+    get:
+      tags:
+        - invoice
+      summary: Lấy danh sách hoá đơn và phân trang
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: transaction
+          in: query
+          schema:
+            type: string
+        - name: user
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Invoice"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /invoices/{id}:
+    get:
+      tags:
+        - invoice
+      summary: Lấy chi tiết hoá đơn
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/DetailInvoice"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - invoice
+      summary: Cập nhật hoá đơn
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["Paid", "Refund"]
+      responses:
+        200:
+          description: "update ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /user:
     get:
       tags:
         - user
@@ -724,7 +881,7 @@ paths:
     put:
       tags:
         - user
-      summary: lấy thông tin user hiện tại
+      summary: cập nhật thông tin user hiện tại
       description: ""
       requestBody:
         content:
@@ -754,7 +911,52 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /users/history:
+    post:
+      tags:
+        - user
+      summary: đăng ký trở thành instructor
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /user/invoices:
+    get:
+      tags:
+        - user
+      summary: lấy lịch sử thanh toán
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - "Paid"
+              - "Refund"
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/DetailInvoice"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /user/history:
     get:
       tags:
         - user
@@ -814,7 +1016,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/createCartDto"
+              $ref: "#/components/schemas/CreateCartDto"
       responses:
         200:
           description: "ok"

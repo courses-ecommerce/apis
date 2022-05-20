@@ -47,8 +47,13 @@ const getMyCourses = async (req, res, next) => {
     }
 }
 
+// fn: lấy info teacher
+const getMyInfo = async (req, res, next) => {
+
+}
 
 
 module.exports = {
-    getMyCourses
+    getMyCourses,
+    getMyInfo
 }

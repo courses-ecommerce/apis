@@ -20,6 +20,7 @@ const teacherApis = require('./src/apis/teacher.api');
 const paymentApis = require('./src/apis/payment.api');
 const couponApis = require('./src/apis/coupon.api');
 const chatApis = require('./src/apis/chat.api');
+const invoiceApis = require('./src/apis/invoice.api');
 // apis for admin
 const adminUserApis = require('./src/apis/adminUser.api');
 
@@ -47,7 +48,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 app.use('/api/accounts', accountApis)
-app.use('/api/users', userApis)
+app.use('/api/user', userApis)
 app.use('/api/teachers', teacherApis)
 app.use('/api/carts', cartApis)
 app.use('/api/categories', categoryApis)
@@ -56,6 +57,7 @@ app.use('/api/coupons', couponApis)
 app.use('/api/login', loginApis)
 app.use('/api/payment', paymentApis)
 app.use('/api/chat', chatApis)
+app.use('/api/invoices', invoiceApis)
 app.use('/api/admin/users', adminUserApis)
 
 

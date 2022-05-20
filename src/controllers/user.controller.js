@@ -3,6 +3,7 @@ const AccountModel = require('../models/users/account.model');
 const TeacherModel = require('../models/users/teacher.model')
 const HistorySearchModel = require('../models/users/historySearch.model');
 const HistoryViewModel = require('../models/users/historyView.model');
+const InvoiceModel = require('../models/invoice.model');
 
 // fn: lấy thông tin user hiện tại
 const getUser = async (req, res, next) => {
@@ -67,10 +68,59 @@ const getHistorySearchAndView = async (req, res, next) => {
     }
 }
 
+// fn: lấy lịch sử thanh toán
+const getMyInvoices = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 12, status } = req.query
+        const { user } = req
+        let query = [
+            {
+                $match: {
+                    user: user._id
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: "user"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'detailInvoices',
+                    localField: '_id',
+                    foreignField: 'invoice',
+                    as: "detailInvoices"
+                }
+            },
+            { $limit: parseInt(limit) },
+            { $skip: (parseInt(page) - 1) * parseInt(limit) },
+        ]
+
+        if (status) {
+            query.push({ $match: { status: status } })
+        }
+
+        const invoices = await InvoiceModel.aggregate(query)
+        query.push({ $count: "total" })
+        const totalCount = await InvoiceModel.aggregate(query)
+        const totalInvoice = totalCount[0] || 0
+
+        res.status(200).json({ message: 'ok', totalInvoice, invoices })
+
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ message: "error" })
+    }
+}
+
 
 module.exports = {
     getUser,
     putUser,
     postActiveTeacherRole,
-    getHistorySearchAndView
+    getHistorySearchAndView,
+    getMyInvoices,
 }

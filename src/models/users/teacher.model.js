@@ -10,7 +10,8 @@ const teacherSchema = new Schema({
     payments: {
         accountNumber: { type: String },
         cardNumber: { type: String },
-        name: { type: String }
+        name: { type: String },
+        bankName: { type: String },
     },
     description: {
         type: String
