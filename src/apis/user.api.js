@@ -17,7 +17,8 @@ userApis.post('/', passport.jwtAuthentication, userController.postActiveTeacherR
 // api: lấy lịch sử tìm kiếm
 userApis.get('/history', passport.jwtAuthentication, userController.getHistorySearchAndView)
 
-// api: lấy lịch sử xem
+// api: lấy lịch sử thanh toán
+userApis.get('/invoices', passport.jwtAuthentication, userController.getMyInvoices)
 
 
 module.exports = userApis
