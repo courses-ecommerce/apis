@@ -14,4 +14,10 @@ userApis.put('/', passport.jwtAuthentication, userController.putUser)
 // api: kích hoạt teacher role
 userApis.post('/', passport.jwtAuthentication, userController.postActiveTeacherRole)
 
+// api: lấy lịch sử tìm kiếm
+userApis.get('/history', passport.jwtAuthentication, userController.getHistorySearchAndView)
+
+// api: lấy lịch sử xem
+
+
 module.exports = userApis

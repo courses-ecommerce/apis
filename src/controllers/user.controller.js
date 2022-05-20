@@ -1,7 +1,8 @@
 const UserModel = require('../models/users/user.model');
 const AccountModel = require('../models/users/account.model');
 const TeacherModel = require('../models/users/teacher.model')
-
+const HistorySearchModel = require('../models/users/historySearch.model');
+const HistoryViewModel = require('../models/users/historyView.model');
 
 // fn: lấy thông tin user hiện tại
 const getUser = async (req, res, next) => {
@@ -48,10 +49,28 @@ const postActiveTeacherRole = async (req, res, next) => {
     }
 }
 
+// fn: lấy lịch sử tìm kiếm
+const getHistorySearchAndView = async (req, res, next) => {
+    try {
+        const { user } = req
+        // lấy lich sử tìm
+        const historySearch = await HistorySearchModel.findOne({ user }).select('historySearchs -_id').lean()
+        // lấy lich sử xem
+        const historyView = await HistoryViewModel.findOne({ user }).select('historyViews -_id')
+            .populate({ path: 'historyViews', model: 'course', select: '_id name slug thumbnail' })
+            .lean()
+
+        res.status(200).json({ message: "ok", historySearch, historyView })
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ message: "error" })
+    }
+}
 
 
 module.exports = {
     getUser,
     putUser,
     postActiveTeacherRole,
+    getHistorySearchAndView
 }

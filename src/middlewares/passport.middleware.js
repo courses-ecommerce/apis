@@ -100,16 +100,10 @@ const isTeacher = async (req, res, next) => {
 
 const jwtAuthenticationOrNull = async (req, res, next) => {
     try {
-        let authorization = req.headers.authorization;
-        if (!authorization) {
+        let token = req.cookies.access_token;
+        if (!token) {
             next()
             return
-        }
-        let token = authorization.split(" ")[1]
-
-        if (!token) {
-            next();
-            return;
         }
         // verify jwt
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);

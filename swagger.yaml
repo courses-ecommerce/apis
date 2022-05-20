@@ -754,6 +754,32 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /users/history:
+    get:
+      tags:
+        - user
+      summary: lấy lịch sử tìm kiếm và xem user hiện tại
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  historySearchs:
+                    type: array
+                    items:
+                      type: string
+                  historyViews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Course"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
 
   /carts:
     get:

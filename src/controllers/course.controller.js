@@ -4,6 +4,7 @@ const LessonModel = require('../models/courses/lesson.model');
 const RateModel = require('../models/courses/rate.model');
 const CommentModel = require('../models/courses/comment.model');
 const HistorySearchModel = require('../models/users/historySearch.model');
+const HistoryViewModel = require('../models/users/historyView.model');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
@@ -300,6 +301,8 @@ const getCourses = async (req, res, next) => {
 const getCourse = async (req, res, next) => {
     try {
         const { slug } = req.params
+        const { user } = req
+
         // lấy thông tin khoá học
         const course = await CourseModel.aggregate([
             {
@@ -375,8 +378,23 @@ const getCourse = async (req, res, next) => {
                 }
             },
         ])
-
-        return res.status(200).json({ message: 'ok', course })
+        res.status(200).json({ message: 'ok', course })
+        // lưu lịch sử xem
+        if (user) {
+            await HistoryViewModel.findOneAndUpdate(
+                { user: req.user._id },
+                {
+                    $push: {
+                        historyViews: {
+                            $each: [course[0]._id],
+                            $position: 0,
+                            $slice: 10
+                        }
+                    }
+                },
+                { upsert: true }
+            )
+        }
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })
