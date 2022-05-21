@@ -47,10 +47,10 @@ const postLogin = async (req, res, next) => {
         const expiresIn = keepLogin
             ? new Date(Date.now() + constants.COOKIE_EXPIRES_TIME)
             : 0
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            expires: expiresIn,
-        });
+        // res.cookie('access_token', accessToken, {
+        //     httpOnly: true,
+        //     expires: expiresIn,
+        // });
         return res.status(200).json({
             message: "Login success!",
             refreshToken,
@@ -95,10 +95,10 @@ const postLoginWithGoogle = async (req, res, next) => {
         const expiresIn = keepLogin
             ? new Date(Date.now() + constants.COOKIE_EXPIRES_TIME)
             : 0
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            expires: expiresIn,
-        });
+        // res.cookie('access_token', accessToken, {
+        //     httpOnly: true,
+        //     expires: expiresIn,
+        // });
         return res.status(200).json({
             message: "Login success!",
             refreshToken,
@@ -145,7 +145,7 @@ const postLogout = async (req, res, next) => {
             { _id: account._id },
             { refreshToken: null, accessToken: null }
         )
-        res.clearCookie('access_token');
+        // res.clearCookie('access_token');
         res.status(200).json({
             message: "Đăng xuất thành công!",
         })

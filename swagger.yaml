@@ -266,7 +266,9 @@ components:
         lang:
           type: string
         intendedLearners:
-          type: string
+          type: array
+          items:
+            type: string
         level:
           type: string
         targets:

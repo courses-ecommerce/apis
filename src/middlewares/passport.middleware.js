@@ -9,7 +9,8 @@ const passport = require("passport")
 const jwtAuthentication = async (req, res, next) => {
     try {
         res.locals.isAuth = false
-        let token = req.cookies.access_token;
+        let authorization = req.headers.authorization;
+        let token = authorization.split(" ")[1]
         //if not exist cookie[access_token] -> isAuth = false -> next
         //verify jwt
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -38,36 +39,7 @@ const jwtAuthentication = async (req, res, next) => {
         });
     }
 }
-// const jwtAuthentication = async (req, res, next) => {
-//     try {
-//         res.locals.isAuth = false
-//         let authorization = req.headers.authorization;
-//         let token = authorization.split(" ")[1]
-//         //if not exist cookie[access_token] -> isAuth = false -> next
-//         if (!token) {
-//             next();
-//             return;
-//         }
-//         //verify jwt
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-//         if (decoded) {
-//             const { account } = decoded.sub;
-//             const acc = await AccountModel.findById(account);
-//             const user = await UserModel.findOne({ account: account })
-//             if (user) {
-//                 res.locals.isAuth = true;
-//                 req.user = user;
-//                 req.account = acc;
-//             }
-//         }
-//         next();
-//     } catch (error) {
-//         return res.status(401).json({
-//             message: 'Unauthorized.',
-//             error,
-//         });
-//     }
-// }
+
 
 const isAdmin = async (req, res, next) => {
     try {
@@ -107,7 +79,8 @@ const isTeacher = async (req, res, next) => {
 
 const jwtAuthenticationOrNull = async (req, res, next) => {
     try {
-        let token = req.cookies.access_token;
+        let authorization = req.headers.authorization;
+        let token = authorization.split(" ")[1]
         if (!token) {
             next()
             return
@@ -127,6 +100,7 @@ const jwtAuthenticationOrNull = async (req, res, next) => {
 
         next();
     } catch (error) {
+        console.log(error);
         next()
     }
 }
