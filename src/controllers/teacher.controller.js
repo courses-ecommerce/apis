@@ -39,8 +39,8 @@ const getMyCourses = async (req, res, next) => {
         const courses = await CourseModel.aggregate(query)
         query.push({ $count: "total" })
         const totalCourse = await CourseModel.aggregate(query)
-        let totalCount = totalCourse[0] || 0
-        res.status(200).json({ message: 'ok', totalCount, courses })
+        let total = totalCourse[0]?.total || 0
+        res.status(200).json({ message: 'ok', total, courses })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'error' })

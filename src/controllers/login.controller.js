@@ -139,14 +139,15 @@ const postSignup = async (req, res, next) => {
 // fn: Đăng xuất
 const postLogout = async (req, res, next) => {
     try {
-        const user = req.user
+        const account = req.account
         // Xoá refreshToken
         await AccountModel.updateOne(
-            { _id: user._id },
+            { _id: account._id },
             { refreshToken: null, accessToken: null }
         )
-        return res.status(200).json({
-            message: "Đăng xuất thành công!"
+        res.clearCookie('access_token');
+        res.status(200).json({
+            message: "Đăng xuất thành công!",
         })
     } catch (error) {
         return res.status(500).json({

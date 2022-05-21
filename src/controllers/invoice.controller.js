@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 
 
-// fn: get all invoice
+// fn: get all invoice và phân trang
 const getInvoices = async (req, res, next) => {
     try {
         const { page = 1, limit = 10, sort, status, transaction, user } = req.query
@@ -40,8 +40,8 @@ const getInvoices = async (req, res, next) => {
         const invoices = await InvoiceModel.aggregate(query)
         query.push({ $count: "total" })
         const totalCount = await InvoiceModel.aggregate(query)
-        const totalInvoice = totalCount[0] || 0
-        res.status(200).json({ message: 'ok', totalInvoice, invoices, page, limit })
+        const total = totalCount[0]?.total || 0
+        res.status(200).json({ message: 'ok', total, invoices, page, limit })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })

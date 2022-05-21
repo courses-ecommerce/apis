@@ -106,9 +106,9 @@ const getMyInvoices = async (req, res, next) => {
         const invoices = await InvoiceModel.aggregate(query)
         query.push({ $count: "total" })
         const totalCount = await InvoiceModel.aggregate(query)
-        const totalInvoice = totalCount[0] || 0
+        const total = totalCount[0]?.total || 0
 
-        res.status(200).json({ message: 'ok', totalInvoice, invoices })
+        res.status(200).json({ message: 'ok', total, invoices })
 
     } catch (error) {
         console.log(error);

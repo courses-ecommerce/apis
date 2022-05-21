@@ -4,8 +4,7 @@ const adminUserController = require('../controllers/adminUser.controller');
 const passport = require('../middlewares/passport.middleware');
 
 // api: lấy danh sách tài khoản use
-// adminUserApis.get('/', passport.jwtAuthentication, passport.isAdmin, adminUserController.getAccountAndUsers)
-adminUserApis.get('/', adminUserController.getAccountAndUsers)
+adminUserApis.get('/', passport.jwtAuthentication, passport.isAdmin, adminUserController.getAccountAndUsers)
 
 // api: lấy chi tiết 1 tài khoản bằng id
 adminUserApis.get('/:id', passport.jwtAuthentication, passport.isAdmin, adminUserController.getDetailAccountAndUser)

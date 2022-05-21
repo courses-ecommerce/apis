@@ -285,12 +285,12 @@ const getCourses = async (req, res, next) => {
                 aQuery.push({ $sort: sortBy })
             }
         }
+
         aCountQuery.push({ $count: "total" })
         const courses = await CourseModel.aggregate(aQuery)
-
         const totalCourse = await CourseModel.aggregate(aCountQuery)
-        let totalCount = totalCourse[0] || 0
-        return res.status(200).json({ message: 'ok', searchKey, totalCount, courses })
+        let total = totalCourse[0]?.total || 0
+        return res.status(200).json({ message: 'ok', searchKey, total, courses })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })
@@ -319,11 +319,11 @@ const getCourse = async (req, res, next) => {
                                 _id: '$course',
                                 rate: { $avg: '$rate' },
                                 numOfRate: { $count: {} },
-                                start5: { $sum: { $cond: [{ $eq: ['$rate', 5] }, 1, 0] } },
-                                start4: { $sum: { $cond: [{ $eq: ['$rate', 4] }, 1, 0] } },
-                                start3: { $sum: { $cond: [{ $eq: ['$rate', 3] }, 1, 0] } },
-                                start2: { $sum: { $cond: [{ $eq: ['$rate', 2] }, 1, 0] } },
-                                start1: { $sum: { $cond: [{ $eq: ['$rate', 1] }, 1, 0] } },
+                                star5: { $sum: { $cond: [{ $eq: ['$rate', 5] }, 1, 0] } },
+                                star4: { $sum: { $cond: [{ $eq: ['$rate', 4] }, 1, 0] } },
+                                star3: { $sum: { $cond: [{ $eq: ['$rate', 3] }, 1, 0] } },
+                                star2: { $sum: { $cond: [{ $eq: ['$rate', 2] }, 1, 0] } },
+                                star1: { $sum: { $cond: [{ $eq: ['$rate', 1] }, 1, 0] } },
                             },
                         }
                     ],
@@ -366,11 +366,11 @@ const getCourse = async (req, res, next) => {
                     'sellNumber': 1,
                     'rating.rate': 1,
                     'rating.numOfRate': 1,
-                    'rating.start5': 1,
-                    'rating.start4': 1,
-                    'rating.start3': 1,
-                    'rating.start2': 1,
-                    'rating.start1': 1,
+                    'rating.star5': 1,
+                    'rating.star4': 1,
+                    'rating.star3': 1,
+                    'rating.star2': 1,
+                    'rating.star1': 1,
                     'author._id': 1,
                     'author.fullName': 1,
                     'hashtags': 1,
@@ -596,7 +596,7 @@ const getRates = async (req, res, next) => {
         if (!course) return res.status(404).json({ message: "Course not found" })
         // lấy thông tin đánh giá khoá học
         const rates = await RateModel.find({ course: course._id })
-            .select('-__v -_id -course')
+            .select('-__v -course')
             .populate('author', '_id fullName')
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))

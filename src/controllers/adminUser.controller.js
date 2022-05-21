@@ -40,7 +40,7 @@ const getAccountAndUsers = async (req, res, next) => {
         }
         if (sort) {
             let sortBy = {}
-            let [f, v] = sort.split('_')
+            let [f, v] = sort.split('-')
             sortBy[f] = v == "asc" || v == 1 ? 1 : -1
             aQuery.push({ $sort: sortBy })
         }
@@ -64,9 +64,9 @@ const getAccountAndUsers = async (req, res, next) => {
             $count: 'total'
         })
         const totalUsers = await UserModel.aggregate(aCountQuery)
-        let totalCount = totalUsers[0] || 0
+        let total = totalUsers[0]?.total || 0
         const users = await UserModel.aggregate(aQuery)
-        return res.status(200).json({ message: "ok", totalCount, users })
+        return res.status(200).json({ message: "ok", total, users })
     } catch (error) {
         console.error('> error :: ', error);
         return res.status(500).json({ message: 'error' })

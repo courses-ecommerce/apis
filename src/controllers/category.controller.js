@@ -35,10 +35,11 @@ const getCategories = async (req, res, next) => {
         }
         aCountQuery.push({ $count: "total" })
 
-        const total = await CategoryModel.aggregate(aCountQuery)
+        const totalCount = await CategoryModel.aggregate(aCountQuery)
+        const total = totalCount[0]?.total || 0
 
         const categories = await CategoryModel.aggregate(aQuery)
-        return res.status(200).json({ message: 'ok', totalCount: total, categories })
+        return res.status(200).json({ message: 'ok', total, categories })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'error' })

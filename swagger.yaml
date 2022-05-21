@@ -43,6 +43,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
   schemas:
     Account:
       type: object
@@ -61,12 +65,46 @@ components:
             - admin
         refreshToken:
           type: string
+        accessToken:
+          type: string
         isActive:
           type: boolean
           default: true
       required:
         - email
         - password
+    CreateAccountDto:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+            - student
+            - teacher
+            - admin
+      required:
+        - email
+        - password
+    UpdateAccountDto:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+            - student
+            - teacher
+            - admin
+        isActive:
+          type: boolean
+
     User:
       type: object
       properties:
@@ -84,6 +122,35 @@ components:
           type: string
       required:
         - "fullName"
+    CreateUserDto:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+        fullName:
+          type: string
+        birthday:
+          type: string
+        gender:
+          type: boolean
+        phone:
+          type: string
+        avatar:
+          type: string
+      required:
+        - "fullName"
+        - "account"
+    UpdateUserDto:
+      type: object
+      properties:
+        fullName:
+          type: string
+        birthday:
+          type: string
+        gender:
+          type: boolean
+        phone:
+          type: string
 
     Teacher:
       type: object
@@ -105,6 +172,22 @@ components:
           type: string
       required:
         - "user"
+    UpdateTeacherDto:
+      type: object
+      properties:
+        payments:
+          type: object
+          properties:
+            accountNumber:
+              type: string
+            cardNumber:
+              type: string
+            name:
+              type: string
+            bankName:
+              type: string
+        description:
+          type: string
 
     Cart:
       type: object
@@ -123,6 +206,14 @@ components:
           description: "mã khoá học"
         coupon:
           type: string
+          description: mã giảm giá
+      required: [course]
+    UpdateCartDto:
+      type: object
+      properties:
+        coupon:
+          type: string
+
     Verify:
       type: object
       properties:
@@ -132,6 +223,7 @@ components:
           type: string
         dateCreated:
           type: number
+
     Category:
       type: object
       properties:
@@ -144,6 +236,20 @@ components:
           default: false
       required:
         - name
+    CreateCategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+      required: [name]
+    UpdateCategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+        publish:
+          type: boolean
+
     Course:
       type: object
       properties:
@@ -195,6 +301,77 @@ components:
         - targets
         - category
         - description
+    CreateCourseDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+        thumbnail:
+          type: string
+        description:
+          type: string
+        lang:
+          type: string
+        intendedLearners:
+          type: string
+        level:
+          type: string
+        targets:
+          type: array
+          items:
+            type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        currentPrice:
+          type: number
+        originalPrice:
+          type: number
+        hashtags:
+          type: array
+          items:
+            type: string
+      required:
+        [name, category, description, targets, currentPrice, originalPrice]
+    UpdateCourseDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        lang:
+          type: string
+        intendedLearners:
+          type: array
+          items:
+            type: string
+        level:
+          type: string
+          enum: ["all", "beginer", "intermediate", "expert"]
+        targets:
+          type: array
+          items:
+            type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        currentPrice:
+          type: number
+        originalPrice:
+          type: number
+        hashtags:
+          type: array
+          items:
+            type: string
+        publish:
+          type: boolean
     Rate:
       type: object
       properties:
@@ -216,6 +393,28 @@ components:
         - course
         - author
         - rate
+    CreateRateDto:
+      type: object
+      properties:
+        course:
+          $ref: "#components/schemas/Course"
+        rate:
+          type: number
+          enum: [1, 2, 3, 4, 5]
+        content:
+          type: string
+      required:
+        - course
+        - rate
+    UpdateRateDto:
+      type: object
+      properties:
+        rate:
+          type: number
+          enum: [1, 2, 3, 4, 5]
+        content:
+          type: string
+
     Comment:
       type: object
       properties:
@@ -234,15 +433,34 @@ components:
                 type: string
         content:
           type: string
+
     Chapter:
       type: object
       properties:
         course:
-          $ref: "#components/schemas/Course"
+          $ref: "#/components/schemas/Course"
         number:
           type: number
         name:
           type: string
+    CreateChapterDto:
+      type: object
+      properties:
+        course:
+          $ref: "#/components/schemas/Course"
+        number:
+          type: number
+        name:
+          type: string
+      required: [course, name]
+    UpdateChapterDto:
+      type: object
+      properties:
+        number:
+          type: number
+        name:
+          type: string
+
     Lesson:
       type: object
       properties:
@@ -312,6 +530,99 @@ components:
         - type
         - apply
         - amount
+    CreateCouponDto:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum:
+            - percent
+            - money
+        apply:
+          type: object
+          properties:
+            to:
+              type: string
+              enum:
+                - author
+                - all
+                - category
+                - new user
+            value:
+              type: array
+              items:
+                type: string
+        amount:
+          type: number
+        startDate:
+          type: string
+          format: date
+        expireDate:
+          type: string
+          format: date
+        maxDiscount:
+          type: number
+          default: Infinity
+          description: "mặc định là vô cực"
+        minPrice:
+          type: number
+          default: 0
+        number:
+          type: number
+          default: Infinity
+          description: "mặc định là vô cực"
+      required:
+        - code
+        - title
+        - type
+        - apply
+        - amount
+    UpdateCouponDto:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum:
+            - percent
+            - money
+        apply:
+          type: object
+          properties:
+            to:
+              type: string
+              enum:
+                - author
+                - all
+                - category
+                - new user
+            value:
+              type: array
+              items:
+                type: string
+        amount:
+          type: number
+        startDate:
+          type: string
+        expireDate:
+          type: string
+        maxDiscount:
+          type: number
+          default: Infinity
+        minPrice:
+          type: number
+          default: 0
+        number:
+          type: number
+          default: Infinity
+
     Invoice:
       type: object
       properties:
@@ -330,6 +641,13 @@ components:
         - transactionId
         - user
         - totalPrice
+    UpdateInvoiceDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["Unpaid", "Paid", "Refund"]
+
     DetailInvoice:
       type: object
       properties:
@@ -747,7 +1065,11 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Course"
+                properties:
+                  total:
+                    type: number
+                  courses:
+                    $ref: "#/components/schemas/Course"
         401:
           description: "Unauthorize"
         500:
@@ -803,7 +1125,13 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Invoice"
+                properties:
+                  total:
+                    type: number
+                  invoices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Invoice"
         401:
           description: "Unauthorize"
         500:
@@ -847,11 +1175,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  enum: ["Paid", "Refund"]
+              $ref: "#/components/schemas/UpdateInvoiceDto"
       responses:
         200:
           description: "update ok"
@@ -885,7 +1209,7 @@ paths:
       description: ""
       requestBody:
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
               type: object
               properties:
@@ -899,6 +1223,10 @@ paths:
                   type: string
                 avatar:
                   type: string
+                  format: binary
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserDto"
       responses:
         200:
           description: "ok"
@@ -922,7 +1250,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/Teacher"
 
         401:
           description: "Unauthorize"
@@ -951,7 +1279,11 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/DetailInvoice"
+                properties:
+                  total:
+                    type: number
+                  invoices:
+                    $ref: "#/components/schemas/DetailInvoice"
         401:
           description: "Unauthorize"
         500:
@@ -1024,6 +1356,7 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /carts/{course}:
     put:
       tags:
         - cart
@@ -1039,10 +1372,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                coupon:
-                  type: string
+              $ref: "#/components/schemas/UpdateCartDto"
       responses:
         200:
           description: "update ok"
@@ -1096,7 +1426,13 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Category"
+                properties:
+                  total:
+                    type: number
+                  invoices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
         401:
           description: "Unauthorize"
         500:
@@ -1142,16 +1478,13 @@ paths:
           schema:
             type: string
       requestBody:
-        description: "form data"
         content:
           application/x-www-form-urlencoded:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                publish:
-                  type: boolean
+              $ref: "#/components/schemas/UpdateCategoryDto"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCategoryDto"
       responses:
         200:
           description: "ok"
@@ -1340,11 +1673,8 @@ paths:
                         type: string
                       original:
                         type: string
-                  totalCount:
-                    type: object
-                    properties:
-                      total:
-                        type: number
+                  total:
+                    type: number
                   courses:
                     type: array
                     items:
@@ -1367,45 +1697,11 @@ paths:
           schema:
             type: string
       requestBody:
-        description: "form data"
+        description: "Nếu update có ảnh thì dùng multipart/form-data, còn lại thì nên dùng application/json"
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                category:
-                  type: string
-                description:
-                  type: string
-                lang:
-                  type: string
-                intendedLearners:
-                  type: array
-                  items:
-                    type: string
-                requirements:
-                  type: array
-                  items:
-                    type: string
-                targets:
-                  type: array
-                  items:
-                    type: string
-                level:
-                  type: string
-                  enum: ["all", "beginer", "intermediate", "expert"]
-                currentPrice:
-                  type: number
-                originalPrice:
-                  type: number
-                hashtags:
-                  type: array
-                  items:
-                    type: string
-                publish:
-                  type: boolean
+              $ref: "#/components/schemas/UpdateCourseDto"
           multipart/form-data:
             schema:
               type: object
@@ -1415,22 +1711,19 @@ paths:
                 thumbnail:
                   type: string
                   format: binary
-                categories:
-                  type: array
-                  items:
-                    type: string
+                category:
+                  type: string
                 description:
                   type: string
-                introduction:
+                lang:
                   type: string
+                level:
+                  type: string
+                  enum: ["all", "beginer", "intermediate", "expert"]
                 currentPrice:
                   type: number
                 originalPrice:
                   type: number
-                tags:
-                  type: array
-                  items:
-                    type: string
                 publish:
                   type: boolean
 
@@ -1590,6 +1883,7 @@ paths:
           description: "Không được phép đánh giá! Chưa mua khoá học này."
         500:
           description: "SERVER ERROR"
+  /rate/{id}:
     put:
       tags:
         - rate
@@ -1606,12 +1900,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                rate:
-                  type: number
-                content:
-                  type: string
+              $ref: "#/components/schemas/UpdateRateDto"
       responses:
         201:
           description: "ok"
@@ -1788,7 +2077,13 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Coupon"
+                properties:
+                  total:
+                    type: number
+                  coupons:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Coupon"
         500:
           description: "SERVER ERROR"
     post:
@@ -1799,10 +2094,9 @@ paths:
       requestBody:
         description: "Thông tin coupon"
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              type: object
-              $ref: "#/components/schemas/Coupon"
+              $ref: "#/components/schemas/CreateCouponDto"
       responses:
         201:
           description: "ok"
@@ -1828,7 +2122,7 @@ paths:
           application/json:
             schema:
               type: object
-              $ref: "#/components/schemas/Coupon"
+              $ref: "#/components/schemas/UpdateCouponDto"
       responses:
         200:
           description: "ok"
@@ -2003,7 +2297,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
         401:
           description: "Unauthorize"
         500:
@@ -2052,7 +2351,7 @@ paths:
             type: string
         - name: sort
           in: query
-          description: "example: ?sort=email_asc"
+          description: "example: ?sort=email-asc"
           schema:
             type: string
       responses:
@@ -2061,7 +2360,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  total:
+                    type: number
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        401:
+          description: "Unauthorize"
         500:
           description: "SERVER ERROR"
     post:
@@ -2100,6 +2408,30 @@ paths:
           description: "ok"
         401:
           description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /admin/users/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: lấy chi tiết tài khoản người dùng
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          description: ""
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         500:
           description: "SERVER ERROR"
     put:

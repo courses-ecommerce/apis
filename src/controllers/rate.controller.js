@@ -3,7 +3,7 @@ const CourseModel = require('../models/courses/course.model')
 const MyCourseModel = require('../models/users/myCourse.model')
 
 
-
+// fn: tạo mới đánh giá
 const postRate = async (req, res, next) => {
     try {
         const { slug, rate, content } = req.body
@@ -28,6 +28,7 @@ const postRate = async (req, res, next) => {
     }
 }
 
+// fn: cập nhật đánh giá
 const putRate = async (req, res, next) => {
     try {
         const { id } = req.params

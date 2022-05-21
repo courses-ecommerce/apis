@@ -14,7 +14,7 @@ loginApis.post("/google", passport.authenticate("google-token", { session: false
 loginApis.post("/logout", passportAuth.jwtAuthentication, loginController.postLogout)
 
 // api: get new token
-loginApis.post("/refresh-token", loginController.postRefreshToken)
+loginApis.post("/refresh-token", passportAuth.jwtAuthentication, loginController.postRefreshToken)
 
 
 module.exports = loginApis

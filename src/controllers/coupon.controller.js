@@ -1,5 +1,6 @@
 const CouponModel = require('../models/coupon.model');
 
+// fn: lấy danh sách mã và phân trang
 const getCoupons = async (req, res, next) => {
     try {
         const { page = 1, limit = 12, active, code } = req.query
@@ -38,26 +39,30 @@ const getCoupons = async (req, res, next) => {
             })
         }
         const coupons = await CouponModel.aggregate(aQuery)
-        return res.status(200).json({ message: 'ok', coupons })
-    } catch (error) {
+        aQuery.push({ $count: "total" })
+        const totalCount = await CouponModel.aggregate(aQuery)
+        const total = totalCount[0]?.total || 0
 
+        return res.status(200).json({ message: 'ok', total, coupons })
+    } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
     }
 }
 
-
+// fn: lấy chi tiết mã
 const getCoupon = async (req, res, next) => {
     try {
         const { code } = req.query
         const coupon = await CouponModel.findOne({ code }).lean()
         return res.status(200).json({ message: 'ok', coupon })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
-
     }
 }
 
-
+// fn: tạo mới mã
 const postCoupon = async (req, res, next) => {
     try {
         const user = req.user
@@ -76,6 +81,7 @@ const postCoupon = async (req, res, next) => {
     }
 }
 
+// fn: cập nhật mã
 const updateCoupon = async (req, res, next) => {
     try {
         const { code } = req.params
@@ -83,18 +89,20 @@ const updateCoupon = async (req, res, next) => {
         await CouponModel.updateOne({ code }, newCoupon)
         return res.status(200).json({ message: "update ok" })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
     }
 }
 
+// fn: xoá mã
 const deleteCoupon = async (req, res, next) => {
     try {
         const { code } = req.params
         await CouponModel.deleteOne({ code })
         return res.status(200).json({ message: "delete ok" })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
-
     }
 }
 
