@@ -133,7 +133,7 @@ const putAccountAndUser = async (req, res, next) => {
             );
             account.password = hashPassword
             if (account.isActive) {
-                account.isActive = account.isActive == 'true'
+                account.isActive = JSON.stringify(account.isActive) == 'true'
             }
             await AccountModel.updateOne({ _id: user.account }, account)
         }

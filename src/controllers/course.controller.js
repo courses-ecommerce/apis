@@ -65,7 +65,7 @@ const putCourse = async (req, res, next) => {
         }
         if (newCourse.publish) {
             if (account.role == "admin") {
-                newCourse.publish = newCourse.publish == "true"
+                newCourse.publish = JSON.stringify(newCourse.publish) == "true"
             } else {
                 delete newCourse.publish
             }
