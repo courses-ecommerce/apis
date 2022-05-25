@@ -4,6 +4,8 @@ const TeacherModel = require('../models/users/teacher.model')
 const HistorySearchModel = require('../models/users/historySearch.model');
 const HistoryViewModel = require('../models/users/historyView.model');
 const InvoiceModel = require('../models/invoice.model');
+const helper = require('../helper');
+const uniqid = require('uniqid');
 
 // fn: lấy thông tin user hiện tại
 const getUser = async (req, res, next) => {
@@ -20,8 +22,17 @@ const getUser = async (req, res, next) => {
 // fn: cập nhật thông tin user
 const putUser = async (req, res, next) => {
     try {
-        const newUser = req.body
+        var newUser = req.body
+        if (newUser.gender) {
+            newUser.gender = newUser.gender === 'true'
+        }
+        const image = req.file
         const { _id } = req.user
+        let avatar = ""
+        if (image) {
+            avatar = await helper.uploadImageToCloudinary(image, uniqid.time(), 'avatar')
+            newUser.avatar = avatar
+        }
         const user = await UserModel.findOneAndUpdate({ _id }, newUser, { new: true })
         res.status(200).json({ message: "update oke", user })
     } catch (error) {

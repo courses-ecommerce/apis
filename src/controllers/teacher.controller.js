@@ -49,11 +49,31 @@ const getMyCourses = async (req, res, next) => {
 
 // fn: lấy info teacher
 const getMyInfo = async (req, res, next) => {
-
+    try {
+        const { id } = req.params
+        const teacher = await TeacherModel.findById(id).lean()
+        res.status(200).json({ message: "oke", teacher })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'error' })
+    }
 }
 
+//fn: cập nhật teacher info
+const putMyInfo = async (req, res, next) => {
+    try {
+        const { user } = req
+        const newData = req.body
+        const teacher = await TeacherModel.findOneAndUpdate({ user: user._id }, newData, { new: true })
+        res.status(200).json({ message: "update oke", teacher })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'error' })
+    }
+}
 
 module.exports = {
     getMyCourses,
-    getMyInfo
+    getMyInfo,
+    putMyInfo,
 }

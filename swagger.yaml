@@ -126,7 +126,7 @@ components:
       type: object
       properties:
         account:
-          $ref: "#/components/schemas/Account"
+          type: string
         fullName:
           type: string
         birthday:
@@ -151,6 +151,9 @@ components:
           type: boolean
         phone:
           type: string
+        avatar:
+          type: string
+          format: binary
 
     Teacher:
       type: object
@@ -1076,12 +1079,18 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /teacher/info:
+  /teacher/info/{id}:
     get:
       tags:
         - teacher
       summary: lấy thông tin của giảng viên
       description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: "ok"
@@ -1089,7 +1098,36 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/Teacher"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - teacher
+      summary: cập nhật thông tin của giảng viên
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/UpdateTeacherDto"
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Teacher"
         401:
           description: "Unauthorize"
         500:

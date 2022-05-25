@@ -8,17 +8,22 @@ const CouponModel = require('../models/coupon.model')
 
 
 // fn: upload image to cloudinary
-const uploadImageToCloudinary = async (imageFile, name) => {
+const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") => {
     try {
         let slug = urlSlug(name)
         const result = await cloudinary.uploader.upload(imageFile.path, {
-            folder: `thumbnail`,
-            public_id: `${slug}`
+            folder: folder,
+            public_id: `${slug}`,
+            upload_preset: folder // chỉnh sửa size ảnh cho phù hợp 
         })
         const { secure_url } = result;
         return secure_url;
     } catch (error) {
-        return '/url/image.jpeg';
+        if (folder == "thumbnail") {
+            return 'https://res.cloudinary.com/uthcmc/image/upload/v1653155326/thumbnail/l3g5x9yl.png';
+        } else {
+            return 'https://res.cloudinary.com/uthcmc/image/upload/v1653154696/avatar/l3g5jrl7.png';
+        }
     }
 }
 

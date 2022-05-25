@@ -129,6 +129,9 @@ const putAccountAndUser = async (req, res, next) => {
                 parseInt(process.env.SALT_ROUND),
             );
             account.password = hashPassword
+            if (account.isActive) {
+                account.isActive = account.isActive == 'true'
+            }
             await AccountModel.updateOne({ _id: user.account }, account)
         }
         return res.status(200).json({ message: 'update ok' })

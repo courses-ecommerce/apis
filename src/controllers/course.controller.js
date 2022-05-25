@@ -63,6 +63,13 @@ const putCourse = async (req, res, next) => {
         if (newCourse.sellNumber) {
             delete newCourse.sellNumber
         }
+        if (newCourse.publish) {
+            if (account.role == "admin") {
+                newCourse.publish = newCourse.publish == "true"
+            } else {
+                delete newCourse.publish
+            }
+        }
         // lấy thông tin hiện tại
         const course = await CourseModel.findOne({ slug }).lean()
         if (!course) return res.status(404).json({ message: "Course not found!" })

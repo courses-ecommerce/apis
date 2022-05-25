@@ -51,7 +51,11 @@ const getCategories = async (req, res, next) => {
 const putCategory = async (req, res, next) => {
     try {
         const { slug } = req.params
-        const newCategory = req.body
+
+        var newCategory = req.body
+        if (newCategory.publish) {
+            newCategory.publish = newCategory.publish == "true"
+        }
         await CategoryModel.updateOne({ slug: slug }, newCategory)
         return res.status(200).json({ message: 'ok' })
     } catch (error) {
