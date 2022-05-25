@@ -1013,6 +1013,8 @@ paths:
           description: "SERVER ERROR"
   /accounts/change-pw:
     post:
+      security:
+        - bearerAuth: []
       tags:
         - account
       summary: Đổi mật khẩu
@@ -1024,14 +1026,11 @@ paths:
             schema:
               type: object
               properties:
-                email:
-                  type: string
                 password:
                   type: string
                 oldPassword:
                   type: string
               required:
-                - email
                 - password
                 - oldPassword
 
@@ -1039,7 +1038,7 @@ paths:
         200:
           description: "ok"
         401:
-          description: "tài khoản không tồn tại!"
+          description: ""
         403:
           description: "mật khẩu không đúng"
         500:
