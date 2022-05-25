@@ -185,20 +185,17 @@ const postResetPassword = async (req, res, next) => {
 const postChangePassword = async (req, res, next) => {
     try {
         // check account => hash password => change password
-
-        const { email, oldPassword, password } = req.body
-
-        const account = await AccountModel.findOne({ email })
-        if (!account) {
-            return res.status(401).json({ message: "tài khoản không tồn tại!" })
-        }
-        // kiểm tra mật khẩu cũ có trùng với mật khẩu mới
-        const isSame = JSON.stringify(oldPassword) === JSON.stringify(password)
-        if (isSame) return res.status(400).json({ message: "Mật khẩu mới giống mật khẩu cũ" })
+        const account = req.account
+        const { oldPassword, password } = req.body
 
         const isMatch = await bcrypt.compare(oldPassword, account.password)
 
         if (!isMatch) return res.status(403).json({ message: "Password is incorrect" })
+
+        // kiểm tra mật khẩu cũ có trùng với mật khẩu mới
+        const isSame = JSON.stringify(oldPassword) === JSON.stringify(password)
+        if (isSame) return res.status(400).json({ message: "Mật khẩu mới giống mật khẩu cũ" })
+
 
         //check userName -> hash new password -> change password
         const hashPassword = await bcrypt.hash(
@@ -206,7 +203,7 @@ const postChangePassword = async (req, res, next) => {
             parseInt(process.env.SALT_ROUND),
         );
 
-        const response = await AccountModel.updateOne({ email }, { password: hashPassword })
+        const response = await AccountModel.updateOne({ _id: account._id }, { password: hashPassword })
         if (response.modifiedCount == 1) {
             return res.status(200).json({ message: "Thay đổi mật khẩu thành công!" })
         } else {

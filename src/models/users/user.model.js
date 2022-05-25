@@ -14,7 +14,7 @@ const userSchema = new Schema({
     },
     birthday: {
         type: String,
-        default: '1970-01-01',
+        default: null,
     },
     // true: male
     gender: {
