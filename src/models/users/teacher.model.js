@@ -15,6 +15,10 @@ const teacherSchema = new Schema({
     },
     description: {
         type: String
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
 })
 

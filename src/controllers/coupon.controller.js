@@ -13,6 +13,9 @@ const getCoupons = async (req, res, next) => {
                     as: "author"
                 }
             },
+            {
+                $unwind: "$author"
+            },
             { $skip: (parseInt(page) - 1) * parseInt(limit) },
             { $limit: parseInt(limit) }
         ]

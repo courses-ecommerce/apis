@@ -17,6 +17,18 @@ const getInvoices = async (req, res, next) => {
                     as: "user"
                 }
             },
+            {
+                $unwind: "$user"
+            },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'status': 1,
+                    // 'user': 1
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                }
+            },
             { $limit: parseInt(limit) },
             { $skip: (parseInt(page) - 1) * parseInt(limit) },
         ]

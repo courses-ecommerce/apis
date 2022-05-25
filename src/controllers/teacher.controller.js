@@ -64,6 +64,9 @@ const putMyInfo = async (req, res, next) => {
     try {
         const { user } = req
         const newData = req.body
+        if (newData.isVerified) {
+            delete newData.isVerified
+        }
         const teacher = await TeacherModel.findOneAndUpdate({ user: user._id }, newData, { new: true })
         res.status(200).json({ message: "update oke", teacher })
     } catch (error) {

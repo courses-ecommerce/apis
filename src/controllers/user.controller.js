@@ -99,6 +99,9 @@ const getMyInvoices = async (req, res, next) => {
                 }
             },
             {
+                $unwind: "$user"
+            },
+            {
                 $lookup: {
                     from: 'detailInvoices',
                     localField: '_id',

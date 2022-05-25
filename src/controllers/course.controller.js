@@ -173,6 +173,12 @@ const getCourses = async (req, res, next) => {
                 }
             },
             {
+                $unwind: "$author"
+            },
+            {
+                $unwind: "$category"
+            },
+            {
                 $project: {
                     'slug': 1,
                     'name': 1,
@@ -346,12 +352,18 @@ const getCourse = async (req, res, next) => {
                 }
             },
             {
+                $unwind: "$author"
+            },
+            {
                 $lookup: {
                     from: 'categorys',
                     localField: 'category',
                     foreignField: '_id',
                     as: 'category'
                 }
+            },
+            {
+                $unwind: "$category"
             },
             {
                 $project: {

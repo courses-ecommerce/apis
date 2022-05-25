@@ -9,7 +9,6 @@ const getAccountAndUsers = async (req, res, next) => {
     try {
         const { page = 1, limit = 10, sort, email, role } = req.query
         var nSkip = (parseInt(page) - 1) * parseInt(limit)
-        // nếu có email => chỉ cần tìm 1
         let aCountQuery = [
             {
                 $lookup: {
@@ -28,7 +27,10 @@ const getAccountAndUsers = async (req, res, next) => {
                     foreignField: '_id',
                     as: 'account'
                 }
-            }
+            },
+            {
+                $unwind: "$account"
+            },
         ]
         if (email) {
             aQuery.push({ $match: { "account.email": email } })
@@ -50,6 +52,7 @@ const getAccountAndUsers = async (req, res, next) => {
             $project: {
                 'account.password': 0,
                 'account.refreshToken': 0,
+                'account.accessToken': 0,
                 'account.__v': 0,
                 '__v': 0,
 
