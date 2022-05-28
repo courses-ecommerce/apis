@@ -48,7 +48,7 @@ const getCart = async (req, res, next) => {
                 populate: { path: "author", select: "_id fullName" },
                 select: '_id name thumbnail author currentPrice category level'
             })
-            .select("-_id")
+            .select("-__v")
             .lean()
         // tính toán tiền ước tính
         var totalDiscount = 0

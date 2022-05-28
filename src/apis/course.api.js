@@ -29,5 +29,8 @@ courseApis.put('/:slug', passport.jwtAuthentication, accessControl.grantAccess('
 // api lấy thông tin đánh giá của khoá học
 courseApis.get('/:slug/rate', courseController.getRates)
 
+// api: xoá khoá học
+courseApis.delete('/:id', passport.jwtAuthentication, courseController.deleteCourse)
+
 
 module.exports = courseApis

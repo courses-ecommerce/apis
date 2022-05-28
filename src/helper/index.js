@@ -40,6 +40,15 @@ const uploadVideoToCloudinary = async (video, id) => {
     }
 }
 
+// fn: xoá resoure bằng public id
+const destroyResoureInCloudinary = async (name, resource_type) => {
+    try {
+        const result = await cloudinary.uploader.destroy(name, { resource_type: resource_type })
+        return result
+    } catch (error) {
+        return error
+    }
+}
 
 //fn: tạo mã xác thực
 const generateVerifyCode = (numberOfDigits) => {

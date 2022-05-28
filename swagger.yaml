@@ -9,14 +9,14 @@ servers:
   - url: http://localhost:3000/api
   - url: https://geny-e-learning.herokuapp.com/api
 tags:
+  - name: login
+    description: xác thực và uỷ quyền
   - name: account
     description: apis liên quan đến tài khoản người dùng
   - name: user
     description: apis liên quan đến thông tin người dùng
   - name: cart
     description: apis liên quan đến giỏ hàng
-  - name: login
-    description: xác thực và uỷ quyền
   - name: admin user
     description: "quản lý tài khoản người dùng"
   - name: category
@@ -1504,6 +1504,30 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+    delete:
+      tags:
+        - category
+      summary: xoá nhiều category
+      description: ""
+      requestBody:
+        description: "mảng category"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slugs:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /categories/{slug}:
     put:
       tags:
@@ -1891,6 +1915,19 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /courses/{id}:
+    delete:
+      tags:
+        - course
+      summary: xoá khoá học bằng id
+      description: ""
+      responses:
+        201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
 
   /rate:
     post:
@@ -2143,6 +2180,32 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+    delete:
+      tags:
+        - coupon
+      summary: Xoá nhiều coupon
+      description: ""
+      requestBody:
+        description: "mảng mã coupon"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                codes:
+                  type: array
+                  items:
+                    type: string
+              required: ["codes"]
+
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /coupons/{code}:
     put:
       tags:

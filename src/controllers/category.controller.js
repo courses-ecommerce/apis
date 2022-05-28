@@ -68,8 +68,28 @@ const putCategory = async (req, res, next) => {
 const deleteCategory = async (req, res, next) => {
     try {
         const { slug } = req.params
+        const { account, user } = req
+        if (account.role !== 'admin') {
+            return res.status(401).json({ message: 'Not permitted' })
+        }
         await CategoryModel.deleteOne({ slug: slug })
         return res.status(200).json({ message: 'ok' })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'error' })
+    }
+}
+
+// fn: xoá category
+const deleteManyCategory = async (req, res, next) => {
+    try {
+        const { slugs } = req.body
+        const { account, user } = req
+        if (account.role !== 'admin') {
+            return res.status(401).json({ message: 'Not permitted' })
+        }
+        await CategoryModel.deleteMany({ slug: { $in: slugs } })
+        return res.status(200).json({ message: 'delete ok' })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'error' })
@@ -82,4 +102,5 @@ module.exports = {
     getCategories,
     putCategory,
     deleteCategory,
+    deleteManyCategory,
 }

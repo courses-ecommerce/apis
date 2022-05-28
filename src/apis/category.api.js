@@ -7,9 +7,11 @@ categoryApis.post('/', passport.jwtAuthentication, categoryController.postCatego
 
 categoryApis.get('/', categoryController.getCategories)
 
-categoryApis.put('/:slug', passport.jwtAuthentication, categoryController.putCategory)
+categoryApis.put('/:slug', passport.jwtAuthentication, passport.isAdmin, categoryController.putCategory)
 
-categoryApis.delete('/:slug', passport.jwtAuthentication, categoryController.deleteCategory)
+categoryApis.delete('/:slug', passport.jwtAuthentication, passport.isAdmin, categoryController.deleteCategory)
+
+categoryApis.delete('/', passport.jwtAuthentication, passport.isAdmin, categoryController.deleteManyCategory)
 
 
 module.exports = categoryApis

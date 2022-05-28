@@ -101,7 +101,29 @@ const updateCoupon = async (req, res, next) => {
 const deleteCoupon = async (req, res, next) => {
     try {
         const { code } = req.params
-        await CouponModel.deleteOne({ code })
+        const { account, user } = req
+        if (account.role === 'admin') {
+            await CouponModel.deleteOne({ code })
+        } else {
+            await CouponModel.deleteOne({ code, author: user._id })
+        }
+        return res.status(200).json({ message: "delete ok" })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: error.message })
+    }
+}
+
+// fn: xoá nhiều mã
+const deleteManyCoupon = async (req, res, next) => {
+    try {
+        const { codes } = req.body
+        const { account, user } = req
+        if (account.role === 'admin') {
+            await CouponModel.deleteMany({ code: { $in: codes } })
+        } else {
+            await CouponModel.deleteMany({ code: { $in: codes }, author: user._id })
+        }
         return res.status(200).json({ message: "delete ok" })
     } catch (error) {
         console.log(error);
@@ -116,4 +138,5 @@ module.exports = {
     postCoupon,
     updateCoupon,
     deleteCoupon,
+    deleteManyCoupon,
 }

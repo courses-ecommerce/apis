@@ -17,5 +17,6 @@ couponApis.put('/:code', passport.jwtAuthentication, couponController.updateCoup
 
 // api: xoá mã
 couponApis.delete('/:code', passport.jwtAuthentication, couponController.deleteCoupon)
+couponApis.delete('/', passport.jwtAuthentication, couponController.deleteManyCoupon)
 
 module.exports = couponApis;

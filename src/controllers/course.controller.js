@@ -9,6 +9,7 @@ const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
 const helper = require('../helper');
+const MyCourseModel = require('../models/users/myCourse.model');
 
 
 
@@ -201,6 +202,8 @@ const getCourses = async (req, res, next) => {
                     'hashtags': 1,
                     'rating.rate': 1,
                     'rating.numOfRate': 1,
+                    'createdAt': 1,
+                    'updatedAt': 1,
                     //'score': { $meta: "textScore" },
                 }
             },
@@ -626,6 +629,46 @@ const getRates = async (req, res, next) => {
     }
 }
 
+
+//fn: xoá khoá học
+const deleteCourse = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { account, user } = req
+
+        // kiểm tra khoá học có tồn tại không?
+        const course = await CourseModel.findById(id).lean()
+        if (!course) {
+            return res.status(400).json({ message: "Mã khoá học không hợp lệ" })
+        }
+        if (account.role !== 'admin') {
+            if (JSON.stringify(user._id) !== JSON.stringify(course.author)) {
+                return res.status(400).json({ message: "Not permitted" })
+            }
+        }
+
+        // kiểm tra khoá học có người mua chưa ?
+        const isBuyed = await MyCourseModel.findOne({ course: id }).lean()
+        if (isBuyed) {
+            return res.status(400).json({ message: "Khoá học đã có người mua. Không thể xoá" })
+        }
+
+        // xoá khoá học
+        await CourseModel.deleteOne({ _id: id })
+        res.status(200).json({ message: "delete ok" })
+
+        let chapters = await ChapterModel.find({ course: id }).select("_id").lean()
+        chapters = chapters.map(obj => obj._id)
+        // xoá chapters và lesson của từng chapter
+        await LessonModel.deleteMany({ chapter: { $in: chapters } })
+        await ChapterModel.deleteMany({ course: id })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "error", error: error.message })
+    }
+}
+
 //#endregion
 
 // #region chapter 
@@ -733,6 +776,7 @@ module.exports = {
     getHotCourses,
     getRates,
     getSuggestCourses,
+    deleteCourse,
 
     // chapter
     postChapter,
