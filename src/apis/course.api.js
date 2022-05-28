@@ -17,17 +17,17 @@ courseApis.get('/hot', passport.jwtAuthentication, courseController.getHotCourse
 // api lấy danh sách khoá học đề xuất
 courseApis.get('/suggest', passport.jwtAuthenticationOrNull, courseController.getSuggestCourses)
 
-// api xem chi tiết khoá học theo slug
-courseApis.get('/:slug', passport.jwtAuthenticationOrNull, courseController.getCourse)
+// api xem chi tiết khoá học theo id
+courseApis.get('/:id', passport.jwtAuthenticationOrNull, courseController.getCourse)
 
 // api lấy danh sách khoá học liên quan theo category
-courseApis.get('/:slug/related', courseController.getRelatedCourses)
+courseApis.get('/:id/related', courseController.getRelatedCourses)
 
 // api cập nhật khoá học theo slug
-courseApis.put('/:slug', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), courseController.putCourse)
+courseApis.put('/:id', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), courseController.putCourse)
 
 // api lấy thông tin đánh giá của khoá học
-courseApis.get('/:slug/rate', courseController.getRates)
+courseApis.get('/:id/rate', courseController.getRates)
 
 // api: xoá khoá học
 courseApis.delete('/:id', passport.jwtAuthentication, courseController.deleteCourse)

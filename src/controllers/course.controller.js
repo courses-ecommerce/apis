@@ -16,13 +16,7 @@ const MyCourseModel = require('../models/users/myCourse.model');
 
 //#region  courses
 
-/** fn: Thêm khoá học
- * @param {category} req is array id of topic
- * @param {name, description, introduction } req is string type
- * @param {currentPrice, originalPrice } req is number type
- * @param {image } req is image type
- */
-
+//fn: Thêm khoá học
 const postCourse = async (req, res, next) => {
     try {
         const author = req.user
@@ -49,16 +43,12 @@ const postCourse = async (req, res, next) => {
 }
 
 // fn: Cập nhật khoá học: (thêm markdown cho description)
-/**
- * @param { id } req  is object id
- * @param newCourse req is object 
- */
 // Note: không cho phép cập nhật sellNumber, teacher không được phép cập nhật publish
 const putCourse = async (req, res, next) => {
     try {
         const user = req.user
         const account = req.account
-        const { slug } = req.params
+        const { id } = req.params
         var newCourse = req.body
         // tránh hacker
         if (newCourse.sellNumber) {
@@ -72,7 +62,7 @@ const putCourse = async (req, res, next) => {
             }
         }
         // lấy thông tin hiện tại
-        const course = await CourseModel.findOne({ slug }).lean()
+        const course = await CourseModel.findById(id)
         if (!course) return res.status(404).json({ message: "Course not found!" })
         // check permit 
         if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
@@ -88,8 +78,8 @@ const putCourse = async (req, res, next) => {
             newCourse.saleOff = (1 - parseInt(cp) / parseInt(op)) * 100
         }
 
-        // cập nhật theo slug
-        await CourseModel.updateOne({ slug }, newCourse)
+        // cập nhật theo id
+        await CourseModel.updateOne({ _id: id }, newCourse)
         return res.status(200).json({ message: 'ok' })
 
     } catch (error) {
@@ -313,16 +303,15 @@ const getCourses = async (req, res, next) => {
     }
 }
 
-// fn: Xem khoá học theo slug
+// fn: Xem khoá học theo id
 const getCourse = async (req, res, next) => {
     try {
-        const { slug } = req.params
+        const { id } = req.params
         const { user } = req
 
-        // lấy thông tin khoá học
         const course = await CourseModel.aggregate([
             {
-                $match: { slug: slug }
+                $match: { _id: ObjectId(id) }
             },
             {   // tính rate trung bình
                 $lookup: {
@@ -369,6 +358,51 @@ const getCourse = async (req, res, next) => {
                 $unwind: "$category"
             },
             {
+                $lookup: {
+                    from: 'chapters',
+                    localField: '_id',
+                    foreignField: 'course',
+                    as: 'chapters'
+                }
+            },
+            {
+                $unwind: {
+                    path: "$chapters",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'lessons',
+                    localField: 'chapters._id',
+                    foreignField: 'chapter',
+                    as: 'chapters.lessons'
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    slug: { $first: "$slug" },
+                    category: { $first: "$category" },
+                    thumbnail: { $first: "$thumbnail" },
+                    description: { $first: "$description" },
+                    lang: { $first: "$lang" },
+                    intendedLearners: { $first: "$intendedLearners" },
+                    requirements: { $first: "$requirements" },
+                    targets: { $first: "$targets" },
+                    level: { $first: "$level" },
+                    currentPrice: { $first: "$currentPrice" },
+                    originalPrice: { $first: "$originalPrice" },
+                    saleOff: { $first: "$saleOff" },
+                    rating: { $first: "$rating" },
+                    author: { $first: "$author" },
+                    hashtags: { $first: "$hashtags" },
+                    publish: { $first: "$publish" },
+                    chapters: { $push: "$chapters" },
+                }
+            },
+            {
                 $project: {
                     'slug': 1,
                     'name': 1,
@@ -397,10 +431,18 @@ const getCourse = async (req, res, next) => {
                     'author.fullName': 1,
                     'hashtags': 1,
                     'publish': 1,
+                    'chapters': { number: 1, name: 1, lessons: { number: 1, title: 1, description: 1 } },
                 }
             },
+            {
+                $limit: 1
+            }
         ])
-        res.status(200).json({ message: 'ok', course })
+        if (course[0]) {
+            res.status(200).json({ message: 'ok', course: course[0] })
+        } else {
+            res.status(400).json({ message: 'mã khoá học không tồn tại' })
+        }
         // lưu lịch sử xem
         if (user) {
             await HistoryViewModel.findOneAndUpdate(
@@ -423,13 +465,13 @@ const getCourse = async (req, res, next) => {
     }
 }
 
-// fn: Xem danh sách khoá học liên quan theo slug (category, hashtags, rating)
+// fn: Xem danh sách khoá học liên quan theo id (category, hashtags, rating)
 const getRelatedCourses = async (req, res, next) => {
     try {
-        const { slug } = req.params
+        const { id } = req.params
         const { page = 1, limit = 12 } = req.query
         // course
-        const course = await CourseModel.findOne({ slug }).lean()
+        const course = await CourseModel.findById(id).lean()
         // tìm khoá học liên quan theo hasgtag
         const courses = await CourseModel.aggregate([
             {
@@ -497,8 +539,8 @@ const getRelatedCourses = async (req, res, next) => {
                 $count: 'total'
             }
         ])
-
-        return res.status(200).json({ message: 'ok', totalCount: totalCount[0] || 0, courses })
+        let total = totalCount[0]?.total || 0
+        return res.status(200).json({ message: 'ok', total, courses })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'error' })
@@ -553,7 +595,6 @@ const getHotCourses = async (req, res, next) => {
         if (category) {
             aQuery.unshift({
                 $match: { "category.slug": category }
-
             })
         }
         aQuery.push(
@@ -612,9 +653,9 @@ const getHotCourses = async (req, res, next) => {
 const getRates = async (req, res, next) => {
     try {
         const { page = 1, limit = 10 } = req.query
-        const { slug } = req.params
+        const { id } = req.params
         // lấy id khoá học
-        const course = await CourseModel.findOne({ slug })
+        const course = await CourseModel.findById(id).lean()
         if (!course) return res.status(404).json({ message: "Course not found" })
         // lấy thông tin đánh giá khoá học
         const rates = await RateModel.find({ course: course._id })
@@ -671,77 +712,6 @@ const deleteCourse = async (req, res, next) => {
 
 //#endregion
 
-// #region chapter 
-
-const postChapter = async (req, res, next) => {
-    try {
-        const { courses, name } = req.body
-        await ChapterModel.create({ courses, name })
-        res.status(201).json({ message: "ok" })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message })
-    }
-}
-
-/**
- * 
- * @param {boolean} lesson lấy giá trị của lesson trong chapter 
- * @param {string} course id khoá học
- */
-const getChapters = async (req, res, next) => {
-    try {
-        const { lesson = true, course } = req.query
-        let query = []
-        if (course) {
-            query.unshift({
-                $match: { _id: ObjectId(course) }
-            })
-        }
-        if (lesson) {
-            query.push({
-                $lookup: {
-                    from: "lessons",
-                    localField: "_id",
-                    foreignField: "chapter",
-                    as: "lessons"
-                }
-            })
-        }
-        const chapters = await ChapterModel.aggregate(query)
-        res.status(200).json({ message: "ok", chapters })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message })
-    }
-}
-const putChapter = async (req, res, next) => {
-    try {
-        const { id } = req.params
-        const { name, number } = req.body
-        await ChapterModel.updateOne({ _id: id }, { name, number })
-        res.status(200).json({ message: " update ok" })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message })
-    }
-}
-const deleteChapter = async (req, res, next) => {
-    try {
-        const { id, name } = req.body
-        // xoá chapter
-        await ChapterModel.deleteOne({ _id: id })
-        // xoá lesson liên quan
-        await LessonModel.deleteMany({ chapter: id })
-        res.status(200).json({ message: "delete ok" })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message })
-    }
-}
-
-// #endregion 
-
 
 // #region lesson
 
@@ -777,15 +747,4 @@ module.exports = {
     getRates,
     getSuggestCourses,
     deleteCourse,
-
-    // chapter
-    postChapter,
-    getChapters,
-    putChapter,
-    deleteChapter,
-    // lesson
-    getLessons,
-    postLesson,
-    putLesson,
-    deleteLesson,
 }

@@ -23,6 +23,8 @@ tags:
     description: "quản lý categories"
   - name: course
     description: apis liên quan đến khoá học
+  - name: chapter
+    description: apis liên quan đến chương của khoá học
   - name: rate
     description: apis liên quan đánh giá khoá học
   - name: coupon
@@ -377,13 +379,14 @@ components:
             type: string
         publish:
           type: boolean
+
     Rate:
       type: object
       properties:
         course:
-          $ref: "#components/schemas/Course"
+          $ref: "#/components/schemas/Course"
         author:
-          $ref: "#components/schemas/User"
+          $ref: "#/components/schemas/User"
         rate:
           type: number
           enum:
@@ -402,7 +405,7 @@ components:
       type: object
       properties:
         course:
-          $ref: "#components/schemas/Course"
+          $ref: "#/components/schemas/Course"
         rate:
           type: number
           enum: [1, 2, 3, 4, 5]
@@ -452,7 +455,7 @@ components:
       type: object
       properties:
         course:
-          $ref: "#/components/schemas/Course"
+          type: string
         number:
           type: number
         name:
@@ -470,7 +473,7 @@ components:
       type: object
       properties:
         chapter:
-          $ref: "#components/schemas/Chapter"
+          $ref: "#/components/schemas/Chapter"
         number:
           type: number
         title:
@@ -1747,14 +1750,14 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /courses/{slug}:
+  /courses/{id}:
     put:
       tags:
         - course
       summary: Cập nhật khoá học
       description: ""
       parameters:
-        - name: slug
+        - name: id
           in: path
           required: true
           schema:
@@ -1800,10 +1803,10 @@ paths:
     get:
       tags:
         - course
-      summary: Lấy chi tiết khoá học theo slug
+      summary: Lấy chi tiết khoá học theo id
       description: ""
       parameters:
-        - name: slug
+        - name: id
           in: path
           required: true
           schema:
@@ -1817,14 +1820,33 @@ paths:
                 $ref: "#/components/schemas/Course"
         500:
           description: "SERVER ERROR"
-  /courses/{slug}/related:
+    delete:
+      tags:
+        - course
+      summary: xoá khoá học bằng id
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /courses/{id}/related:
     get:
       tags:
         - course
       summary: Lấy danh sách khoá học liên quan theo tags
       description: ""
       parameters:
-        - name: slug
+        - name: id
           in: path
           required: true
           schema:
@@ -1888,14 +1910,14 @@ paths:
                   $ref: "#/components/schemas/Course"
         500:
           description: "SERVER ERROR"
-  /courses/{slug}/rate:
+  /courses/{id}/rate:
     get:
       tags:
         - course
       summary: Lấy danh sách đánh giá của khoá học
       description: ""
       parameters:
-        - name: slug
+        - name: id
           in: path
           required: true
           schema:
@@ -1915,14 +1937,94 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /courses/{id}:
-    delete:
+
+  /chapters:
+    post:
       tags:
-        - course
-      summary: xoá khoá học bằng id
+        - chapter
+      summary: Thêm chapter
       description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChapterDto"
       responses:
         201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    get:
+      tags:
+        - chapter
+      summary: Lấy danh sách chapter
+      description: ""
+      parameters:
+        - name: course
+          in: query
+          schema:
+            type: string
+        - name: lesson
+          in: query
+          schema:
+            type: boolean
+          description: "lấy thông tin danh sách bài học kèm theo mỗi chương"
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Chapter"
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /chapters/{id}:
+    put:
+      tags:
+        - chapter
+      summary: Cập nhật chapter
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChapterDto"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    delete:
+      tags:
+        - chapter
+      summary: Xoá chapter
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
           description: "ok"
         401:
           description: "Unauthorize"
