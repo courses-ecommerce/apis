@@ -29,13 +29,13 @@ const isPermitted = async (req, res, next) => {
 // fn: tạo chapter mới
 const postChapter = async (req, res, next) => {
     try {
-        const { course, name } = req.body
+        const { course, name, number } = req.body
         const { user } = req
-        const c = CourseModel.findById(course).lean()
+        const c = await CourseModel.findById(course)
         if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
             return res.status(403).json({ message: "Not permitted" })
         }
-        await ChapterModel.create({ course, name })
+        await ChapterModel.create({ number, course, name })
         res.status(201).json({ message: "ok" })
     } catch (error) {
         console.log(error);

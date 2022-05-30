@@ -5,6 +5,7 @@ const urlSlug = require('url-slug')
 const CartModel = require('../models/users/cart.model');
 const CourseModel = require('../models/courses/course.model')
 const CouponModel = require('../models/coupon.model')
+const { getVideoDurationInSeconds } = require('get-video-duration')
 
 
 // fn: upload image to cloudinary
@@ -30,13 +31,31 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
 // fn: upload video to cloudinary
 const uploadVideoToCloudinary = async (video, id) => {
     try {
-        cloudinary.uploader.upload_large(video.path, {
+        const result = await cloudinary.uploader.upload(video.path, {
             resource_type: 'video',
-            public_id: `videos/${id}`,
-
+            public_id: `videos/${id}-${Date.now()}`,
+            eager: [
+                { streaming_profile: "hd", format: "m3u8" },
+            ]
         })
+        return result
     } catch (error) {
+        console.log(error);
+        return { error }
+    }
+}
 
+// fn: upload file to cloudinary
+const uploadFileToCloudinary = async (file, id) => {
+    try {
+        const result = await cloudinary.uploader.upload(file.path, {
+            resource_type: 'raw',
+            public_id: `files/${id}-${Date.now()}`
+        })
+        return result
+    } catch (error) {
+        console.log(error);
+        return { error }
     }
 }
 
@@ -130,9 +149,23 @@ const hanlderApplyDiscountCode = (course, coupon) => {
 }
 
 
+//fn: lấy thời lượng video
+const getVideoDuration = async (videoPath) => {
+    try {
+        const duration = await getVideoDurationInSeconds(videoPath)
+        return duration
+    } catch (error) {
+        return 0
+    }
+}
+
+
 module.exports = {
     generateVerifyCode,
     isVerifyEmail,
     uploadImageToCloudinary,
-    hanlderApplyDiscountCode
+    hanlderApplyDiscountCode,
+    getVideoDuration,
+    uploadVideoToCloudinary,
+    uploadFileToCloudinary,
 };

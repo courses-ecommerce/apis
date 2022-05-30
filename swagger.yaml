@@ -478,9 +478,17 @@ components:
           type: number
         title:
           type: string
-        video:
+        type:
           type: string
-        image:
+          enum: ["undefined", "video", "text", "slide"]
+        video:
+          type: array
+          items:
+            type: string
+          description: mảng url resource video
+        text:
+          type: string
+        slide:
           type: string
         description:
           type: string
@@ -489,6 +497,47 @@ components:
         publish:
           type: boolean
           default: false
+        duration:
+          type: string
+          description: "tính bằng giây"
+    CreateLessonDto:
+      type: object
+      properties:
+        chapter:
+          type: string
+        number:
+          type: number
+          description: số thứ tự của chương
+        title:
+          type: string
+        description:
+          type: string
+      required: ["chapter", "title", "number"]
+    UpdateLessonDto:
+      type: object
+      properties:
+        chapter:
+          type: string
+        number:
+          type: number
+          description: số thứ tự của chương
+        title:
+          type: string
+        description:
+          type: string
+        file:
+          type: string
+          format: binary
+        type:
+          type: string
+          enum: ["undefined", "video", "text", "slide"]
+        saveIn:
+          type: string
+          default: cloudinary
+        publish:
+          type: boolean
+          default: false
+
     Coupon:
       type: object
       properties:
@@ -2016,6 +2065,119 @@ paths:
       tags:
         - chapter
       summary: Xoá chapter
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /lessons:
+    post:
+      tags:
+        - lesson
+      summary: Thêm lesson
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLessonDto"
+      responses:
+        201:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    get:
+      tags:
+        - lesson
+      summary: Lấy danh sách lesson bằng chapter id
+      description: ""
+      parameters:
+        - name: chapter
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Lesson"
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /lessons/{id}:
+    get:
+      tags:
+        - lesson
+      summary: Thông tin lesson
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Lesson"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+    put:
+      tags:
+        - lesson
+      summary: Cập nhật lesson
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLessonDto"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    delete:
+      tags:
+        - lesson
+      summary: Xoá lesson
       description: ""
       parameters:
         - name: id
