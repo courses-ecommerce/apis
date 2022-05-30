@@ -25,6 +25,10 @@ tags:
     description: apis liên quan đến khoá học
   - name: chapter
     description: apis liên quan đến chương của khoá học
+  - name: lesson
+    description: apis liên quan đến bài học của khoá học
+  - name: my course
+    description: apis liên quan đến khoá học đã mua
   - name: rate
     description: apis liên quan đánh giá khoá học
   - name: coupon
@@ -500,6 +504,9 @@ components:
         duration:
           type: string
           description: "tính bằng giây"
+        resource:
+          type: string
+          description: tài liệu kèm theo bài giảng
     CreateLessonDto:
       type: object
       properties:
@@ -528,6 +535,9 @@ components:
         file:
           type: string
           format: binary
+        resource:
+          type: string
+          format: binary
         type:
           type: string
           enum: ["undefined", "video", "text", "slide"]
@@ -535,6 +545,39 @@ components:
           type: string
           default: cloudinary
         publish:
+          type: boolean
+          default: false
+
+    MyCourse:
+      type: object
+      properties:
+        user:
+          type: string
+        course:
+          type: string
+        progress:
+          type: array
+          items:
+            type: object
+            properties:
+              lessonId:
+                type: string
+              timeline:
+                type: string
+              complete:
+                type: boolean
+                default: false
+        percentProgress:
+          type: number
+          description: phần trăm tiến trình học
+    UpdateMyCourseDto:
+      type: object
+      properties:
+        lessonId:
+          type: string
+        timeline:
+          type: string
+        complete:
           type: boolean
           default: false
 
@@ -2150,7 +2193,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
     put:
       tags:
         - lesson
@@ -2164,7 +2206,7 @@ paths:
           required: true
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/UpdateLessonDto"
       responses:
@@ -2185,6 +2227,82 @@ paths:
           schema:
             type: string
           required: true
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /my-courses:
+    get:
+      tags:
+        - my course
+      summary: lấy danh sách khoá học đã mua
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: name
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/MyCourse"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /my-courses/{id}:
+    get:
+      tags:
+        - my course
+      summary: lấy chi tiết khoá học đã mua (để học)
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MyCourse"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      tags:
+        - my course
+      summary: cập nhật tiến độ học (cập nhật thông tin timeline của các video bài giảng)
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: id mycourse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMyCourseDto"
       responses:
         200:
           description: "ok"

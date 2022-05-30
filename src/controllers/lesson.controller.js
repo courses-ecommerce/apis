@@ -45,31 +45,39 @@ const postLesson = async (req, res, next) => {
 // fn: cập nhật lesson
 const putLesson = async (req, res, next) => {
     try {
-        const file = req.file // video/slide
+        const file = req.files['file'][0] // video/slide
+        const resource = req.files['resource'][0] // resource
         const { id } = req.params
         const { chapter, number, title, description, type, video, text, slide } = req.body
 
-        // nếu type là video thì tính thời lượng video
-        if (file && type == "video") {
-            const duration = await helper.getVideoDuration(file.path)
-            req.body.duration = duration
-
-            res.status(200).json({ message: "updating oke" })
-            const result = await helper.uploadVideoToCloudinary(file, id)
-            if (result.error) {
-                return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
-            }
-            req.body.video = [result.eager[0].secure_url, result.secure_url]
-            await LessonModel.updateOne({ _id: id }, req.body)
-            return
-        }
-
-        if (file && type == "slide") {
-            const result = await helper.uploadFileToCloudinary(file, id)
+        if (resource) {
+            const result = await helper.uploadFileToCloudinary(resource, id)
             if (result.error) {
                 return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
             }
-            req.body.slide = result.secure_url
+            req.body.resource = result.secure_url
+        }
+        // nếu type là video thì tính thời lượng video
+        if (file) {
+            if (type == "video") {
+                const duration = await helper.getVideoDuration(file.path)
+                req.body.duration = duration
+
+                res.status(200).json({ message: "updating oke" })
+                const result = await helper.uploadVideoToCloudinary(file, id)
+                if (result.error) {
+                    return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
+                }
+                req.body.video = [result.eager[0].secure_url, result.secure_url]
+                await LessonModel.updateOne({ _id: id }, req.body)
+                return
+            } else if (file && type == "slide") {
+                const result = await helper.uploadFileToCloudinary(file, id)
+                if (result.error) {
+                    return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
+                }
+                req.body.slide = result.secure_url
+            }
         }
 
         // cập nhật lesson

@@ -53,6 +53,11 @@ const lessonSchema = new Schema({
     duration: {
         type: String,
         default: null
+    },
+    // tài nguyên kèm theo
+    resource: {
+        type: String,
+        default: null
     }
 });
 

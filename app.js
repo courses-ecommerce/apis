@@ -24,6 +24,8 @@ const couponApis = require('./src/apis/coupon.api');
 const chatApis = require('./src/apis/chat.api');
 const invoiceApis = require('./src/apis/invoice.api');
 const rateApis = require('./src/apis/rate.api');
+const myCourseApis = require('./src/apis/myCourse.api');
+
 // apis for admin
 const adminUserApis = require('./src/apis/adminUser.api');
 
@@ -58,6 +60,7 @@ app.use('/api/categories', categoryApis)
 app.use('/api/courses', courseApis)
 app.use('/api/chapters', chapterApis)
 app.use('/api/lessons', lessonApis)
+app.use('/api/my-courses', myCourseApis)
 app.use('/api/coupons', couponApis)
 app.use('/api/login', loginApis)
 app.use('/api/payment', paymentApis)

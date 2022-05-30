@@ -430,7 +430,7 @@ const getCourse = async (req, res, next) => {
                     'author.fullName': 1,
                     'hashtags': 1,
                     'publish': 1,
-                    'chapters': { _id: 1, number: 1, name: 1, lessons: { number: 1, title: 1, description: 1 } },
+                    'chapters': { _id: 1, number: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, description: 1 } },
                 }
             },
             {
