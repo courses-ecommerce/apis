@@ -2,12 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const couponSchema = new Schema({
-    code: {
-        type: String,
-        unique: true,
-        required: true,
-        trim: true,
-    },
     title: {
         type: String,
         required: true,
@@ -17,15 +11,10 @@ const couponSchema = new Schema({
         enum: ["percent", "money"],
         require: true,
     },
-    apply: { // ex: {to: 'author', value:'userId', except:['courseIdhot1'] } or {to:'category', value:'categorySlug'} {to:'all/user', value:""}
-        to: {
-            type: String,
-            enum: ['author', 'all', 'category', 'new user'],
-            default: 'author'
-        },
-        value: {
-            type: [String],
-        },
+    apply: {
+        type: String,
+        enum: ['all', 'author', 'category', 'new user'],
+        default: 'author'
     },
     amount: {
         type: Number, // if type == percent,then amount <= 100 ,else it’s amount of discount
@@ -56,8 +45,8 @@ const couponSchema = new Schema({
     },
     number: {
         type: Number,
-        default: Infinity
-    },
+        default: 100
+    }
 });
 
 const CouponModel = mongoose.model('coupon', couponSchema, 'coupons');

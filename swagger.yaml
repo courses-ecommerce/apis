@@ -584,8 +584,6 @@ components:
     Coupon:
       type: object
       properties:
-        code:
-          type: string
         title:
           type: string
         type:
@@ -594,19 +592,12 @@ components:
             - percent
             - money
         apply:
-          type: object
-          properties:
-            to:
-              type: string
-              enum:
-                - author
-                - all
-                - category
-                - new user
-            value:
-              type: array
-              items:
-                type: string
+          type: string
+          enum:
+            - all
+            - author
+            - category
+            - new user
         amount:
           type: number
         startDate:
@@ -617,15 +608,17 @@ components:
           $ref: "#/components/schemas/User"
         maxDiscount:
           type: number
-          default: Infinity
         minPrice:
           type: number
           default: 0
         number:
           type: number
-          default: Infinity
+          default: 100
+        codes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Code"
       required:
-        - code
         - title
         - type
         - apply
@@ -633,8 +626,6 @@ components:
     CreateCouponDto:
       type: object
       properties:
-        code:
-          type: string
         title:
           type: string
         type:
@@ -643,19 +634,12 @@ components:
             - percent
             - money
         apply:
-          type: object
-          properties:
-            to:
-              type: string
-              enum:
-                - author
-                - all
-                - category
-                - new user
-            value:
-              type: array
-              items:
-                type: string
+          type: string
+          enum:
+            - author
+            - all
+            - category
+            - new user
         amount:
           type: number
         startDate:
@@ -666,17 +650,14 @@ components:
           format: date
         maxDiscount:
           type: number
-          default: Infinity
           description: "mặc định là vô cực"
         minPrice:
           type: number
           default: 0
         number:
           type: number
-          default: Infinity
-          description: "mặc định là vô cực"
+          default: 100
       required:
-        - code
         - title
         - type
         - apply
@@ -684,8 +665,6 @@ components:
     UpdateCouponDto:
       type: object
       properties:
-        code:
-          type: string
         title:
           type: string
         type:
@@ -693,20 +672,6 @@ components:
           enum:
             - percent
             - money
-        apply:
-          type: object
-          properties:
-            to:
-              type: string
-              enum:
-                - author
-                - all
-                - category
-                - new user
-            value:
-              type: array
-              items:
-                type: string
         amount:
           type: number
         startDate:
@@ -719,9 +684,15 @@ components:
         minPrice:
           type: number
           default: 0
-        number:
-          type: number
-          default: Infinity
+    Code:
+      type: object
+      properties:
+        coupon:
+          type: string
+        code:
+          type: string
+        isActive:
+          type: boolean
 
     Invoice:
       type: object
@@ -2524,7 +2495,7 @@ paths:
           in: query
           schema:
             type: boolean
-        - name: code
+        - name: title
           in: query
           schema:
             type: string
@@ -2574,11 +2545,11 @@ paths:
             schema:
               type: object
               properties:
-                codes:
+                ids:
                   type: array
                   items:
                     type: string
-              required: ["codes"]
+              required: ["ids"]
 
       responses:
         200:
@@ -2588,14 +2559,14 @@ paths:
         500:
           description: "SERVER ERROR"
 
-  /coupons/{code}:
+  /coupons/{id}:
     put:
       tags:
         - coupon
       summary: Cập nhật coupon
       description: ""
       parameters:
-        - name: code
+        - name: id
           in: path
           schema:
             type: string
@@ -2620,7 +2591,7 @@ paths:
       summary: Xoá coupon
       description: ""
       parameters:
-        - name: code
+        - name: id
           in: path
           schema:
             type: string
@@ -2638,7 +2609,7 @@ paths:
       summary: Lấy chi tiết coupon
       description: ""
       parameters:
-        - name: code
+        - name: id
           in: path
           schema:
             type: string

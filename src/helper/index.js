@@ -6,6 +6,7 @@ const CartModel = require('../models/users/cart.model');
 const CourseModel = require('../models/courses/course.model')
 const CouponModel = require('../models/coupon.model')
 const { getVideoDurationInSeconds } = require('get-video-duration')
+var voucher_codes = require('voucher-code-generator');
 
 
 // fn: upload image to cloudinary
@@ -159,6 +160,15 @@ const getVideoDuration = async (videoPath) => {
     }
 }
 
+// fn: tạo mã giảm giá
+const generateDiscountCode = (length = 10, number = 1) => {
+    return voucher_codes.generate({
+        length: length,
+        count: number,
+        charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    });
+
+}
 
 module.exports = {
     generateVerifyCode,
@@ -168,4 +178,5 @@ module.exports = {
     getVideoDuration,
     uploadVideoToCloudinary,
     uploadFileToCloudinary,
+    generateDiscountCode
 };
