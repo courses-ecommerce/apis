@@ -153,7 +153,7 @@ const getMyCourse = async (req, res, next) => {
         ]
 
         const myCourse = await MyCourseModel.aggregate(query)
-        // tính phần trăm hoàn thành khoá học
+        // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
         var result = myCourse.map(item => {
             let tu = 0
             item.progress.forEach(i => {
@@ -162,8 +162,21 @@ const getMyCourse = async (req, res, next) => {
             let mau = 0
             item.chapters.forEach(chapter => {
                 mau += chapter.lessons.length
+                // điền timeline và complete vào lesson
+                chapter.lessons.map(lesson => {
+                    for (let i = 0; i < item.progress.length; i++) {
+                        const element = item.progress[i];
+                        if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
+                            lesson.complete = element.complete
+                            lesson.timeline = element.timeline
+                            break
+                        }
+                    }
+                    return lesson
+                })
             })
             item.percentProgress = tu * 100 / mau
+            delete item.progress
             return item
         })
         res.status(200).json({ message: "ok", myCourse: result[0] })
