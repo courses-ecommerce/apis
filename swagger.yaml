@@ -701,7 +701,11 @@ components:
         user:
           $ref: "#/components/schemas/User"
         totalPrice:
-          type: string
+          type: number
+        totalDiscount:
+          type: number
+        paymentPrice:
+          type: number
         status:
           type: string
       required:
@@ -709,12 +713,13 @@ components:
         - transactionId
         - user
         - totalPrice
+        - paymentPrice
     UpdateInvoiceDto:
       type: object
       properties:
         status:
           type: string
-          enum: ["Unpaid", "Paid", "Refund"]
+          enum: ["Unpaid", "Paid", "Refund", "Cancel"]
 
     DetailInvoice:
       type: object
@@ -734,6 +739,8 @@ components:
         couponCode:
           type: string
         amount:
+          type: number
+        discount:
           type: number
         status:
           type: string
@@ -2342,78 +2349,6 @@ paths:
         500:
           description: "SERVER ERROR"
 
-  /payment/checkout-cart:
-    post:
-      tags:
-        - payment
-      summary: ước tính chi phí của giỏ hàng
-      description: ""
-      requestBody:
-        description: "Danh sách mã slug khoá học và mã giảm giá"
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                courses:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      slug:
-                        type: string
-                      coupon:
-                        type: string
-      responses:
-        200:
-          description: "ok"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    totalPrice:
-                      type: number
-                    data:
-                      type: object
-                      properties:
-                        slug:
-                          type: string
-                        name:
-                          type: string
-                        category:
-                          type: string
-                        thumbnail:
-                          type: string
-                        amount:
-                          type: number
-                        currentPrice:
-                          type: number
-                        originalPrice:
-                          type: number
-                        saleOff:
-                          type: number
-                        author:
-                          $ref: "#/components/schemas/User"
-                        coupon:
-                          type: object
-                          properties:
-                            message:
-                              type: string
-                            discountAmount:
-                              type: number
-                            code:
-                              type: string
-                            title:
-                              type: string
-                            type:
-                              type: string
-                            amount:
-                              type: number
-        500:
-          description: "SERVER ERROR"
   /payment/checkout:
     post:
       tags:

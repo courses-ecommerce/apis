@@ -1,8 +1,8 @@
 const CartModel = require('../models/users/cart.model');
 const CourseModel = require('../models/courses/course.model')
-const CouponModel = require('../models/coupon.model')
 const helper = require('../helper/index');
 const CodeModel = require('../models/code.model');
+const MyCourseModel = require('../models/users/myCourse.model');
 
 
 
@@ -15,6 +15,9 @@ const postCart = async (req, res, next) => {
         // kiểm tra khoá học
         const hadCourse = await CourseModel.findById(course).lean()
         if (!hadCourse) return res.status(400).json({ message: "mã khoá học không hợp lệ" })
+        // kiểm tra đã mua chưa
+        const isBuyed = await MyCourseModel.findOne({ user, course }).lean()
+        if (isBuyed) return res.status(400).json({ message: "khoá học đã sỡ hữu" })
         // kiểm tra có trong giỏ chưa
         const inCart = await CartModel.findOne({ user: user._id, course }).lean()
         if (inCart) {
@@ -46,31 +49,11 @@ const getCart = async (req, res, next) => {
             })
             .select("-__v -user")
             .lean()
-        // tính toán tiền ước tính
-        var totalDiscount = 0
-        var totalPrice = 0
-        for (let i = 0; i < carts.length; i++) {
-            var cart = carts[i];
-            var { course, coupon } = cart
-            let code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
-            cart.course.discount = 0
-            if (!code) {
-                totalPrice += course.currentPrice
-                continue
-            }
-            const result = helper.hanlderApplyDiscountCode(course, code)
-            if (result.isApply == true) {
-                if (result.discountAmount < course.currentPrice) {
-                    cart.course.discount = result.discountAmount
-                } else {
-                    cart.course.discount = course.currentPrice
-                }
-            }
-            totalDiscount += cart.course.discount
-            totalPrice += course.currentPrice
+        const result = await helper.hanlderCheckoutCarts(carts)
+        if (result.error) {
+            return res.status(500).json({ message: error.message })
         }
-        let estimatedPrice = totalPrice - totalDiscount
-        res.status(200).json({ message: "ok", totalPrice, totalDiscount, estimatedPrice, carts })
+        res.status(200).json({ message: "ok", totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })

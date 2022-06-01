@@ -59,14 +59,19 @@
 
         }
     </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/autonumeric/2.0.0/autoNumeric.min.js"></script>
+
+    <script src="/js/semantic.js"></script>
     <!-- script for payment -->
     <script>
         let headersList = {
             "Access-Control-Allow-Origin": "*",
             "Accept": "*/*",
+            'X-Remote': true,
             "Access-Control-Allow-Methods": "*",
             "Content-Type": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyNTA2MTA5MWQ2OTdmZTA4Zjk0MGE2MCJ9LCJpYXQiOjE2NTE4MDU0MDYsImV4cCI6MTY1MjA2NDYwNn0.MVrxWeV1lJtZ7zZxfm9VL08XngfaRvpZhCrwMus4NeM",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyN2ZjY2FhOTM0ZGI4MjA4ZjZlZGU0OCJ9LCJpYXQiOjE2NTM5MDQ0MjUsImV4cCI6MTY1NDE2MzYyNX0.mPsg3cDqnl5_Rj6IkzTETh9tb0Lh8q9qbsgsGhD8knw",
         }
         let bodyContent = {
             courses:
@@ -84,19 +89,16 @@
         }
 
         async function postPaymentForm() {
-            const res = await fetch("/api/payment/checkout", {
-                method: "POST",
+            fetch("/api/payment/checkout", {
+                method: "post",
                 body: JSON.stringify(bodyContent),
-                // headers: headersList,
                 headers: headersList,
-
-
-
-
-
-                // redirect: 'follow'
-            })
-            console.log(res);
+                redirect: 'follow'
+            }).then(res => {
+                return res.json()
+            }).then(res => {
+                location.href = res.url
+            }).catch(e => { console.log(e); })
         }
 
 

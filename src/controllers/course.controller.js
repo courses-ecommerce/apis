@@ -148,6 +148,12 @@ const getCourses = async (req, res, next) => {
                 }
             },
             {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $lookup: {
                     from: 'users',
                     localField: 'author',
@@ -169,6 +175,7 @@ const getCourses = async (req, res, next) => {
             {
                 $unwind: "$category"
             },
+
             {
                 $project: {
                     'slug': 1,
@@ -335,6 +342,12 @@ const getCourse = async (req, res, next) => {
                 }
             },
             {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $lookup: {
                     from: 'users',
                     localField: 'author',
@@ -438,6 +451,10 @@ const getCourse = async (req, res, next) => {
             }
         ])
         if (course[0]) {
+            const myCourse = await MyCourseModel.findOne({ user, course }).lean()
+            if (myCourse) {
+                course[0].isBuyed = true
+            }
             res.status(200).json({ message: 'ok', course: course[0] })
         } else {
             res.status(400).json({ message: 'mã khoá học không tồn tại' })

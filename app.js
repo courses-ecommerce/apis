@@ -45,6 +45,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsConfig));
 app.use(cookieParser());
+app.use(express.static(__dirname + '/src/public'));
 
 app.get('/', (req, res) => {
     return res.sendFile(__dirname + '/index.html')

@@ -7,6 +7,7 @@ const CourseModel = require('../models/courses/course.model')
 const CouponModel = require('../models/coupon.model')
 const { getVideoDurationInSeconds } = require('get-video-duration')
 var voucher_codes = require('voucher-code-generator');
+const CodeModel = require('../models/code.model');
 
 
 // fn: upload image to cloudinary
@@ -104,6 +105,41 @@ const isVerifyEmail = async (email, verifyCode) => {
 };
 
 
+//fn: xử lý tính toán giỏ hàng
+const hanlderCheckoutCarts = async (carts) => {
+    try {
+        // tính toán tiền ước tính
+        var totalDiscount = 0
+        var totalPrice = 0
+        for (let i = 0; i < carts.length; i++) {
+            var cart = carts[i];
+            var { course, coupon } = cart
+            let code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
+            cart.course.discount = 0
+            if (!code) {
+                totalPrice += course.currentPrice
+                continue
+            }
+            const result = hanlderApplyDiscountCode(course, code)
+            if (result.isApply == true) {
+                if (result.discountAmount < course.currentPrice) {
+                    cart.course.discount = result.discountAmount
+                } else {
+                    cart.course.discount = course.currentPrice
+                }
+            }
+            totalDiscount += cart.course.discount
+            totalPrice += course.currentPrice
+        }
+        let estimatedPrice = totalPrice - totalDiscount
+
+        return { totalPrice, totalDiscount, estimatedPrice, carts }
+    } catch (error) {
+        console.log(error);
+        return { error }
+    }
+}
+
 //fn: kiểm tra mã giảm giá cho khoá học
 const hanlderApplyDiscountCode = (course, code) => {
     try {
@@ -150,7 +186,6 @@ const hanlderApplyDiscountCode = (course, code) => {
     }
 }
 
-
 //fn: lấy thời lượng video
 const getVideoDuration = async (videoPath) => {
     try {
@@ -175,9 +210,10 @@ module.exports = {
     generateVerifyCode,
     isVerifyEmail,
     uploadImageToCloudinary,
-    hanlderApplyDiscountCode,
+    hanlderCheckoutCarts,
     getVideoDuration,
     uploadVideoToCloudinary,
     uploadFileToCloudinary,
-    generateDiscountCode
+    generateDiscountCode,
+    hanlderApplyDiscountCode
 };

@@ -20,9 +20,17 @@ const invoiceSchema = new Schema({
         type: Number,
         required: true,
     },
+    totalDiscount: {
+        type: Number,
+        required: true,
+    },
+    paymentPrice: {
+        type: Number,
+        required: true,
+    },
     status: {
         type: String,
-        enum: ['Unpaid', 'Paid', 'Refund'],
+        enum: ['Unpaid', 'Paid', 'Refund', 'Cancel'],
         default: "Unpaid",
     }
 },

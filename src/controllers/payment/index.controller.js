@@ -6,6 +6,8 @@ var uniqid = require('uniqid');
 const CourseModel = require('../../models/courses/course.model');
 const MyCourseModel = require('../../models/users/myCourse.model');
 const CartModel = require('../../models/users/cart.model');
+const helper = require('../../helper/index')
+
 
 /** Tạo hoá đơn cho người dùng (chưa thanh toán)
  * @param {Object} data
@@ -43,18 +45,20 @@ const CartModel = require('../../models/users/cart.model');
 }
  */
 
-const handlerCreateInvoice = async (data, user) => {
+const handlerCreateInvoice = async (data, user, orderId) => {
     try {
         // tạo hoá đơn tổng
         const invoice = await InvoiceModel.create({
-            _id: data.orderId,
-            transactionId: "hahaha",
-            user: user,
+            _id: orderId,
+            transactionId: 'undefined',
+            user: user._id,
             totalPrice: data.totalPrice,
+            totalDiscount: data.totalDiscount,
+            paymentPrice: data.estimatedPrice,
         })
         // tạo chi tiết hoá đơn
-        for (let i = 0; i < data.courses.length; i++) {
-            const course = data.courses[i];
+        for (let i = 0; i < data.carts.length; i++) {
+            const { course, coupon } = data.carts[i];
             await DetailInvoiceModel.create({
                 invoice: invoice._id,
                 courseId: course._id,
@@ -62,8 +66,9 @@ const handlerCreateInvoice = async (data, user) => {
                 courseName: course.name,
                 courseCurrentPrice: course.currentPrice,
                 courseAuthor: course.author,
-                couponCode: course.coupon.code || "",
-                amount: course.amount,
+                couponCode: coupon || "",
+                amount: course.currentPrice - course.discount,
+                discount: course.discount,
             })
         }
         return true
@@ -74,46 +79,18 @@ const handlerCreateInvoice = async (data, user) => {
 }
 
 
-
-/** xử lý giỏ hàng => thông tin các giá (sau giảm giá) khoá học và tổng tiền cần thanh toán
- *  @param {Array} carts 
- */
-const handlerCheckoutCart = async (carts) => {
-    try {
-
-    } catch (error) {
-        throw error
-    }
-}
-
-
-
-// fn: lấy thông tin khoá học để checkout thanh toán khoá học
-/** postCheckoutCart
- * @param {Object} req.body
- * @param {Array} res.body.courses ex: [{ slug: 'slug1', coupon: 'magiamgia1' }, { slug: 'slug2' }, { slug: 'slug3', coupon: 'magiamgia3'}]
- */
-const getCheckoutCart = async (req, res, next) => {
-    try {
-        const user = req.user
-        // xử lý giỏ hàng
-        const carts = await CartModel.find({ user }).lean()
-
-        return res.status(200).json({ message: "ok", totalPrice: result.totalPrice, data: result.courses })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: error.message })
-    }
-}
-
-
-/** 
-* @param {Object} req.body form-data
-* @property { array } req.body.courses mảng slug khoá học. ex: courses = ['slug1', 'slug2' ] 
-*/
-
 const postPaymentCheckout = async (req, res, next) => {
     const { user } = req
+    const carts = await CartModel.find({ user })
+        .populate({
+            path: 'course',
+            populate: { path: "author", select: "_id fullName" },
+            select: '_id name thumbnail author currentPrice category level'
+        })
+        .select("-__v -user")
+        .lean()
+
+    if (carts.length == 0) { return res.status(400).json({ message: "giỏ hàng trống" }) }
     const params = Object.assign({}, req.body);
 
     const clientIp =
@@ -122,31 +99,17 @@ const postPaymentCheckout = async (req, res, next) => {
         req.socket.remoteAddress ||
         (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
-
-
     // xử lý thông tin đơn hàng => tạo hoá đơn thanh toán
-
     let orderId = uniqid()
-    //for test
-    let courses = [
-        {
-            slug: "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
-            coupon: "TESTCODE"
-        },
-        {
-            slug: "react-the-complete-guide-incl-hooks-react-router-redux-update",
-            coupon: "TESTCODE2"
-        }
-    ]
-    var result = await handlerCheckoutCart(courses)
-    // if (!Array.isArray(params.courses)) {
-    //     return res.status(400).json({ message: "khoá học phải là mảng" })
-    // }
-    // var result = await handlerCheckoutCart(params.courses)
-    result.orderId = orderId
-    let isCreated = handlerCreateInvoice(result, user)
+    // lấy giá tiền, giá tiền đã giảm, giá tiền ước tính cần thanh toán
+    var result = await helper.hanlderCheckoutCarts(carts)
+    if (result.error) {
+        return res.status(500).json({ message: "lỗi xử lý giỏ hàng" })
+    }
+    // tạo hoá đơn chưa thanh toán
+    let isCreated = handlerCreateInvoice(result, user, orderId)
     if (!isCreated) return res.status(500).json({ message: "server error" })
-    const amount = parseInt(result.totalPrice, 10);
+    const amount = parseInt(result.estimatedPrice, 10);
     const now = new Date();
 
     // NOTE: only set the common required fields and optional fields from all gateways here, redundant fields will invalidate the payload schema checker
@@ -159,7 +122,7 @@ const postPaymentCheckout = async (req, res, next) => {
         // edit at here
         orderId: orderId,
         transactionId: `node-${now.toISOString()}`, // same as orderId (we don't have retry mechanism)
-        orderInfo: 'Thanh toan khoa hoc truc tuyen',
+        orderInfo: 'Thanh toan khoa hoc truc tuyen - ' + orderId,
         orderType: '190000', // giải trí và giáo dục
     };
 
@@ -179,8 +142,7 @@ const postPaymentCheckout = async (req, res, next) => {
     if (asyncCheckout) {
         asyncCheckout
             .then(checkoutUrl => {
-                res.writeHead(301, { Location: checkoutUrl.href });
-                // res.status(301).json({ message: "chuyển hướng", url: checkoutUrl.href })
+                res.status(301).json({ message: "chuyển tiếp", url: checkoutUrl.href })
                 res.end();
             })
             .catch(err => {
@@ -208,9 +170,8 @@ const getPaymentCallback = async (req, res, next) => {
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-            }
-            res.status(200).json({ data, invoice })
-            if (data.isSuccess) {
+                res.status(200).json({ isSuccess: data.isSuccess, message: data.message, invoice })
+
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).select('courseId').lean()
@@ -221,6 +182,13 @@ const getPaymentCallback = async (req, res, next) => {
                 }
                 // cập nhật số lượng bán của khoá học
                 await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
+                // xoá giỏ hàng
+                await CartModel.deleteMany({ user })
+
+            } else {
+                res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
+                // CẬP NHẬT KHOÁ ĐƠN THÀNH ĐÃ HUỶ
+                await InvoiceModel.updateOne({ _id: data.transactionId }, { status: "Cancel" })
             }
         } else {
             res.status(500).json({ message: "Callback not found" })
@@ -233,7 +201,6 @@ const getPaymentCallback = async (req, res, next) => {
 
 
 module.exports = {
-    getCheckoutCart,
     postPaymentCheckout,
     getPaymentCallback,
 }
