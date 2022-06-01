@@ -213,9 +213,6 @@ components:
         course:
           type: string
           description: "mã khoá học"
-        coupon:
-          type: string
-          description: mã giảm giá
       required: [course]
     UpdateCartDto:
       type: object
@@ -1438,8 +1435,12 @@ paths:
                     type: number
                   totalDiscount:
                     type: number
+                  estimatedPrice:
+                    type: number
                   carts:
-                    $ref: "#/components/schemas/Cart"
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Cart"
         401:
           description: "Unauthorize"
         500:
@@ -1474,6 +1475,7 @@ paths:
           schema:
             type: string
       requestBody:
+        description: muốn gỡ mã giảm giá thì gửi coupon=''
         content:
           application/json:
             schema:

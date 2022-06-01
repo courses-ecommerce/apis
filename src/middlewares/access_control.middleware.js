@@ -6,7 +6,6 @@ const grantAccess = function (action, resource) {
     return async (req, res, next) => {
         try {
             const account = req.account
-            console.log(account);
             const permission = ac.can(account.role)[action](resource)
             if (!permission.granted) {
                 return res.status(401).json({ message: "Unauthorized" })

@@ -14,7 +14,7 @@ const cartSchema = new Schema({
     },
     coupon: {
         type: String,
-        default: ""
+        default: null
     }
 })
 

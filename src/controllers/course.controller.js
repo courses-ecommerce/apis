@@ -443,7 +443,7 @@ const getCourse = async (req, res, next) => {
             res.status(400).json({ message: 'mã khoá học không tồn tại' })
         }
         // lưu lịch sử xem
-        if (user) {
+        if (user && course[0]) {
             await HistoryViewModel.findOneAndUpdate(
                 { user: req.user._id },
                 {

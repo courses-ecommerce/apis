@@ -105,27 +105,28 @@ const isVerifyEmail = async (email, verifyCode) => {
 
 
 //fn: kiểm tra mã giảm giá cho khoá học
-const hanlderApplyDiscountCode = (course, coupon) => {
+const hanlderApplyDiscountCode = (course, code) => {
     try {
+        // kiểm tra mã đã dùng chưa
+        if (code.isActive == false) {
+            return { isApply: false, discountAmount: 0, message: "mã đã sử dụng" }
+        }
         // kiểm tra hết hạn
-        const isExpired = new Date(coupon.expireDate) < new Date()
+        const isExpired = new Date(code.coupon.expireDate) < new Date()
         if (isExpired) {
             return { isApply: false, discountAmount: 0, message: "mã hết hạn" }
         }
+
         // giá tối tiểu <= giá khoá học && số lượng >= 1
-        let message = "không đủ điều kiện"
-        let isApply = coupon.minPrice <= course.currentPrice && (coupon.number >= 1 || coupon.number === null)
+        var message = "không đủ điều kiện"
+        let isApply = code.coupon.minPrice <= course.currentPrice
         // kiểm tra loại áp dung
-        switch (coupon.apply.to) {
+        switch (code.coupon.apply) {
             case 'all':
                 break
             case 'author':
                 // tác giả mã == tác giả khoá học && giá tối tiểu <= giá khoá học && số lượng >= 1
-                isApply = JSON.stringify(coupon.author) == JSON.stringify(course.author._id) && isApply
-                break
-            case 'category':
-                // giá trị loại danh mục "có" danh mục khoá học &&  giá tối tiểu <= giá khoá học && số lượng >= 1
-                isApply = coupon.apply.value.some(item => JSON.stringify(item) == JSON.stringify(course.category)) && isApply
+                isApply = JSON.stringify(code.coupon.author) == JSON.stringify(course.author._id) && isApply
                 break
             default:
                 isApply = false
@@ -135,17 +136,17 @@ const hanlderApplyDiscountCode = (course, coupon) => {
         if (isApply) {
             message = "ok"
             // tính tiền giảm giá theo tiền mặt và giảm giá %
-            discountAmount = coupon.type === 'money' ? coupon.amount : coupon.amount * course.currentPrice / 100
+            discountAmount = code.coupon.type === 'money' ? code.coupon.amount : code.coupon.amount * course.currentPrice / 100
             // tiền giảm giá có vượt giá trị giảm tối đa ?
-            if (discountAmount > coupon.maxDiscount) {
-                discountAmount = coupon.maxDiscount
+            if (discountAmount > code.coupon.maxDiscount) {
+                discountAmount = code.coupon.maxDiscount
             }
         }
 
         return { isApply, discountAmount, message }
     } catch (error) {
         console.log(error);
-        return { isApply: false, discountAmount: 0, message: "mã hết hạn" }
+        return { isApply: false, discountAmount: 0, message: "mã lỗi" }
     }
 }
 

@@ -6,11 +6,13 @@ const codeSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'coupon',
         required: true,
-        unique: true
     },
     code: {
         type: String,
         required: true,
+        unique: true,
+        trim: true,
+        uppercase: true
     },
     isActive: {
         type: Boolean,
