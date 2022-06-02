@@ -54,6 +54,7 @@ const putCourse = async (req, res, next) => {
         if (newCourse.sellNumber) {
             delete newCourse.sellNumber
         }
+        // chỉ cho phép admin cập nhật publish
         if (newCourse.publish) {
             if (account.role == "admin") {
                 newCourse.publish = JSON.stringify(newCourse.publish) == "true"
@@ -68,14 +69,11 @@ const putCourse = async (req, res, next) => {
         if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
             return res.status(401).json({ message: "not permited" })
         }
-        // chỉ cho phép admin pulish
-        if (newCourse.publish && account.role !== "admin") {
-            delete newCourse.publish
-        }
+
         if (newCourse.currentPrice || newCourse.originalPrice) {
             let cp = newCourse.currentPrice || course.currentPrice
             let op = newCourse.originalPrice || course.originalPrice
-            newCourse.saleOff = (1 - parseInt(cp) / parseInt(op)) * 100
+            newCourse.saleOff = (1 - parseInt(cp) / parseInt(op)) * 100 || 0
         }
 
         // cập nhật theo id
@@ -93,7 +91,7 @@ const putCourse = async (req, res, next) => {
 // ex: ?sort=score&name=api&category=web-development&price=10-50&hashtags=nodejs-mongodb&rating=4.5
 const getCourses = async (req, res, next) => {
     try {
-        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true' } = req.query
+        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true', status } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
@@ -175,7 +173,6 @@ const getCourses = async (req, res, next) => {
             {
                 $unwind: "$category"
             },
-
             {
                 $project: {
                     'slug': 1,
@@ -201,6 +198,7 @@ const getCourses = async (req, res, next) => {
                     'rating.numOfRate': 1,
                     'createdAt': 1,
                     'updatedAt': 1,
+                    'status': 1,
                     //'score': { $meta: "textScore" },
                 }
             },
@@ -261,6 +259,15 @@ const getCourses = async (req, res, next) => {
             )
             aCountQuery.push(
                 { $match: { 'category.slug': category } }
+            )
+        }
+        // tìm status
+        if (status) {
+            aQuery.push(
+                { $match: { status } }
+            )
+            aCountQuery.push(
+                { $match: { status } }
             )
         }
         // tìm theo level
@@ -411,6 +418,7 @@ const getCourse = async (req, res, next) => {
                     author: { $first: "$author" },
                     hashtags: { $first: "$hashtags" },
                     publish: { $first: "$publish" },
+                    status: { $first: "$status" },
                     chapters: { $push: "$chapters" },
                 }
             },
@@ -443,6 +451,7 @@ const getCourse = async (req, res, next) => {
                     'author.fullName': 1,
                     'hashtags': 1,
                     'publish': 1,
+                    'status': 1,
                     'chapters': { _id: 1, number: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, description: 1 } },
                 }
             },
@@ -451,10 +460,13 @@ const getCourse = async (req, res, next) => {
             }
         ])
         if (course[0]) {
-            const myCourse = await MyCourseModel.findOne({ user, course }).lean()
-            if (myCourse) {
-                course[0].isBuyed = true
+            if (user) {
+                const myCourse = await MyCourseModel.findOne({ user, course }).lean()
+                if (myCourse) {
+                    course[0].isBuyed = true
+                }
             }
+            if (!course[0].chapters[0].name) { course[0].chapters = [] }
             res.status(200).json({ message: 'ok', course: course[0] })
         } else {
             res.status(400).json({ message: 'mã khoá học không tồn tại' })
@@ -726,6 +738,157 @@ const deleteCourse = async (req, res, next) => {
     }
 }
 
+
+//fn: xem khoá học để kiểm duyệt (có cả nội dung bài giảng)
+const getDetailPendingCourse = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const course = await CourseModel.aggregate([
+            {
+                $match: { _id: ObjectId(id) }
+            },
+            {   // tính rate trung bình
+                $lookup: {
+                    from: 'rates',
+                    localField: '_id',
+                    foreignField: 'course',
+                    pipeline: [
+                        {
+                            $group: {
+                                _id: '$course',
+                                rate: { $avg: '$rate' },
+                                numOfRate: { $count: {} },
+                                star5: { $sum: { $cond: [{ $eq: ['$rate', 5] }, 1, 0] } },
+                                star4: { $sum: { $cond: [{ $eq: ['$rate', 4] }, 1, 0] } },
+                                star3: { $sum: { $cond: [{ $eq: ['$rate', 3] }, 1, 0] } },
+                                star2: { $sum: { $cond: [{ $eq: ['$rate', 2] }, 1, 0] } },
+                                star1: { $sum: { $cond: [{ $eq: ['$rate', 1] }, 1, 0] } },
+                            },
+                        }
+                    ],
+                    as: 'rating'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: "$author"
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: "$category"
+            },
+            {
+                $lookup: {
+                    from: 'chapters',
+                    localField: '_id',
+                    foreignField: 'course',
+                    as: 'chapters'
+                }
+            },
+            {
+                $unwind: {
+                    path: "$chapters",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'lessons',
+                    localField: 'chapters._id',
+                    foreignField: 'chapter',
+                    as: 'chapters.lessons'
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    slug: { $first: "$slug" },
+                    category: { $first: "$category" },
+                    thumbnail: { $first: "$thumbnail" },
+                    description: { $first: "$description" },
+                    lang: { $first: "$lang" },
+                    intendedLearners: { $first: "$intendedLearners" },
+                    requirements: { $first: "$requirements" },
+                    targets: { $first: "$targets" },
+                    level: { $first: "$level" },
+                    currentPrice: { $first: "$currentPrice" },
+                    originalPrice: { $first: "$originalPrice" },
+                    saleOff: { $first: "$saleOff" },
+                    rating: { $first: "$rating" },
+                    author: { $first: "$author" },
+                    hashtags: { $first: "$hashtags" },
+                    publish: { $first: "$publish" },
+                    status: { $first: "$status" },
+                    chapters: { $push: "$chapters" },
+                }
+            },
+            {
+                $project: {
+                    'slug': 1,
+                    'name': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
+                    'thumbnail': 1,
+                    'description': 1,
+                    'lang': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
+                    'currentPrice': 1,
+                    'originalPrice': 1,
+                    'saleOff': 1,
+                    'sellNumber': 1,
+                    'rating.rate': 1,
+                    'rating.numOfRate': 1,
+                    'rating.star5': 1,
+                    'rating.star4': 1,
+                    'rating.star3': 1,
+                    'rating.star2': 1,
+                    'rating.star1': 1,
+                    'author._id': 1,
+                    'author.fullName': 1,
+                    'hashtags': 1,
+                    'publish': 1,
+                    'status': 1,
+                    'chapters': 1
+                }
+            }
+        ])
+        if (course[0]) {
+            if (!course[0].chapters[0].name) { course[0].chapters = [] }
+            return res.status(200).json({ message: 'ok', course: course[0] })
+        }
+
+        res.status(404).json({ message: 'không tìm thấy' })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
 //#endregion
 
 
@@ -763,4 +926,5 @@ module.exports = {
     getRates,
     getSuggestCourses,
     deleteCourse,
+    getDetailPendingCourse
 }

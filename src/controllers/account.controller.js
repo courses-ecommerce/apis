@@ -77,7 +77,7 @@ const postSignup = async (req, res, next) => {
                 account: newAccount._id,
                 fullName,
                 birthday,
-                gender,
+                gender: JSON.stringify(gender) == 'true',
                 phone,
             })
             if (newUser) {

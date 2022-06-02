@@ -18,7 +18,11 @@ const codeSchema = new Schema({
         type: Boolean,
         default: true
     }
-});
+},
+    {
+        timestamps: true
+    }
+);
 
 const CodeModel = mongoose.model('code', codeSchema, 'codes');
 

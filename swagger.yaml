@@ -41,6 +41,8 @@ tags:
     description: apis liên quan teacher
   - name: invoice
     description: apis liên quan hoá đơn
+  - name: statistic
+    description: apis liên quan thống kê
 
 # Basic authentication
 components:
@@ -302,6 +304,9 @@ components:
         publish:
           type: boolean
           default: false
+        status:
+          type: string
+          enum: ["draft", "pending", "approved"]
       required:
         - name
         - thumbnail
@@ -380,6 +385,9 @@ components:
             type: string
         publish:
           type: boolean
+        status:
+          type: string
+          enum: ["draft", "pending", "approved"]
 
     Rate:
       type: object
@@ -1790,6 +1798,11 @@ paths:
           description: "min-max, ex: 10-50"
           schema:
             type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["draft", "pending", "approved"]
         - name: publish
           in: query
           schema:
@@ -1908,6 +1921,27 @@ paths:
           description: "ok"
         401:
           description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /courses/check/{id}:
+    get:
+      tags:
+        - course
+      summary: Lấy chi tiết khoá học (bảo gồm cả nội dung khoá học) để admin xem và duyệt
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
         500:
           description: "SERVER ERROR"
 
@@ -2354,7 +2388,7 @@ paths:
       tags:
         - payment
       summary: Ước tính giá và thanh toán mua khoá học
-      description: ""
+      description: "thông tin thẻ test thanh toán: <a href='https://sandbox.vnpayment.vn/apis/vnpay-demo/'>Xem ở đây</a>"
       requestBody:
         description: ""
         content:
@@ -2372,7 +2406,11 @@ paths:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/Coupon"
+                properties:
+                  message:
+                    type: string
+                  url:
+                    type: string
         500:
           description: "SERVER ERROR"
   /{gateway}/callback:
@@ -2871,5 +2909,168 @@ paths:
           description: "ok"
         401:
           description: "unauthorize"
+        500:
+          description: "SERVER ERROR"
+
+  /statistics/revenues/monthly/{year}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Doanh thu theo tháng trong năm 'year'
+      description: ""
+      parameters:
+        - name: year
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  thisYear:
+                    type: array
+                    items:
+                      type: number
+                  lastYear:
+                    type: array
+                    items:
+                      type: number
+
+        500:
+          description: "SERVER ERROR"
+  /statistics/revenues/yearly:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Doanh thu theo tháng trong năm 'year'
+      description: ""
+      parameters:
+        - name: start
+          in: query
+          description: năm bắt đầu
+          schema:
+            type: string
+          required: true
+        - name: end
+          in: query
+          description: năm kết thúc
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: number
+
+        500:
+          description: "SERVER ERROR"
+  /statistics/users:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Số lượng người dùng
+      description: ""
+      parameters:
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+
+        500:
+          description: "SERVER ERROR"
+  /statistics/courses:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: số lượng khoá học
+      description: ""
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: "'pending' 'draft' 'approved'"
+        - name: publish
+          in: query
+          description: trạng thái xuất bản
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: number
+
+        500:
+          description: "SERVER ERROR"
+  /statistics/coupons:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Số lượng mã giảm giá
+      description: ""
+      parameters:
+        - name: active
+          in: query
+          description: đang có hiệu lực
+          schema:
+            type: boolean
+        - name: countdown
+          in: query
+          description: chưa bắt đầu có hiệu lực
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: number
         500:
           description: "SERVER ERROR"

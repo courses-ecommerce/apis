@@ -79,6 +79,11 @@ const courseSchema = new Schema({
         type: Boolean,
         default: false
     },
+    status: {
+        type: String,
+        enum: ['draft', 'pending', 'approved'],
+        default: 'draft'
+    }
 },
     {
         timestamps: true

@@ -25,7 +25,7 @@ const chatApis = require('./src/apis/chat.api');
 const invoiceApis = require('./src/apis/invoice.api');
 const rateApis = require('./src/apis/rate.api');
 const myCourseApis = require('./src/apis/myCourse.api');
-
+const statisticApis = require('./src/apis/statistic.api');
 // apis for admin
 const adminUserApis = require('./src/apis/adminUser.api');
 
@@ -69,6 +69,7 @@ app.use('/api/chat', chatApis)
 app.use('/api/invoices', invoiceApis)
 app.use('/api/rate', rateApis)
 app.use('/api/admin/users', adminUserApis)
+app.use('/api/statistics', statisticApis)
 
 
 module.exports = app

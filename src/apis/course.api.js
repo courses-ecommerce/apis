@@ -32,5 +32,8 @@ courseApis.get('/:id/rate', courseController.getRates)
 // api: xoá khoá học
 courseApis.delete('/:id', passport.jwtAuthentication, courseController.deleteCourse)
 
+// api: xem chi tiết khoá học đang chờ duyệt
+courseApis.get('/check/:id', passport.jwtAuthentication, passport.isAdmin, courseController.getDetailPendingCourse)
+
 
 module.exports = courseApis

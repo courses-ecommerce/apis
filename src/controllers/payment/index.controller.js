@@ -6,7 +6,8 @@ var uniqid = require('uniqid');
 const CourseModel = require('../../models/courses/course.model');
 const MyCourseModel = require('../../models/users/myCourse.model');
 const CartModel = require('../../models/users/cart.model');
-const helper = require('../../helper/index')
+const helper = require('../../helper/index');
+const CodeModel = require('../../models/code.model');
 
 
 /** Tạo hoá đơn cho người dùng (chưa thanh toán)
@@ -175,10 +176,12 @@ const getPaymentCallback = async (req, res, next) => {
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).select('courseId').lean()
-                detailInvoices = detailInvoices.map(item => item.courseId)
                 for (let i = 0; i < detailInvoices.length; i++) {
-                    const course = detailInvoices[i];
-                    await MyCourseModel.create({ user, course })
+                    const { courseId, couponCode } = detailInvoices[i];
+                    // cập nhật mã giảm giá đã dùng
+                    await CodeModel.findOneAndUpdate({ code: couponCode }, { isActive: false })
+                    // thêm khoá học vào danh sách đã mua
+                    await MyCourseModel.create({ user, course: courseId })
                 }
                 // cập nhật số lượng bán của khoá học
                 await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
