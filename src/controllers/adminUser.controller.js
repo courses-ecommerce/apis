@@ -84,7 +84,7 @@ const getDetailAccountAndUser = async (req, res, next) => {
     try {
         const { id } = req.params
         const user = await UserModel.findById(id)
-            .populate('account', '-__v -password -refreshToken')
+            .populate('account', '-__v -password -refreshToken -accessToken')
             .lean()
         return res.status(200).json({ message: 'ok', user })
     } catch (error) {
@@ -97,7 +97,7 @@ const getDetailAccountAndUser = async (req, res, next) => {
 // POST /api/admin/users
 const postAccountAndUser = async (req, res, next) => {
     try {
-        const { email, password, role, fullName, birthday, gender, phone } = req.body
+        const { email, password, role = 'student', fullName, birthday, gender, phone } = req.body
         const newAcc = await AccountModel.create({ email, password, role })
         if (newAcc) {
             const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })

@@ -189,7 +189,12 @@ const hanlderApplyDiscountCode = (course, code) => {
 //fn: lấy thời lượng video
 const getVideoDuration = async (videoPath) => {
     try {
-        const duration = await getVideoDurationInSeconds(videoPath)
+        var duration = null
+        if (process.env.NODE_ENV == 'production') {
+            duration = await getVideoDurationInSeconds(videoPath, '/apps/apis/node_modules/@ffprobe-installer/linux-x64/ffprobe')
+        } else {
+            duration = await getVideoDurationInSeconds(videoPath)
+        }
         return duration
     } catch (error) {
         return 0

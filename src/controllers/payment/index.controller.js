@@ -190,8 +190,9 @@ const getPaymentCallback = async (req, res, next) => {
 
             } else {
                 res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
-                // CẬP NHẬT KHOÁ ĐƠN THÀNH ĐÃ HUỶ
-                await InvoiceModel.updateOne({ _id: data.transactionId }, { status: "Cancel" })
+                // xoá hoá đơn
+                await InvoiceModel.deleteOne({ _id: data.transactionId })
+                await DetailInvoiceModel.deleteMany({ invoice: data.transactionId })
             }
         } else {
             res.status(500).json({ message: "Callback not found" })
