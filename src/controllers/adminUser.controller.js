@@ -97,10 +97,10 @@ const getDetailAccountAndUser = async (req, res, next) => {
 // POST /api/admin/users
 const postAccountAndUser = async (req, res, next) => {
     try {
-        const { email, password, fullName, birthday, gender, phone } = req.body
-        const newAcc = await AccountModel.create({ email, password })
+        const { email, password, role, fullName, birthday, gender, phone } = req.body
+        const newAcc = await AccountModel.create({ email, password, role })
         if (newAcc) {
-            const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender, phone })
+            const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })
             if (newUser) {
                 await HistorySearchModel.create({ user: newUser._id })
             }

@@ -2805,6 +2805,9 @@ paths:
                   type: string
                 password:
                   type: string
+                role:
+                  type: string
+                  enum: ["student", "teacher", "admin"]
                 fullName:
                   type: string
                 birthday:
