@@ -2759,6 +2759,11 @@ paths:
           description: ""
           schema:
             type: string
+        - name: active
+          in: query
+          description: ""
+          schema:
+            type: boolean
         - name: sort
           in: query
           description: "example: ?sort=email-asc"

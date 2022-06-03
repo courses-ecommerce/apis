@@ -7,7 +7,7 @@ var bcrypt = require('bcryptjs')
 // GET /api/admin/users?page=1&limit=10&role=user
 const getAccountAndUsers = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, sort, email, role } = req.query
+        const { page = 1, limit = 10, sort, email, role, active = 'true' } = req.query
         var nSkip = (parseInt(page) - 1) * parseInt(limit)
         let aCountQuery = [
             {
@@ -17,7 +17,9 @@ const getAccountAndUsers = async (req, res, next) => {
                     foreignField: '_id',
                     as: 'account'
                 }
-            }
+            },
+            { $match: { 'account.isActive': active == 'true' } }
+
         ]
         let aQuery = [
             {
@@ -31,6 +33,7 @@ const getAccountAndUsers = async (req, res, next) => {
             {
                 $unwind: "$account"
             },
+            { $match: { 'account.isActive': active == 'true' } }
         ]
         if (email) {
             aQuery.push({ $match: { "account.email": email } })
