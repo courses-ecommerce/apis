@@ -140,11 +140,11 @@ const postMultiAccountAndUser = async (req, res, next) => {
         let logs = Date.now() + '.txt'
         for (let i = 1; i < data.length; i++) {
             var [email, password, role, fullName, gender] = data[i];
-            email = email.toString()
-            password = password.toString()
-            role = role.toString()
-            fullName = fullName.toString()
-            gender = gender.toString()
+            email = email.toString() || email
+            password = password.toString() || password
+            role = role.toString() || role
+            fullName = fullName.toString() || fullName
+            gender = gender.toString() || gender
             if (ValidateEmail(email)) {
                 try {
                     const newAcc = await AccountModel.create({ email, password, role })
