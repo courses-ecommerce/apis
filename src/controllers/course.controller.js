@@ -10,6 +10,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
 const helper = require('../helper');
 const MyCourseModel = require('../models/users/myCourse.model');
+var fs = require('fs');
 
 
 
@@ -34,8 +35,8 @@ const postCourse = async (req, res, next) => {
         await CourseModel.create(
             { name, category, description, currentPrice, originalPrice, saleOff, author, thumbnail, lang, intendedLearners, requirements, targets, level, hashtags }
         )
-        return res.status(201).json({ message: "ok" })
-
+        res.status(201).json({ message: "ok" })
+        fs.unlinkSync(image.path);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error 1" })

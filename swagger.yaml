@@ -2262,6 +2262,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: "ex: ?sort=progress-desc || ?sort=createdAt-asc"
       requestBody:
         content:
           application/json:
@@ -2828,6 +2833,66 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /admin/users/multiple:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: tạo nhiều tài khoản người dùng bằng
+      description: xem <a href="/samples/create-multiple-account.xlsx">file excel</a> mẫu
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: base64
+              required:
+                - file
+      responses:
+        201:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  urlLogs:
+                    type: string
+                    default: /logs/1654350601129.txt
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: xoá nhiều tài khoản người dùng
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  description: id user
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /admin/users/{id}:
     get:
       security:

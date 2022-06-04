@@ -2,6 +2,17 @@ const AccountModel = require('../models/users/account.model')
 const UserModel = require('../models/users/user.model');
 const HistorySearchModel = require('../models/users/historySearch.model');
 var bcrypt = require('bcryptjs')
+var xlsx = require('node-xlsx').default
+var fs = require('fs');
+
+
+function ValidateEmail(mail) {
+    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail)) {
+        return (true)
+    }
+    return (false)
+}
+
 
 // fn: lấy thông tin và tài khoản người dùng
 // GET /api/admin/users?page=1&limit=10&role=user
@@ -36,8 +47,8 @@ const getAccountAndUsers = async (req, res, next) => {
             { $match: { 'account.isActive': active == 'true' } }
         ]
         if (email) {
-            aQuery.push({ $match: { "account.email": email } })
-            aCountQuery.push({ $match: { "account.email": email } })
+            aQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
+            aCountQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
         }
         if (role) {
             aQuery.push({ $match: { "account.role": role } })
@@ -98,14 +109,64 @@ const getDetailAccountAndUser = async (req, res, next) => {
 const postAccountAndUser = async (req, res, next) => {
     try {
         const { email, password, role = 'student', fullName, birthday, gender, phone } = req.body
-        const newAcc = await AccountModel.create({ email, password, role })
-        if (newAcc) {
-            const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })
-            if (newUser) {
-                await HistorySearchModel.create({ user: newUser._id })
+
+        if (ValidateEmail(email)) {
+            const newAcc = await AccountModel.create({ email: email.toLowerCase(), password, role })
+            if (newAcc) {
+                const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })
+                if (newUser) {
+                    await HistorySearchModel.create({ user: newUser._id })
+                }
+            }
+            return res.status(201).json({ message: "ok" })
+        } else {
+            return res.status(400).json({ message: "email không hợp lệ" })
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "error" })
+    }
+}
+
+// fn: tạo  nhiều tài khoản và người dùng
+// POST /api/admin/users/multiple
+const postMultiAccountAndUser = async (req, res, next) => {
+    try {
+        const file = req.file
+        const data = xlsx.parse(file.path)[0].data
+        let errorEmails = []
+        let sucess = 0
+        let logs = Date.now() + '.txt'
+        for (let i = 1; i < data.length; i++) {
+            var [email, password, role, fullName, gender] = data[i];
+            email = email.toString()
+            password = password.toString()
+            role = role.toString()
+            fullName = fullName.toString()
+            gender = gender.toString()
+            if (ValidateEmail(email)) {
+                try {
+                    const newAcc = await AccountModel.create({ email, password, role })
+                    if (newAcc) {
+                        const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
+                        if (newUser) {
+                            await HistorySearchModel.create({ user: newUser._id })
+                            sucess++
+                        }
+                    }
+                } catch (error) {
+                    fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
+                }
+            } else {
+                fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
             }
         }
-        return res.status(201).json({ message: "ok" })
+
+        res.status(201).json({ message: `đã tạo ${sucess}/${data.length - 1} tài khoản`, urlLogs: `/logs/${logs}` })
+        // xoá file
+        fs.unlinkSync(file.path);
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })
@@ -164,10 +225,28 @@ const deleteAccountAndUser = async (req, res, next) => {
     }
 }
 
+// DELETE /api/admin/users
+const deleteMultiAccountAndUser = async (req, res, next) => {
+    try {
+        const { ids } = req.body
+
+        const users = await UserModel.find({ _id: { $in: ids } }).lean()
+        let accountIds = users.map(user => user.account)
+        await AccountModel.updateMany({ _id: { $in: accountIds } }, { isActive: false })
+        return res.status(200).json({ message: 'ok! isActive : false' })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "error" })
+    }
+}
+
+
 module.exports = {
     getAccountAndUsers,
     getDetailAccountAndUser,
     postAccountAndUser,
+    postMultiAccountAndUser,
     putAccountAndUser,
     deleteAccountAndUser,
+    deleteMultiAccountAndUser
 }

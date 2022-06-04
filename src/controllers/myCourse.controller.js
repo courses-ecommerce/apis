@@ -1,11 +1,12 @@
 const MyCourseModel = require("../models/users/myCourse.model");
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
+const _ = require('lodash');
 
 // fn: lấy danh sách khoá học đã mua và phân trang
 const getMyCourses = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, name } = req.query
+        const { page = 1, limit = 10, name, sort } = req.query
         const { user } = req
         let query = [
             { $match: { user: ObjectId(user._id) } },
@@ -67,6 +68,13 @@ const getMyCourses = async (req, res, next) => {
         if (name) {
             query.push({ $match: { "course.name": new RegExp(name, 'img') } })
         }
+        // ?sort=createdAt-asc || ?sort=progress-asc
+        if (sort) {
+            let sortBy = {}
+            let [f, v] = sort.split('-')
+            sortBy[f] = v == "asc" || v == '1' ? 1 : -1
+            query.push({ $sort: sortBy })
+        }
 
         const myCourses = await MyCourseModel.aggregate(query)
         // tính phần trăm hoàn thành khoá học
@@ -85,10 +93,17 @@ const getMyCourses = async (req, res, next) => {
             item.percentProgress = tu * 100 / mau
             return item
         })
+        // sort theo phần trăm tiến trình
+        if (sort) {
+            let [field, value] = sort.split('-')
+            if (field == 'progress') {
+                result = _.orderBy(result, 'percentProgress', value)
+            }
+        }
         res.status(200).json({ message: "ok", myCourses: result })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 

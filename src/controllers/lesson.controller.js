@@ -56,6 +56,8 @@ const putLesson = async (req, res, next) => {
                 return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
             }
             req.body.resource = result.secure_url
+            fs.unlinkSync(resource.path);
+
         }
         // nếu type là video thì tính thời lượng video
         if (file) {
@@ -78,11 +80,15 @@ const putLesson = async (req, res, next) => {
                 }
                 req.body.slide = result.secure_url
             }
+            fs.unlinkSync(file.path);
+
         }
 
         // cập nhật lesson
         await LessonModel.updateOne({ _id: id }, req.body)
         res.status(200).json({ message: "updating oke" })
+
+
 
     } catch (error) {
         console.log(error);
