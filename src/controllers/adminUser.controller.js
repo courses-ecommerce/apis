@@ -174,6 +174,8 @@ const postMultiAccountAndUser = async (req, res, next) => {
                 } else {
                     fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
                 }
+            } else {
+                fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email không được để trống \n`);
             }
         }
         if (sucess == data.length - 1) {
