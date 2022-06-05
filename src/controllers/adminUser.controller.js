@@ -134,35 +134,40 @@ const postAccountAndUser = async (req, res, next) => {
 const postMultiAccountAndUser = async (req, res, next) => {
     try {
         const file = req.file
-        const data = xlsx.parse(file.path)[0].data
+        // đọc data
+        var data = xlsx.parse(file.path)[0].data
+        // xoá dòng trống
+        data = data.filter(row => row.length != 0)
         let errorEmails = []
         let sucess = 0
         let logs = Date.now() + '.txt'
+        // lặp tạo tài khoản
         for (let i = 1; i < data.length; i++) {
             var [email, password, role, fullName, gender] = data[i];
-            email = email.toString() || email
-            password = password.toString() || password
-            role = role.toString() || role
-            fullName = fullName.toString() || fullName
-            gender = gender.toString() || gender
-            if (ValidateEmail(email)) {
-                try {
-                    const newAcc = await AccountModel.create({ email, password, role })
-                    if (newAcc) {
-                        const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
-                        if (newUser) {
-                            await HistorySearchModel.create({ user: newUser._id })
-                            sucess++
+            if (email != undefined) {
+                email = email.toString() || email
+                password = password.toString() || password
+                role = role.toString() || 'student'
+                fullName = fullName.toString() || fullName
+                gender = gender.toString() || 'true'
+                if (ValidateEmail(email)) {
+                    try {
+                        const newAcc = await AccountModel.create({ email, password, role })
+                        if (newAcc) {
+                            const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
+                            if (newUser) {
+                                await HistorySearchModel.create({ user: newUser._id })
+                                sucess++
+                            }
                         }
+                    } catch (error) {
+                        fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
                     }
-                } catch (error) {
-                    fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
+                } else {
+                    fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
                 }
-            } else {
-                fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
             }
         }
-
         res.status(201).json({ message: `đã tạo ${sucess}/${data.length - 1} tài khoản`, urlLogs: `/logs/${logs}` })
         // xoá file
         fs.unlinkSync(file.path);
