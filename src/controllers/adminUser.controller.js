@@ -250,11 +250,33 @@ const deleteAccountAndUser = async (req, res, next) => {
 const deleteMultiAccountAndUser = async (req, res, next) => {
     try {
         const { ids } = req.body
+        let logs = ''
+        let sucess = 0
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i]
+            let user = {}
+            try {
+                user = await UserModel.findById(id)
+            } catch (error) {
+                logs += `Lỗi: index:${i}. id "${id}" không hợp lệ \n`
+            }
+            if (!user) {
+                logs += `Lỗi: index:${i}. id "${id}" không tồn tại \n`
+                continue
+            }
+            const { modifiedCount } = await AccountModel.updateOne({ _id: user.account }, { isActive: false })
+            if (modifiedCount != 1) {
+                logs += `Lỗi: index:${i}. id "${id}" giá trị cập nhật không khác giá trị ban đầu`
+                continue
+            }
+            sucess++
+        }
+        if (logs == '') {
+            return res.status(200).json({ message: `update ${sucess}/${ids.length} oke` })
+        } else {
+            return res.status(200).json({ message: `update ${sucess}/${ids.length} oke`, error: logs })
+        }
 
-        const users = await UserModel.find({ _id: { $in: ids } }).lean()
-        let accountIds = users.map(user => user.account)
-        await AccountModel.updateMany({ _id: { $in: accountIds } }, { isActive: false })
-        return res.status(200).json({ message: 'ok! isActive : false' })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })
