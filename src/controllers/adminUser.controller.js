@@ -4,7 +4,9 @@ const HistorySearchModel = require('../models/users/historySearch.model');
 var bcrypt = require('bcryptjs')
 var xlsx = require('node-xlsx').default
 var fs = require('fs');
-
+const MyCourseModel = require('../models/users/myCourse.model');
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 
 function ValidateEmail(mail) {
     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail)) {
@@ -18,8 +20,7 @@ function ValidateEmail(mail) {
 // GET /api/admin/users?page=1&limit=10&role=user
 const getAccountAndUsers = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, sort, email, role, active = 'true' } = req.query
-        var nSkip = (parseInt(page) - 1) * parseInt(limit)
+        const { page, limit, sort, email, role, active = 'true' } = req.query
         let aCountQuery = [
             {
                 $lookup: {
@@ -71,11 +72,18 @@ const getAccountAndUsers = async (req, res, next) => {
                 '__v': 0,
 
             }
-        }, {
-            $skip: nSkip
-        }, {
-            $limit: parseInt(limit)
         })
+
+        if (page && limit) {
+            aQuery.push(
+                {
+                    $skip: (parseInt(page) - 1) * parseInt(limit)
+                },
+                {
+                    $limit: parseInt(limit)
+                }
+            )
+        }
 
         aCountQuery.push({
             $count: 'total'
@@ -83,7 +91,7 @@ const getAccountAndUsers = async (req, res, next) => {
         const totalUsers = await UserModel.aggregate(aCountQuery)
         let total = totalUsers[0]?.total || 0
         const users = await UserModel.aggregate(aQuery)
-        return res.status(200).json({ message: "ok", total, users })
+        res.status(200).json({ message: "ok", total, users })
     } catch (error) {
         console.error('> error :: ', error);
         return res.status(500).json({ message: 'error' })
@@ -246,6 +254,37 @@ const deleteMultiAccountAndUser = async (req, res, next) => {
 }
 
 
+const getStudentsOfTeacher = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        var data = await MyCourseModel.aggregate([
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: 'course',
+                    foreignField: '_id',
+                    as: 'course'
+                }
+            },
+            {
+                $match: { 'course.author': ObjectId(id) }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    user: 1
+                }
+            }
+        ])
+        data = data.map(item => item.user)
+        res.status(200).json({ message: "ok", data })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "ok" })
+    }
+}
+
+
 module.exports = {
     getAccountAndUsers,
     getDetailAccountAndUser,
@@ -253,5 +292,6 @@ module.exports = {
     postMultiAccountAndUser,
     putAccountAndUser,
     deleteAccountAndUser,
-    deleteMultiAccountAndUser
+    deleteMultiAccountAndUser,
+    getStudentsOfTeacher
 }

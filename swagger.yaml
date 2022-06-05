@@ -2984,6 +2984,37 @@ paths:
           description: "unauthorize"
         500:
           description: "SERVER ERROR"
+  /admin/users/students-of-teacher/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: lấy danh sách tài khoản người dùng đã đăng ký học của teacher id
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          description: ""
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
 
   /statistics/revenues/monthly/{year}:
     get:

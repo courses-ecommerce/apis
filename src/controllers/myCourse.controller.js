@@ -6,7 +6,7 @@ const _ = require('lodash');
 // fn: lấy danh sách khoá học đã mua và phân trang
 const getMyCourses = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, name, sort } = req.query
+        const { page, limit, name, sort } = req.query
         const { user } = req
         let query = [
             { $match: { user: ObjectId(user._id) } },
@@ -46,8 +46,7 @@ const getMyCourses = async (req, res, next) => {
                 }
             },
 
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) },
+
             {
                 $group: {
                     _id: "$_id",
@@ -74,6 +73,12 @@ const getMyCourses = async (req, res, next) => {
             let [f, v] = sort.split('-')
             sortBy[f] = v == "asc" || v == '1' ? 1 : -1
             query.push({ $sort: sortBy })
+        }
+        if (page && limit) {
+            query.push(
+                { $skip: (parseInt(page) - 1) * parseInt(limit) },
+                { $limit: parseInt(limit) }
+            )
         }
 
         const myCourses = await MyCourseModel.aggregate(query)

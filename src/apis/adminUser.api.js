@@ -28,5 +28,7 @@ adminUserApis.delete('/:id', passport.jwtAuthentication, passport.isAdmin, admin
 // api: xoá nhiều tài khoản người dùng
 adminUserApis.delete('/multiple', passport.jwtAuthentication, passport.isAdmin, adminUserController.deleteMultiAccountAndUser)
 
+// api: lấy danh sách user đã mua khoá học của teacher
+adminUserApis.get('/students-of-teacher/:id', adminUserController.getStudentsOfTeacher)
 
 module.exports = adminUserApis

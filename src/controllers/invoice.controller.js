@@ -7,7 +7,7 @@ const ObjectId = mongoose.Types.ObjectId;
 // fn: get all invoice và phân trang
 const getInvoices = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, sort, status, transaction, user } = req.query
+        const { page, limit, sort, status, transaction, user } = req.query
         let query = [
             {
                 $lookup: {
@@ -29,8 +29,7 @@ const getInvoices = async (req, res, next) => {
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
                 }
             },
-            { $limit: parseInt(limit) },
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
+
         ]
         if (status) {
             query.unshift({ $match: { status: status } })
@@ -40,6 +39,12 @@ const getInvoices = async (req, res, next) => {
         }
         if (user) {
             query.unshift({ $match: { user: user } })
+        }
+        if (limit && page) {
+            query.push(
+                { $limit: parseInt(limit) },
+                { $skip: (parseInt(page) - 1) * parseInt(limit) },
+            )
         }
         // sắp xếp và thống kê
         if (sort) {

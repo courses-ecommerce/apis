@@ -8,7 +8,7 @@ const ObjectId = mongoose.Types.ObjectId;
 // fn: lấy danh sách mã và phân trang
 const getCoupons = async (req, res, next) => {
     try {
-        const { page = 1, limit = 12, active, title } = req.query
+        const { page, limit, active, title } = req.query
         let aQuery = [
             {
                 $lookup: {
@@ -29,8 +29,6 @@ const getCoupons = async (req, res, next) => {
                     as: "codes"
                 }
             },
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) },
             {
                 $project: {
                     _id: 1,
@@ -70,6 +68,12 @@ const getCoupons = async (req, res, next) => {
                     title: new RegExp(title, 'img')
                 }
             })
+        }
+        if (page && limit) {
+            aQuery.push(
+                { $skip: (parseInt(page) - 1) * parseInt(limit) },
+                { $limit: parseInt(limit) },
+            )
         }
         const coupons = await CouponModel.aggregate(aQuery)
         aQuery.push({ $count: "total" })
