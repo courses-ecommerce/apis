@@ -152,24 +152,23 @@ const postMultiAccountAndUser = async (req, res, next) => {
         // lặp tạo tài khoản
         for (let i = 1; i < data.length; i++) {
             var [email, password, role, fullName, gender] = data[i];
-            if (email != undefined) {
-                email = email.toString() || email
-                password = password.toString() || password
-                role = role.toString() || 'student'
-                fullName = fullName.toString() || fullName
-                gender = gender.toString() || 'true'
+            if (email != null) {
                 if (ValidateEmail(email)) {
-                    try {
-                        const newAcc = await AccountModel.create({ email, password, role })
-                        if (newAcc) {
-                            const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
-                            if (newUser) {
-                                await HistorySearchModel.create({ user: newUser._id })
-                                sucess++
+                    if (password != null && password.toString().trim() > 5) {
+                        try {
+                            const newAcc = await AccountModel.create({ email, password: password.trim().toString(), role })
+                            if (newAcc) {
+                                const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
+                                if (newUser) {
+                                    await HistorySearchModel.create({ user: newUser._id })
+                                    sucess++
+                                }
                             }
+                        } catch (error) {
+                            fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
                         }
-                    } catch (error) {
-                        fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
+                    } else {
+                        fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi password: "${password}" không hợp lệ hoặc bỏ trống \n`);
                     }
                 } else {
                     fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
@@ -210,13 +209,16 @@ const putAccountAndUser = async (req, res, next) => {
         }
         if (account !== null && typeof (account) === 'object') {
             let user = await UserModel.findById(id).lean()
-            const hashPassword = await bcrypt.hash(
-                account.password,
-                parseInt(process.env.SALT_ROUND),
-            );
-            account.password = hashPassword
-            if (account.isActive) {
-                account.isActive = JSON.stringify(account.isActive) == 'true'
+            if (account.password) {
+                if (account.password.trim().length > 5) {
+                    const hashPassword = await bcrypt.hash(
+                        account.password.trim(),
+                        parseInt(process.env.SALT_ROUND),
+                    );
+                    account.password = hashPassword
+                } else {
+                    return res.status(400).json({ message: 'password phải dài hơn 5 ký tự' })
+                }
             }
             await AccountModel.updateOne({ _id: user.account }, account)
         }
