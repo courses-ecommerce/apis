@@ -176,7 +176,11 @@ const postMultiAccountAndUser = async (req, res, next) => {
                 }
             }
         }
-        res.status(201).json({ message: `đã tạo ${sucess}/${data.length - 1} tài khoản`, urlLogs: `/logs/${logs}` })
+        if (sucess == data.length - 1) {
+            res.status(201).json({ message: `đã tạo ${sucess}/${data.length - 1} tài khoản` })
+        } else {
+            res.status(201).json({ message: `đã tạo ${sucess}/${data.length - 1} tài khoản`, urlLogs: `/logs/${logs}` })
+        }
         // xoá file
         fs.unlinkSync(file.path);
 
@@ -253,7 +257,7 @@ const deleteMultiAccountAndUser = async (req, res, next) => {
     }
 }
 
-
+// lấy danh sách id học sinh của 1 teacher
 const getStudentsOfTeacher = async (req, res, next) => {
     try {
         const { id } = req.params
