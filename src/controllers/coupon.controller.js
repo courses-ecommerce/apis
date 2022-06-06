@@ -11,7 +11,6 @@ const getCoupons = async (req, res, next) => {
         const { page, limit, active, title } = req.query
         const { account, user } = req
 
-
         let aQuery = [
             {
                 $lookup: {
@@ -83,11 +82,22 @@ const getCoupons = async (req, res, next) => {
             aQuery.push({ $match: { author: user._id } })
         }
         const coupons = await CouponModel.aggregate(aQuery)
+
+        let data = coupons.map(item => {
+            let now = new Date()
+            let expireDate = new Date(item.expireDate)
+            if (expireDate > now) {
+                item.isActive = true
+            } else {
+                item.isActive = false
+            }
+            return item
+        })
         aQuery.push({ $count: "total" })
         const totalCount = await CouponModel.aggregate(aQuery)
         const total = totalCount[0]?.total || 0
 
-        return res.status(200).json({ message: 'ok', total, coupons })
+        return res.status(200).json({ message: 'ok', total, coupons: data })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
