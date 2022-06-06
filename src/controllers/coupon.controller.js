@@ -9,6 +9,9 @@ const ObjectId = mongoose.Types.ObjectId;
 const getCoupons = async (req, res, next) => {
     try {
         const { page, limit, active, title } = req.query
+        const { account, user } = req
+
+
         let aQuery = [
             {
                 $lookup: {
@@ -74,6 +77,10 @@ const getCoupons = async (req, res, next) => {
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
                 { $limit: parseInt(limit) },
             )
+        }
+
+        if (account.role == 'teacher') {
+            aQuery.push({ $match: { author: user._id } })
         }
         const coupons = await CouponModel.aggregate(aQuery)
         aQuery.push({ $count: "total" })

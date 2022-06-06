@@ -1551,7 +1551,7 @@ paths:
                 properties:
                   total:
                     type: number
-                  invoices:
+                  categories:
                     type: array
                     items:
                       $ref: "#/components/schemas/Category"
@@ -1614,6 +1614,31 @@ paths:
           description: "SERVER ERROR"
 
   /categories/{slug}:
+    get:
+      tags:
+        - category
+      summary: Lấy chi tiết category
+      description: ""
+      parameters:
+        - name: slug
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category:
+                    $ref: "#/components/schemas/Category"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
     put:
       tags:
         - category

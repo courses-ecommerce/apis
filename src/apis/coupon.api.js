@@ -4,10 +4,10 @@ const couponController = require('../controllers/coupon.controller')
 const passport = require('../middlewares/passport.middleware');
 
 // api: danh sách mã và phân trang
-couponApis.get('/', passport.jwtAuthentication, passport.isAdmin, couponController.getCoupons)
+couponApis.get('/', passport.jwtAuthentication, couponController.getCoupons)
 
 // api: chi tiết mã
-couponApis.get('/:id', passport.jwtAuthentication, passport.isAdmin, couponController.getCoupon)
+couponApis.get('/:id', passport.jwtAuthentication, couponController.getCoupon)
 
 // api: thêm mã
 couponApis.post('/', passport.jwtAuthentication, couponController.postCoupon)

@@ -49,6 +49,18 @@ const getCategories = async (req, res, next) => {
         return res.status(500).json({ message: 'error' })
     }
 }
+// fn: lấy category
+const getCategory = async (req, res, next) => {
+    try {
+        const { slug } = req.params
+
+        const category = await CategoryModel.findOne({ slug })
+        return res.status(200).json({ message: 'ok', category })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'error' })
+    }
+}
 
 
 // fn: cập nhật category
@@ -57,9 +69,7 @@ const putCategory = async (req, res, next) => {
         const { slug } = req.params
 
         var newCategory = req.body
-        if (newCategory.publish) {
-            newCategory.publish = JSON.stringify(newCategory.publish) == "true"
-        }
+
         await CategoryModel.updateOne({ slug: slug }, newCategory)
         return res.status(200).json({ message: 'ok' })
     } catch (error) {
@@ -104,6 +114,7 @@ const deleteManyCategory = async (req, res, next) => {
 module.exports = {
     postCategory,
     getCategories,
+    getCategory,
     putCategory,
     deleteCategory,
     deleteManyCategory,

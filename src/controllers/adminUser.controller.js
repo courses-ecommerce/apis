@@ -201,6 +201,9 @@ const putAccountAndUser = async (req, res, next) => {
         if (user && user.account) {
             delete user.account
         }
+        if (user && user.avatar) {
+            delete user.avatar
+        }
         if (account && account.email) {
             delete account.email
         }
@@ -251,6 +254,7 @@ const deleteAccountAndUser = async (req, res, next) => {
 const deleteMultiAccountAndUser = async (req, res, next) => {
     try {
         const { ids } = req.body
+        console.log('ids', ids);
         let logs = ''
         let sucess = 0
         for (let i = 0; i < ids.length; i++) {
