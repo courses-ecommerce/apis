@@ -21,7 +21,7 @@ const postCategory = async (req, res, next) => {
 // fn: lấy category
 const getCategories = async (req, res, next) => {
     try {
-        const { name, publish = 'true' } = req.query
+        const { name, publish = 'true', limit, page } = req.query
         let aCountQuery = []
         let aQuery = []
         if (name) {
@@ -36,6 +36,11 @@ const getCategories = async (req, res, next) => {
         } else {
             aQuery.push({ $match: { publish: publish == 'true' } })
             aCountQuery.push({ $match: { publish: publish == 'true' } })
+        }
+
+        if (page && limit) {
+            let nskip = (parseInt(page) - 1) * parseInt(limit)
+            aQuery.push({ $skip: nskip }, { $limit: parseInt(limit) })
         }
         aCountQuery.push({ $count: "total" })
 
