@@ -6,7 +6,11 @@ const CategoryModel = require('../models/courses/category.model');
 const postCategory = async (req, res, next) => {
     try {
         const { name } = req.body
-        await CategoryModel.create({ name })
+        const { account } = req
+        if (account.role == 'admin') {
+            req.body.publish = true
+        }
+        await CategoryModel.create(req.body)
         return res.status(201).json({ message: 'ok' })
     } catch (error) {
         console.log(error);

@@ -154,7 +154,7 @@ const postMultiAccountAndUser = async (req, res, next) => {
             var [email, password, role, fullName, gender] = data[i];
             if (email != null) {
                 if (ValidateEmail(email)) {
-                    if (password != null && password.toString().trim() > 5) {
+                    if (password != null && password.toString().trim() > 7) {
                         try {
                             const newAcc = await AccountModel.create({ email, password: password.trim().toString(), role })
                             if (newAcc) {
@@ -204,23 +204,24 @@ const putAccountAndUser = async (req, res, next) => {
         if (account && account.email) {
             delete account.email
         }
-        if (user !== null && typeof (user) === 'object') {
-            await UserModel.updateOne({ _id: id }, user)
-        }
+        let message = ""
         if (account !== null && typeof (account) === 'object') {
             let user = await UserModel.findById(id).lean()
             if (account.password) {
-                if (account.password.trim().length > 5) {
+                if (account.password.trim().length > 7) {
                     const hashPassword = await bcrypt.hash(
                         account.password.trim(),
                         parseInt(process.env.SALT_ROUND),
                     );
                     account.password = hashPassword
                 } else {
-                    return res.status(400).json({ message: 'password phải dài hơn 5 ký tự' })
+                    return res.status(400).json({ message: 'password phải dài hơn 7 ký tự' })
                 }
             }
             await AccountModel.updateOne({ _id: user.account }, account)
+        }
+        if (user !== null && typeof (user) === 'object') {
+            await UserModel.updateOne({ _id: id }, user)
         }
         return res.status(200).json({ message: 'update ok' })
     } catch (error) {
