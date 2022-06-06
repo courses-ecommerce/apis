@@ -19,7 +19,7 @@ const jwtAuthentication = async (req, res, next) => {
             const acc = await AccountModel.findById(account).lean();
             const user = await UserModel.findOne({ account: account }).lean()
             // kiểm tra access token (mục đích chỉ 1 thiết bị được đăng nhập)
-            if (acc.accessToken !== token) {
+            if (acc.accessToken !== token && acc.role == 'student') {
                 return res.status(401).json({
                     message: 'Unauthorized.',
                     error: "chỉ 1 thiết bị được phép đăng nhập, hãy login lại",
