@@ -119,7 +119,7 @@ const postAccountAndUser = async (req, res, next) => {
         const { email, password, role = 'student', fullName, birthday, gender, phone } = req.body
 
         if (ValidateEmail(email)) {
-            const newAcc = await AccountModel.create({ email: email.toLowerCase(), password, role })
+            const newAcc = await AccountModel.create({ email: email.toLowerCase().trim(), password: password.trim(), role })
             if (newAcc) {
                 const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })
                 if (newUser) {
@@ -208,9 +208,8 @@ const putAccountAndUser = async (req, res, next) => {
         if (account && account.email) {
             delete account.email
         }
-        let message = ""
         if (account !== null && typeof (account) === 'object') {
-            let user = await UserModel.findById(id).lean()
+            let userInfo = await UserModel.findById(id).lean()
             if (account.password) {
                 if (account.password.trim().length > 7) {
                     const hashPassword = await bcrypt.hash(
@@ -222,7 +221,7 @@ const putAccountAndUser = async (req, res, next) => {
                     return res.status(400).json({ message: 'password phải dài hơn 7 ký tự' })
                 }
             }
-            await AccountModel.updateOne({ _id: user.account }, account)
+            await AccountModel.updateOne({ _id: userInfo.account }, account)
         }
         if (user !== null && typeof (user) === 'object') {
             await UserModel.updateOne({ _id: id }, user)
