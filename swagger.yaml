@@ -540,6 +540,8 @@ components:
         file:
           type: string
           format: binary
+        text:
+          type: string
         resource:
           type: string
           format: binary

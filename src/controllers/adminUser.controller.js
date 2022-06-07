@@ -156,7 +156,7 @@ const postMultiAccountAndUser = async (req, res, next) => {
                 if (ValidateEmail(email)) {
                     if (password != null && password.toString().trim() > 7) {
                         try {
-                            const newAcc = await AccountModel.create({ email, password: password.trim().toString(), role })
+                            const newAcc = await AccountModel.create({ email, password: password.toString().trim(), role })
                             if (newAcc) {
                                 const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
                                 if (newUser) {
@@ -165,6 +165,7 @@ const postMultiAccountAndUser = async (req, res, next) => {
                                 }
                             }
                         } catch (error) {
+                            console.log(error);
                             fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
                         }
                     } else {
@@ -254,7 +255,6 @@ const deleteAccountAndUser = async (req, res, next) => {
 const deleteMultiAccountAndUser = async (req, res, next) => {
     try {
         const { ids } = req.body
-        console.log('ids', ids);
         let logs = ''
         let sucess = 0
         for (let i = 0; i < ids.length; i++) {

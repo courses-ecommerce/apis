@@ -63,6 +63,9 @@ const getChapters = async (req, res, next) => {
                 }
             })
         }
+        query.push({
+            $sort: { number: asc }
+        })
         const chapters = await ChapterModel.aggregate(query)
         res.status(200).json({ message: "ok", chapters })
     } catch (error) {

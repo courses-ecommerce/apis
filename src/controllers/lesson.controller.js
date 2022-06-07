@@ -48,7 +48,7 @@ const putLesson = async (req, res, next) => {
         const file = req.files['file'][0] // video/slide
         const resource = req.files['resource'][0] // resource
         const { id } = req.params
-        const { chapter, number, title, description, type, video, text, slide } = req.body
+        const { chapter, number, title, description, type, text } = req.body
 
         if (resource) {
             const result = await helper.uploadFileToCloudinary(resource, id)
@@ -56,8 +56,6 @@ const putLesson = async (req, res, next) => {
                 return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
             }
             req.body.resource = result.secure_url
-            fs.unlinkSync(resource.path);
-
         }
         // nếu type là video thì tính thời lượng video
         if (file) {
@@ -80,7 +78,6 @@ const putLesson = async (req, res, next) => {
                 }
                 req.body.slide = result.secure_url
             }
-            fs.unlinkSync(file.path);
 
         }
 
@@ -88,6 +85,8 @@ const putLesson = async (req, res, next) => {
         await LessonModel.updateOne({ _id: id }, req.body)
         res.status(200).json({ message: "updating oke" })
 
+        fs.unlinkSync(resource.path);
+        fs.unlinkSync(file.path);
 
 
     } catch (error) {
@@ -117,7 +116,7 @@ const getLesson = async (req, res, next) => {
 const getLessons = async (req, res, next) => {
     try {
         const { chapter } = req.query
-        const lessons = await LessonModel.find({ chapter }).lean()
+        const lessons = await LessonModel.find({ chapter }).sort(['number', 1]).lean()
 
         lessons ? message = "Invalid id" : message = "ok"
 
