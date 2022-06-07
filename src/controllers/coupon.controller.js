@@ -3,6 +3,7 @@ const helper = require('../helper');
 const CodeModel = require('../models/code.model');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
+var fs = require('fs');
 
 
 // fn: lấy danh sách mã và phân trang
@@ -249,15 +250,69 @@ const deleteCoupon = async (req, res, next) => {
 // fn: xoá nhiều mã
 const deleteManyCoupon = async (req, res, next) => {
     try {
-        const { ids } = req.body
+        var { ids } = req.body
         const { account, user } = req
+        ids = ids.map(id => ObjectId(id))
+        logs = ''
+        var coupons = null
         if (account.role === 'admin') {
-            await CouponModel.deleteMany({ _id: { $in: ids } })
+            coupons = await CouponModel.aggregate([
+                { $match: { _id: { $in: ids } } },
+                {
+                    $lookup: {
+                        from: 'codes',
+                        localField: "_id",
+                        foreignField: "coupon",
+                        as: "codes"
+                    }
+                },
+                {
+                    $project: {
+                        'title': 1,
+                        'number': 1,
+                        'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                    }
+                }
+            ])
         } else {
-            await CouponModel.deleteMany({ _id: { $in: ids }, author: user._id })
+            coupons = await CouponModel.aggregate([
+                { $match: { _id: { $in: ids } } },
+                { $match: { author: user._id } },
+                {
+                    $lookup: {
+                        from: 'codes',
+                        localField: "_id",
+                        foreignField: "coupon",
+                        as: "codes"
+                    }
+                },
+                {
+                    $project: {
+                        'title': 1,
+                        'number': 1,
+                        'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                    }
+                }
+            ])
         }
-        await CodeModel.deleteMany({ coupon: { $in: ids } })
+
+        for (let i = 0; i < coupons.length; i++) {
+            const coupon = coupons[i];
+            if (coupon.number == coupon.remain) {
+                await CouponModel.deleteOne({ _id: coupon._id })
+                await CodeModel.deleteMany({ coupon: coupon._id })
+            } else {
+                logs += `id:${coupon._id}, title: ${coupon.title} mã đã có người dùng.\n`
+            }
+        }
+
+        if (logs != '') {
+            let file = Date.now()
+            fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
+            return res.status(200).json({ message: "ok", urlLogs: `/logs/${file}.txt` })
+        }
         return res.status(200).json({ message: "delete ok" })
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
