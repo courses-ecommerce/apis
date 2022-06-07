@@ -55,7 +55,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/accounts', accountApis)
 app.use('/api/user', userApis)
-app.use('/api/teachers', teacherApis)
+app.use('/api/teacher', teacherApis)
 app.use('/api/carts', cartApis)
 app.use('/api/categories', categoryApis)
 app.use('/api/courses', courseApis)
