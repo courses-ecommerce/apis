@@ -1,6 +1,7 @@
 
 const CategoryModel = require('../models/courses/category.model');
-
+const CourseModel = require('../models/courses/course.model')
+var fs = require('fs');
 
 // fn: tạo category
 const postCategory = async (req, res, next) => {
@@ -91,6 +92,11 @@ const deleteCategory = async (req, res, next) => {
         if (account.role !== 'admin') {
             return res.status(401).json({ message: 'Not permitted' })
         }
+        const category = await CategoryModel.findOne({ slug })
+        const course = await CourseModel.findOne({ category })
+        if (course) {
+            return res.status(400).json({ message: 'không được xoá' })
+        }
         await CategoryModel.deleteOne({ slug: slug })
         return res.status(200).json({ message: 'ok' })
     } catch (error) {
@@ -104,10 +110,32 @@ const deleteManyCategory = async (req, res, next) => {
     try {
         const { slugs } = req.body
         const { account, user } = req
+        let logs = ''
         if (account.role !== 'admin') {
             return res.status(401).json({ message: 'Not permitted' })
         }
-        await CategoryModel.deleteMany({ slug: { $in: slugs } })
+
+        for (let i = 0; i < slugs.length; i++) {
+            const slug = slugs[i];
+            const category = await CategoryModel.findOne({ slug })
+            if (category) {
+                console.log('có cate', category.name);
+                const course = await CourseModel.findOne({ category })
+                if (course) {
+                    console.log('cos coursee', course.name);
+                    logs += `category ${slug} không thể xoá \n`
+                } else {
+                    await CategoryModel.deleteOne({ slug })
+                }
+            }
+        }
+
+        if (logs != '') {
+            let file = Date.now()
+            fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
+            return res.status(200).json({ message: "ok", urlLogs: `/logs/${file}.txt` })
+        }
+
         return res.status(200).json({ message: 'delete ok' })
     } catch (error) {
         console.log(error);

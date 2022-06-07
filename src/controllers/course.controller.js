@@ -136,7 +136,6 @@ const getCourses = async (req, res, next) => {
         // aggrate query
         let aQuery = [
             { $match: { publish: publish == 'true' } },
-
             {
                 // tính rate trung bình
                 $lookup: {
@@ -181,7 +180,10 @@ const getCourses = async (req, res, next) => {
                 $unwind: "$author"
             },
             {
-                $unwind: "$category"
+                $unwind: {
+                    "path": "$category",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
                 $project: {
@@ -315,8 +317,9 @@ const getCourses = async (req, res, next) => {
                 aQuery.push({ $sort: sortBy })
             }
         }
-        aCountQuery.push({ $count: "total" })
         const courses = await CourseModel.aggregate(aQuery)
+        console.log(courses);
+        aCountQuery.push({ $count: "total" })
         const totalCourse = await CourseModel.aggregate(aCountQuery)
         let total = totalCourse[0]?.total || 0
         return res.status(200).json({ message: 'ok', searchKey, total, courses })
