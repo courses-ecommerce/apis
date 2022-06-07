@@ -165,11 +165,41 @@ const postCoupon = async (req, res, next) => {
         const user = req.user
         const { title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number } = req.body
 
+        if (type == 'percent') {
+            if (amount > 100 || amount <= 0) {
+                return res.status(400).json({ message: "amount phải > 0 và <= 100" })
+            }
+        } else if (type == 'money') {
+            if (amount <= 0) {
+                return res.status(400).json({ message: "amount phải là số dương" })
+            }
+        }
+
+        if (startDate && new Date(startDate) < new Date()) {
+            return res.status(400).json({ message: "startDate không hợp lệ" })
+        }
+
+        if (expireDate && new Date(expireDate) < new Date()) {
+            return res.status(400).json({ message: "expireDate không hợp lệ" })
+        }
+
+        if (maxDiscount && maxDiscount <= 0) {
+            return res.status(400).json({ message: "maxDiscount phải là số dương" })
+        }
+
+        if (minPrice && minPrice < 0) {
+            return res.status(400).json({ message: "minPrice phải là số dương" })
+        }
+
+        if (number && number <= 0) {
+            return res.status(400).json({ message: "number phải là số dương" })
+        }
+
         const coupon = await CouponModel.create({
             title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number, author: user._id
         })
         res.status(201).json({ message: "oke" })
-        const codes = helper.generateDiscountCode(10, parseInt(number))
+        const codes = helper.generateDiscountCode(10, parseInt(number) || 100)
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             await CodeModel.create({

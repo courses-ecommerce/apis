@@ -18,6 +18,10 @@ const categorySchema = new Schema({
     publish: {
         type: Boolean,
         default: false
+    },
+    isPending: {
+        type: Boolean,
+        default: false
     }
 });
 

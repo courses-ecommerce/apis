@@ -46,7 +46,7 @@ const CodeModel = require('../../models/code.model');
 }
  */
 
-const handlerCreateInvoice = async (data, user, orderId) => {
+const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
     try {
         // tạo hoá đơn tổng
         const invoice = await InvoiceModel.create({
@@ -56,6 +56,7 @@ const handlerCreateInvoice = async (data, user, orderId) => {
             totalPrice: data.totalPrice,
             totalDiscount: data.totalDiscount,
             paymentPrice: data.estimatedPrice,
+            status: status
         })
         // tạo chi tiết hoá đơn
         for (let i = 0; i < data.carts.length; i++) {
@@ -107,6 +108,32 @@ const postPaymentCheckout = async (req, res, next) => {
     if (result.error) {
         return res.status(500).json({ message: "lỗi xử lý giỏ hàng" })
     }
+
+    // nếu giá tiền phải trả là 0 => tạo khoá đơn, add khoá học
+    if (result.estimatedPrice == 0) {
+        let isCreated = handlerCreateInvoice(result, user, orderId, 'Paid')
+        if (!isCreated) return res.status(500).json({ message: "server error" })
+
+        // thông tin hoá đơn
+        const invoice = await InvoiceModel.findById(orderId).lean()
+        res.status(200).json({ isSuccess: true, message: 'ok', invoice })
+        // thêm khoá học đã mua cho người dùng
+        let detailInvoices = await DetailInvoiceModel.find({ invoice: orderId }).select('courseId').lean()
+        for (let i = 0; i < detailInvoices.length; i++) {
+            const { courseId, couponCode } = detailInvoices[i];
+            // cập nhật mã giảm giá đã dùng
+            await CodeModel.findOneAndUpdate({ code: couponCode }, { isActive: false })
+            // thêm khoá học vào danh sách đã mua
+            await MyCourseModel.create({ user, course: courseId })
+        }
+        // cập nhật số lượng bán của khoá học
+        await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
+        // xoá giỏ hàng
+        await CartModel.deleteMany({ user })
+        return
+    }
+
+
     // tạo hoá đơn chưa thanh toán
     let isCreated = handlerCreateInvoice(result, user, orderId)
     if (!isCreated) return res.status(500).json({ message: "server error" })

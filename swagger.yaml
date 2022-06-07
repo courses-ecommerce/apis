@@ -242,6 +242,9 @@ components:
         publish:
           type: boolean
           default: false
+        isPending:
+          type: boolean
+          default: false
       required:
         - name
     CreateCategoryDto:
@@ -256,6 +259,8 @@ components:
         name:
           type: string
         publish:
+          type: boolean
+        isPending:
           type: boolean
 
     Course:

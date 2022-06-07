@@ -18,7 +18,8 @@ const couponSchema = new Schema({
     },
     amount: {
         type: Number, // if type == percent,then amount <= 100 ,else it’s amount of discount
-        required: true
+        required: true,
+        min: 0,
     },
     startDate: {
         type: Date,
@@ -41,11 +42,14 @@ const couponSchema = new Schema({
     },
     minPrice: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0,
+
     },
     number: {
         type: Number,
-        default: 100
+        default: 100,
+        min: 1,
     }
 });
 

@@ -52,15 +52,18 @@ const courseSchema = new Schema({
         type: Number,
         default: 0,
         required: true,
+        min: 0,
     },
     originalPrice: {
         type: Number,
         default: 0,
         required: true,
+        min: 0,
+
     },
     saleOff: {
         type: Number,
-        default: 0
+        default: 0,
     },
     author: {
         type: Schema.Types.ObjectId,

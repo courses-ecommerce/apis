@@ -9,7 +9,8 @@ const chapterSchema = new Schema({
     },
     number: {
         type: Number,
-        required: true
+        required: true,
+        min: 0,
     },
     name: {
         type: String,

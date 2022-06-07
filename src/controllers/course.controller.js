@@ -28,6 +28,14 @@ const postCourse = async (req, res, next) => {
         if (account.role != 'teacher') {
             return res.status(401).json({ message: "Not permited" })
         }
+        // xác thực dữ liệu
+        if (currentPrice && currentPrice < 0) {
+            return res.status(400).json({ message: "currentPrice phải lớn hơn hoặc bằng 0" })
+        }
+        if (originalPrice && originalPrice < 0) {
+            return res.status(400).json({ message: "originalPrice phải lớn hơn hoặc bằng 0" })
+        }
+
         // tính giảm giá
         let saleOff = (1 - parseInt(currentPrice) / parseInt(originalPrice)) * 100 || 0
         // upload image lên cloud

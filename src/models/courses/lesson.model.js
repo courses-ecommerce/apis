@@ -10,7 +10,8 @@ const lessonSchema = new Schema({
     // số thứ tự bài học
     number: {
         type: Number,
-        required: true
+        required: true,
+        min: 0,
     },
     // tiêu đề bài học
     title: {
