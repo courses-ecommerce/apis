@@ -3050,6 +3050,50 @@ paths:
         500:
           description: "SERVER ERROR"
 
+  /statistics/revenues/daily:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Doanh thu từ ngày a đến b theo ngày/ tháng
+      description: ""
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: end
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: ["day", "month"]
+        - name: exports
+          in: query
+          schema:
+            type: string
+            enum: ["false", "true"]
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: number
+        500:
+          description: "SERVER ERROR"
+
   /statistics/revenues/monthly/{year}:
     get:
       security:
@@ -3064,6 +3108,16 @@ paths:
           schema:
             type: string
           required: true
+        - name: exports
+          in: query
+          schema:
+            type: string
+            enum: ["false", "true"]
+        - name: number
+          in: query
+          schema:
+            type: number
+          description: số năm trước năm year
       responses:
         200:
           description: "ok"
@@ -3072,15 +3126,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  thisYear:
+                  result:
                     type: array
                     items:
                       type: number
-                  lastYear:
-                    type: array
-                    items:
-                      type: number
-
         500:
           description: "SERVER ERROR"
   /statistics/revenues/yearly:
@@ -3089,7 +3138,7 @@ paths:
         - bearerAuth: []
       tags:
         - statistic
-      summary: Doanh thu theo tháng trong năm 'year'
+      summary: Doanh thu theo năm trong năm từ năm start đến end
       description: ""
       parameters:
         - name: start
@@ -3104,6 +3153,11 @@ paths:
           schema:
             type: string
           required: true
+        - name: exports
+          in: query
+          schema:
+            type: string
+            enum: ["false", "true"]
       responses:
         200:
           description: "ok"
@@ -3119,19 +3173,32 @@ paths:
 
         500:
           description: "SERVER ERROR"
-  /statistics/users:
+  /statistics/users/yearly:
     get:
       security:
         - bearerAuth: []
       tags:
         - statistic
-      summary: Số lượng người dùng
+      summary: Số lượng người dùng mới trong năm start - end
       description: ""
       parameters:
-        - name: isActive
+        - name: start
+          in: query
+          description: năm bắt đầu
+          schema:
+            type: string
+          required: true
+        - name: end
+          in: query
+          description: năm kết thúc
+          schema:
+            type: string
+          required: true
+        - name: exports
           in: query
           schema:
-            type: boolean
+            type: string
+            enum: ["false", "true"]
       responses:
         200:
           description: "ok"
@@ -3140,9 +3207,49 @@ paths:
               schema:
                 type: object
                 properties:
-                  total:
+                  raise:
+                    type: number
+                  newUsers:
+                    type: number
+                  activating:
+                    type: number
+                  notActivating:
                     type: number
 
+        500:
+          description: "SERVER ERROR"
+  /statistics/users/monthly:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Số lượng người dùng mới theo tháng trong năm start - end
+      description: ""
+      parameters:
+        - name: year
+          in: query
+          description: năm bắt đầu
+          schema:
+            type: string
+          required: true
+        - name: exports
+          in: query
+          schema:
+            type: string
+            enum: ["false", "true"]
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  thisYear:
+                    type: number
+                  lastYear:
+                    type: number
         500:
           description: "SERVER ERROR"
   /statistics/courses:
@@ -3151,19 +3258,44 @@ paths:
         - bearerAuth: []
       tags:
         - statistic
-      summary: số lượng khoá học
+      summary: số lượng khoá học đang xuất bản và đang chờ duyệt
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publishCourse:
+                    type: number
+                  pendingCourse:
+                    type: number
+        500:
+          description: "SERVER ERROR"
+  /statistics/top-sale-courses:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: top số lượng bán khoá học trong năm
       description: ""
       parameters:
-        - name: status
+        - name: top
+          in: query
+          schema:
+            type: number
+        - name: year
+          in: query
+          schema:
+            type: number
+          required: true
+        - name: exports
           in: query
           schema:
             type: string
-          description: "'pending' 'draft' 'approved'"
-        - name: publish
-          in: query
-          description: trạng thái xuất bản
-          schema:
-            type: boolean
+            enum: ["false", "true"]
       responses:
         200:
           description: "ok"
@@ -3175,10 +3307,10 @@ paths:
                   result:
                     type: array
                     items:
-                      type: number
-
+                      type: string
         500:
           description: "SERVER ERROR"
+
   /statistics/coupons:
     get:
       security:
@@ -3206,9 +3338,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: array
-                    items:
-                      type: number
+                  total:
+                    type: number
         500:
           description: "SERVER ERROR"

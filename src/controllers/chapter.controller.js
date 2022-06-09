@@ -1,7 +1,8 @@
 const ChapterModel = require('../models/courses/chapter.model');
 const LessonModel = require('../models/courses/lesson.model');
 const CourseModel = require('../models/courses/course.model');
-
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 // fn: xác thực
 const isPermitted = async (req, res, next) => {
     try {

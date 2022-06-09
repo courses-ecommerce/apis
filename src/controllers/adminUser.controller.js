@@ -158,7 +158,7 @@ const postMultiAccountAndUser = async (req, res, next) => {
                         try {
                             const newAcc = await AccountModel.create({ email, password: password.toString().trim(), role })
                             if (newAcc) {
-                                const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender == 'true' })
+                                const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender.toString().toLowerCase() == 'true' })
                                 if (newUser) {
                                     await HistorySearchModel.create({ user: newUser._id })
                                     sucess++

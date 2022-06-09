@@ -165,6 +165,9 @@ const postCoupon = async (req, res, next) => {
     try {
         const user = req.user
         const { title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number } = req.body
+        req.body.author = user._id
+
+        let data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
 
         if (type == 'percent') {
             if (amount > 100 || amount <= 0) {
@@ -196,9 +199,7 @@ const postCoupon = async (req, res, next) => {
             return res.status(400).json({ message: "number phải là số dương" })
         }
 
-        const coupon = await CouponModel.create({
-            title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number, author: user._id
-        })
+        const coupon = await CouponModel.create(data)
         res.status(201).json({ message: "oke" })
         const codes = helper.generateDiscountCode(10, parseInt(number) || 100)
         for (let i = 0; i < codes.length; i++) {
@@ -253,7 +254,8 @@ const deleteManyCoupon = async (req, res, next) => {
         var { ids } = req.body
         const { account, user } = req
         ids = ids.map(id => ObjectId(id))
-        logs = ''
+        let logs = ''
+        let success = 0
         var coupons = null
         if (account.role === 'admin') {
             coupons = await CouponModel.aggregate([
@@ -301,6 +303,7 @@ const deleteManyCoupon = async (req, res, next) => {
             if (coupon.number == coupon.remain) {
                 await CouponModel.deleteOne({ _id: coupon._id })
                 await CodeModel.deleteMany({ coupon: coupon._id })
+                success++
             } else {
                 logs += `id:${coupon._id}, title: ${coupon.title} mã đã có người dùng.\n`
             }
@@ -309,9 +312,10 @@ const deleteManyCoupon = async (req, res, next) => {
         if (logs != '') {
             let file = Date.now()
             fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
-            return res.status(200).json({ message: "ok", urlLogs: `/logs/${file}.txt` })
+            return res.status(200).json({ message: `delete ${success}/${coupons.length}`, urlLogs: `/logs/${file}.txt` })
         }
-        return res.status(200).json({ message: "delete ok" })
+
+        return res.status(200).json({ message: `delete ${success}/${coupons.length}` })
 
     } catch (error) {
         console.log(error);

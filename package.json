@@ -8,7 +8,7 @@
     "npm": ">8.1.2"
   },
   "scripts": {
-    "test": "set NODE_ENV=production&&nodemon server.js",
+    "test": "set NODE_ENV=production&&set TZ=Asia/Ho_Chi_Minh&&nodemon server.js",
     "start": "set NODE_ENV=production&&node server.js",
     "dev": "set NODE_ENV=development&&nodemon server.js"
   },

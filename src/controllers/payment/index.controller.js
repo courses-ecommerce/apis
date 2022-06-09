@@ -87,7 +87,7 @@ const postPaymentCheckout = async (req, res, next) => {
         .populate({
             path: 'course',
             populate: { path: "author", select: "_id fullName" },
-            select: '_id name thumbnail author currentPrice category level'
+            select: '_id slug name thumbnail author currentPrice category level'
         })
         .select("-__v -user")
         .lean()

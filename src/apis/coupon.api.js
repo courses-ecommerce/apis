@@ -15,9 +15,9 @@ couponApis.post('/', passport.jwtAuthentication, couponController.postCoupon)
 // api: cập nhật mã
 couponApis.put('/:id', passport.jwtAuthentication, couponController.updateCoupon)
 
+couponApis.delete('/', passport.jwtAuthentication, couponController.deleteManyCoupon)
 // api: xoá mã
 couponApis.delete('/:id', passport.jwtAuthentication, couponController.deleteCoupon)
 
-couponApis.delete('/', passport.jwtAuthentication, couponController.deleteManyCoupon)
 
 module.exports = couponApis;

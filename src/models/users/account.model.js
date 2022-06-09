@@ -23,7 +23,11 @@ const accountSchema = new Schema({
         type: Boolean,
         default: true,
     }
-});
+},
+    {
+        timestamps: true
+    }
+);
 
 // hash password with bcrypt 
 // Note: callback should be a nomal function -> use "this"
