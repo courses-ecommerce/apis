@@ -40,6 +40,33 @@ const jwtAuthentication = async (req, res, next) => {
     }
 }
 
+// authen socket 
+
+// authentication with JWT
+const jwtAuthenticationSocket = async (socket, next) => {
+    try {
+        var token = socket.handshake.headers.token;
+        token = token.split(" ")[1]
+        //if not exist cookie[access_token] -> isAuth = false -> next
+        //verify jwt
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded) {
+            const { account } = decoded.sub;
+            const acc = await AccountModel.findById(account).lean();
+            const user = await UserModel.findOne({ account: account }).lean()
+            if (user) {
+                socket.user = user;
+                socket.account = acc;
+            }
+        }
+        next();
+    } catch (error) {
+        const err = new Error("not authorized");
+        err.data = { content: "Please login" }; // additional details
+        next(err);
+    }
+}
+
 
 const isAdmin = async (req, res, next) => {
     try {
@@ -145,6 +172,7 @@ passport.use(new GooglePlusStrategy({
 
 module.exports = {
     jwtAuthentication,
+    jwtAuthenticationSocket,
     isAdmin,
     isTeacher,
     jwtAuthenticationOrNull,

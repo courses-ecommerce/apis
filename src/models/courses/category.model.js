@@ -21,7 +21,7 @@ const categorySchema = new Schema({
     },
     isPending: {
         type: Boolean,
-        default: false
+        default: true
     }
 });
 

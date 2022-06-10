@@ -113,9 +113,17 @@ const postConversation = async (req, res, next) => {
             conversation = hadConversation._id
         }
         // tạo message
-        await MessageModel.create({ conversation, sender: user._id, receiver: userId, text: text.trim() })
+        let tinNhan = await MessageModel.create({ conversation, sender: user._id, receiver: userId, text: text.trim() })
         // cập nhật recent => sort conversation
         res.status(201).json({ message })
+
+        // lấy mảng socket id người nhận
+        let socketIds = await _redis.SMEMBERS(userId)
+        // gửi tới từng socket id
+        socketIds.forEach(id => {
+            _io.to(id).emit('send-message', { text: tinNhan })
+        });
+
         let recentAt = new Date()
         await ConversationModel.updateOne({ _id: conversation }, { recentAt })
     } catch (error) {
@@ -140,7 +148,7 @@ const postAcceptConversation = async (req, res, next) => {
         let seenAt = new Date()
         await MessageModel.updateMany({ conversation }, { seen: true, seenAt })
         // tạo tin nhắn
-        await MessageModel.create({ conversation, sender: user._id, text: text.trim() })
+        let tinNhan = await MessageModel.create({ conversation, sender: user._id, text: text.trim() })
         // cập nhật hội thoại
         if (JSON.stringify(cvst.pending) == JSON.stringify(user._id)) {
             let recentAt = new Date()
@@ -148,6 +156,12 @@ const postAcceptConversation = async (req, res, next) => {
             message = "Gửi tin nhắn thành công, đã chấp nhận hội thoại"
         }
         res.status(200).json({ message })
+        // lấy mảng socket id người nhận
+        let socketIds = await _redis.SMEMBERS(userId)
+        // gửi tới từng socket id
+        socketIds.forEach(id => {
+            _io.to(id).emit('send-message', { text: tinNhan })
+        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'error' })
@@ -165,8 +179,15 @@ const postMessage = async (req, res, next) => {
         const cvst = await ConversationModel.findById(conversation)
         if (!cvst) return res.status(400).json({ message: "invalid conversation id " })
         // tạo tin nhắn
-        await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
+        let tinNhan = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
         res.status(201).json({ message: "ok" })
+        // lấy mảng socket id người nhận
+        let receiveUserId = JSON.stringify(cvst.members[0]) == JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
+        let socketIds = await _redis.SMEMBERS(receiveUserId)
+        // gửi tới từng socket id
+        socketIds.forEach(id => {
+            _io.to(id).emit('send-message', { text: tinNhan })
+        });
         // cập nhật hội thoại
         let recentAt = new Date()
         await ConversationModel.updateOne({ _id: conversation }, { recentAt })

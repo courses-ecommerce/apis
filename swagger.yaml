@@ -3063,11 +3063,13 @@ paths:
           in: query
           schema:
             type: string
+            default: "2022-05-10"
           required: true
         - name: end
           in: query
           schema:
             type: string
+            default: "2022-06-10"
           required: true
         - name: type
           in: query
@@ -3107,6 +3109,7 @@ paths:
           in: path
           schema:
             type: string
+            default: "2022"
           required: true
         - name: exports
           in: query
@@ -3146,12 +3149,14 @@ paths:
           description: năm bắt đầu
           schema:
             type: string
+            default: "2015"
           required: true
         - name: end
           in: query
           description: năm kết thúc
           schema:
             type: string
+            default: "2022"
           required: true
         - name: exports
           in: query
@@ -3187,12 +3192,14 @@ paths:
           description: năm bắt đầu
           schema:
             type: string
+            default: "2021"
           required: true
         - name: end
           in: query
           description: năm kết thúc
           schema:
             type: string
+            default: "2022"
           required: true
         - name: exports
           in: query
@@ -3224,7 +3231,7 @@ paths:
         - bearerAuth: []
       tags:
         - statistic
-      summary: Số lượng người dùng mới theo tháng trong năm start - end
+      summary: Số lượng người dùng mới theo tháng trong năm year
       description: ""
       parameters:
         - name: year
@@ -3232,6 +3239,7 @@ paths:
           description: năm bắt đầu
           schema:
             type: string
+            default: "2022"
           required: true
         - name: exports
           in: query
@@ -3286,10 +3294,12 @@ paths:
           in: query
           schema:
             type: number
+            default: "5"
         - name: year
           in: query
           schema:
             type: number
+            default: "2022"
           required: true
         - name: exports
           in: query
@@ -3310,7 +3320,6 @@ paths:
                       type: string
         500:
           description: "SERVER ERROR"
-
   /statistics/coupons:
     get:
       security:

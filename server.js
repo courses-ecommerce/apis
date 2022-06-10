@@ -1,17 +1,18 @@
 const app = require('./app');
 const port = process.env.PORT || 3000
-
+const passport = require('./src/middlewares/passport.middleware')
+const SocketService = require('./src/services/chat.service')
 const redis = require('redis');
 const PORT_REDIS = process.env.PORT_REDIS
 const redis_client = redis.createClient(PORT_REDIS)
 
+global._redis = redis_client
 
 async function ConnectRedis() {
-    redis_client.on('error', (err) => console.log('Redis Client Error', err));
-    await redis_client.connect()
+    _redis.on('error', (err) => console.log('Redis Client Error', err));
+    await _redis.connect()
 }
-
-// ConnectRedis()
+ConnectRedis()
 
 
 
@@ -25,69 +26,44 @@ const io = require('socket.io')(server, {
     }
 });
 
-// danh sách người dùng hiện đang online
-let users = []
+global._io = io
 
-// thêm 1 user vào danh sách
-const addUser = async (userId, socketId) => {
-    // await redis_client.set(userId, socketId, { EX: 18000 /* 5h */ }) // nếu tồn tại thì sẽ ghi đè socketId mới
-    let index = users.findIndex(user => user.userId === userId)
-    if (index != -1) {
-        users[index].socketId = socketId
-    } else {
-        users.push({ userId, socketId })
-    }
-}
+global._io.use(passport.jwtAuthenticationSocket);
 
-// xoá 1 user khỏi danh sách
-const removeUserBySocketId = async (socketId) => {
-    // await redis_client.del(userId)
-    users = users.filter(item => item.socketId !== socketId)
-}
+global._io.on('connection', SocketService.connection)
 
-// lấy thông tin user
-const getUserByUserId = async (userId) => {
-    // return await redis_client.get(userId)
-    return await users.find(user => user.userId === userId)
-}
+// io.on("connection", async (socket) => {
+//     console.log("> a user connected socket");
+//     // await _redis.SADD('123', 'id1')
+//     // await _redis.SADD('123', 'id2')
+//     // await _redis.SADD('123', 'id3')
 
-// const getUserBySocketId = async (socketId) => {
-//     // get all key => check socketId
-//     let keys = await redis_client.keys("*")
-//     for (let i = 0; i < keys.length; i++) {
-//         let data = await redis_client.get(keys[i])
-//         if (data.socketId === socketId) {
-//             return data
-//         }
-//     }
-// }
+//     // ngắt kết nối
+//     socket.on("disconnect", async () => {
+//         let value = await _redis.SMEMBERS('123')
+//         console.log("a user disconnected socket", value);
+//         await _redis.DEL(userId)
+//         value = await _redis.SMEMBERS('123')
 
+//         console.log("a user disconnected socket", value);
+//         io.emit("information", { msg: "a user loggedout" })
+//     })
 
-io.on("connection", socket => {
-    console.log("> a user connected socket");
+//     // thêm user vào danh sách
+//     socket.on("postUserData", async userId => {
+//         console.log(userId, " loggedin with socket");
+//         await _redis.SADD(userId, socket.id)
+//         io.emit("information", { msg: "a user loggedin", users })
+//     })
 
-    // ngắt kết nối
-    socket.on("disconnect", () => {
-        console.log("a user disconnected socket");
-        removeUserBySocketId(socket.id)
-        io.emit("information", { msg: "a user loggedout", users })
-    })
+//     // gửi tin nhắn đến người nhận
+//     socket.on("sendPrivateMessage", async ({ senderId, receiverId, text }) => {
+//         const userReceiver = await getUserByUserId(receiverId)
+//         io.to(userReceiver.socketId).emit("getPrivateMessage", {
+//             senderId,
+//             text
+//         })
+//     })
 
-    // thêm user vào danh sách
-    socket.on("postUserData", async userId => {
-        console.log(userId, " loggedin with socket");
-        addUser(userId, socket.id)
-        io.emit("information", { msg: "a user loggedin", users })
-    })
-
-    // gửi tin nhắn đến người nhận
-    socket.on("sendPrivateMessage", async ({ senderId, receiverId, text }) => {
-        const userReceiver = await getUserByUserId(receiverId)
-        io.to(userReceiver.socketId).emit("getPrivateMessage", {
-            senderId,
-            text
-        })
-    })
-
-})
+// })
 

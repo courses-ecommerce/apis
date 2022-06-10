@@ -22,7 +22,7 @@ const postCategory = async (req, res, next) => {
 // fn: lấy category
 const getCategories = async (req, res, next) => {
     try {
-        const { name, publish = 'true', limit, page } = req.query
+        const { name, publish = 'true', limit, page, isPending } = req.query
         let aCountQuery = []
         let aQuery = []
         if (name) {
@@ -42,6 +42,10 @@ const getCategories = async (req, res, next) => {
         if (page && limit) {
             let nskip = (parseInt(page) - 1) * parseInt(limit)
             aQuery.push({ $skip: nskip }, { $limit: parseInt(limit) })
+        }
+        if (isPending) {
+            aQuery.push({ $match: { isPending: isPending == 'true' } })
+            aCountQuery.push({ $match: { isPending: isPending == 'true' } })
         }
         aCountQuery.push({ $count: "total" })
 
