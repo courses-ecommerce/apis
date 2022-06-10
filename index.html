@@ -19,50 +19,71 @@
 
 
     <form id="login" action="" method="post">
-        <input id="date" type="datetime-local">
-        <input id="email" name="email" type="text" placeholder="Username">
-        <input type="button" name="Login" value="Login" id="add" onclick="addUser()">
+        <input id="date" type="datetime-local"><br>
+        <input id="token" name="token" type="text" placeholder="token">
+        <input type="button" name="Login" value="Login" id="add" onclick="addToken()">
     </form>
-    <form id="form" action="" method="post">
-        <input id="receiverId" name="email" type="text" placeholder="Username người nhận"><br>
-        <input id="message" name="message" type="text" placeholder="Tin nhắn"> <br>
-        <input type="button" value="Gủi" name="Login" id="send" onclick="sendMessage()">
+
+    <form id="chat" action="" method="">
+        <input id="text" name="text" type="text" placeholder="text">
+        <input type="button" name="Send" value="Send" id="send" onclick="sendMessage()">
     </form>
+
+    <div id="data">
+
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        let email = document.querySelector('#email')
+        let token = document.querySelector('#token')
         let date = document.querySelector('#date')
+        let divData = document.querySelector('#data')
+        let text = document.querySelector('#text')
+        let send = document.querySelector('#send')
 
+        var socket = io();
 
-        const socket = io();
+        const addToken = (e) => {
+            console.log('token', token.value);
+            var socket = io({
+                extraHeaders: {
+                    token: `Beaer ${token.value}`
+                }
+            });
 
-        socket.on("information", (data) => {
-            console.log(data);
-        })
-
-        socket.on("getPrivateMessage", data => {
-            console.log(data);
-        })
-        function addUser() {
-            console.log(date.value);
-            socket.emit("postUserData", email.value)
-        }
-
-        function sendMessage() {
-            let message = document.querySelector('#message')
-            let receiverId = document.querySelector('#receiverId')
-            socket.emit("sendPrivateMessage", {
-                senderId: email.value,
-                receiverId: receiverId.value,
-                text: message.value,
+            socket.on("send-message", (data) => {
+                console.log(data);
+                divData.append(`${data.text.text} ${data.text.createdAt}`)
             })
 
+            // client-side
+            socket.on("connect_error", (err) => {
+                console.log(err instanceof Error); // true
+                console.log(err.message); // not authorized
+                console.log(err.data); // { content: "Please retry later" }
+            });
         }
-    </script>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/autonumeric/2.0.0/autoNumeric.min.js"></script>
 
-    <script src="/js/semantic.js"></script>
+        const sendMessage = async (e) => {
+            const res = await fetch("/api/chat/message",
+                {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Beaer ${token.value}`
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        conversation: '62a38a5779dd87b6bed22dd8',
+                        text: text.value
+                    })
+                })
+
+            console.log(res);
+        }
+
+
+    </script>
+
     <!-- script for payment -->
     <script>
         let headersList = {
