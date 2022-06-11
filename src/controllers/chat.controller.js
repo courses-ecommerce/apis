@@ -157,9 +157,13 @@ const postAcceptConversation = async (req, res, next) => {
         }
         res.status(200).json({ message })
         // lấy mảng socket id người nhận
-        let socketIds = await _redis.SMEMBERS(userId)
+        let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[0])
+        let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[1])
         // gửi tới từng socket id
-        socketIds.forEach(id => {
+        socketIdsMem1.forEach(id => {
+            _io.to(id).emit('send-message', { text: tinNhan })
+        });
+        socketIdsMem2.forEach(id => {
             _io.to(id).emit('send-message', { text: tinNhan })
         });
     } catch (error) {
@@ -181,11 +185,14 @@ const postMessage = async (req, res, next) => {
         // tạo tin nhắn
         let tinNhan = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
         res.status(201).json({ message: "ok" })
-        // lấy mảng socket id người nhận
-        let receiveUserId = JSON.stringify(cvst.members[0]) == JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
-        let socketIds = await _redis.SMEMBERS(receiveUserId)
+        // lấy mảng socket id thành viên
+        let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
+        let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
         // gửi tới từng socket id
-        socketIds.forEach(id => {
+        socketIdsMem1.forEach(id => {
+            _io.to(id).emit('send-message', { text: tinNhan })
+        });
+        socketIdsMem2.forEach(id => {
             _io.to(id).emit('send-message', { text: tinNhan })
         });
         // cập nhật hội thoại

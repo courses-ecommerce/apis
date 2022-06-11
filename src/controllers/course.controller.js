@@ -29,11 +29,14 @@ const postCourse = async (req, res, next) => {
             return res.status(401).json({ message: "Not permited" })
         }
         // xác thực dữ liệu
-        if (currentPrice && currentPrice < 0) {
+        if (currentPrice && parseInt(currentPrice) < 0) {
             return res.status(400).json({ message: "currentPrice phải lớn hơn hoặc bằng 0" })
         }
-        if (originalPrice && originalPrice < 0) {
+        if (originalPrice && parseInt(originalPrice) < 0) {
             return res.status(400).json({ message: "originalPrice phải lớn hơn hoặc bằng 0" })
+        }
+        if (originalPrice && currentPrice && parseInt(originalPrice) < parseInt(currentPrice)) {
+            return res.status(400).json({ message: "originalPrice phải lớn hơn hoặc bằng currentPrice" })
         }
 
         // tính giảm giá

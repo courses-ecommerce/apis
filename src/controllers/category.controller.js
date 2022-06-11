@@ -164,7 +164,7 @@ const deleteManyCategory = async (req, res, next) => {
         if (logs != '') {
             let file = Date.now()
             fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
-            return res.status(200).json({ message: "ok", urlLogs: `/logs/${file}.txt` })
+            return res.status(400).json({ message: "có lỗi", urlLogs: `/logs/${file}.txt` })
         }
 
         return res.status(200).json({ message: 'delete ok' })
