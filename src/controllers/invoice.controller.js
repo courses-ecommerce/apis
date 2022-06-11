@@ -24,9 +24,18 @@ const getInvoices = async (req, res, next) => {
                 $project: {
                     'transactionId': 1,
                     'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
                     'status': 1,
                     // 'user': 1
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                 }
             },
 
@@ -70,9 +79,8 @@ const getInvoices = async (req, res, next) => {
 const getDetailInvoice = async (req, res, next) => {
     try {
         const { id } = req.params
-
         const invoice = await InvoiceModel.aggregate([
-            { $match: { _id: ObjectId(id) } },
+            { $match: { _id: id } },
             {
                 $lookup: {
                     from: "users",
@@ -89,6 +97,24 @@ const getDetailInvoice = async (req, res, next) => {
                     as: 'detailInvoices'
                 }
             },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
+                    'status': 1,
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'detailInvoices': 1
+                }
+            }
         ])
         res.status(200).json({ message: 'ok', invoice })
 

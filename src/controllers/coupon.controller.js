@@ -39,8 +39,20 @@ const getCoupons = async (req, res, next) => {
                     'type': 1,
                     'apply': 1,
                     'amount': 1,
-                    'startDate': 1,
-                    'expireDate': 1,
+                    'startDate': {
+                        $dateToString: {
+                            date: "$startDate",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'expireDate': {
+                        $dateToString: {
+                            date: "$expireDate",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                     'maxDiscount': 1,
                     'minPrice': 1,
                     'number': 1,
@@ -79,9 +91,9 @@ const getCoupons = async (req, res, next) => {
             )
         }
 
-        if (account.role == 'teacher') {
-            aQuery.push({ $match: { author: user._id } })
-        }
+        // if (account.role == 'teacher') {
+        //     aQuery.push({ $match: { author: user._id } })
+        // }
         const coupons = await CouponModel.aggregate(aQuery)
 
         let data = coupons.map(item => {
@@ -137,8 +149,20 @@ const getCoupon = async (req, res, next) => {
                     'type': 1,
                     'apply': 1,
                     'amount': 1,
-                    'startDate': 1,
-                    'expireDate': 1,
+                    'startDate': {
+                        $dateToString: {
+                            date: "$startDate",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'expireDate': {
+                        $dateToString: {
+                            date: "$expireDate",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                     'maxDiscount': 1,
                     'minPrice': 1,
                     'number': 1,
@@ -167,6 +191,7 @@ const postCoupon = async (req, res, next) => {
         const { title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number } = req.body
         req.body.author = user._id
 
+        console.log('startDate', startDate);
         let data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
 
         if (type == 'percent') {

@@ -208,8 +208,20 @@ const getCourses = async (req, res, next) => {
                     'hashtags': 1,
                     'rating.rate': 1,
                     'rating.numOfRate': 1,
-                    'createdAt': 1,
-                    'updatedAt': 1,
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'updatedAt': {
+                        $dateToString: {
+                            date: "$updatedAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                     'status': 1,
                     //'score': { $meta: "textScore" },
                 }
@@ -433,6 +445,7 @@ const getCourse = async (req, res, next) => {
                     publish: { $first: "$publish" },
                     status: { $first: "$status" },
                     chapters: { $push: "$chapters" },
+                    createdAt: { $first: "$createdAt" },
                 }
             },
             {
@@ -465,6 +478,13 @@ const getCourse = async (req, res, next) => {
                     'hashtags': 1,
                     'publish': 1,
                     'status': 1,
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                     'chapters': { _id: 1, number: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, description: 1 } },
                 }
             },

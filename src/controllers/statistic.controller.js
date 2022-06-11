@@ -16,19 +16,34 @@ const getDailyRevenue = async (req, res) => {
 
         let startDate = new Date(start)
         let endDate = new Date(end)
-        const invoices = await InvoiceModel.find({
-            createdAt: {
-                $gte: startDate,
-                $lte: endDate,
+        const invoices = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
+                    status: 'Paid',
+                }
             },
-            status: 'Paid'
-        }).select('_id paymentPrice createdAt').lean()
+            {
+                $project: {
+                    paymentPrice: 1,
+                    createdAt: {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%d',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            }
+        ])
 
         var result = null
         if (type.toLowerCase().trim() == 'day') {
             let differenceInTime = endDate.getTime() - startDate.getTime();
             let differenceInDays = differenceInTime / (1000 * 3600 * 24);
-            console.log('differenceInDays', differenceInDays);
             result = {}
             for (let i = 0; i < differenceInDays + 1; i++) {
                 let startDateString = startDate.toISOString().split("T")[0]
@@ -37,7 +52,7 @@ const getDailyRevenue = async (req, res) => {
             }
             // tính doanh thu mỗi ngày
             invoices.forEach(invoice => {
-                let dateString = new Date(invoice.createdAt).toISOString().split("T")[0]
+                let dateString = invoice.createdAt
                 result[dateString] += invoice.paymentPrice
             })
         } else if (type.toLowerCase().trim() == 'month') {
@@ -55,7 +70,7 @@ const getDailyRevenue = async (req, res) => {
             }
             // tính doanh thu mỗi tháng
             invoices.forEach(invoice => {
-                let dateString = new Date(invoice.createdAt).toISOString().slice(0, 7)
+                let dateString = invoice.createdAt.slice(0, 7)
                 result[dateString] += invoice.paymentPrice
             })
         }
@@ -91,14 +106,29 @@ const getMonthlyRevenue = async (req, res, next) => {
         year = parseInt(year)
 
         // lấy danh sách hoá đơn đã thanh toán trong năm year và năm year - 1
-        const invoices = await InvoiceModel.find({
-            createdAt: {
-                $gte: new Date(`${year - number}-01-01`),
-                $lte: new Date(`${year}-12-31`),
+        const invoices = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year - number}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    },
+                    status: 'Paid',
+                }
             },
-            status: 'Paid'
-        }).select('_id paymentPrice createdAt').lean()
-        console.log(invoices);
+            {
+                $project: {
+                    paymentPrice: 1,
+                    createdAt: {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%d',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            }
+        ])
 
         // doanh thu mỗi tháng
         var result = Array(number + 1).fill(Array(12).fill(0))
@@ -141,16 +171,30 @@ const getYearlyRevenue = async (req, res) => {
     try {
         const { start, end, exports = 'false' } = req.query
 
-        const invoices = await InvoiceModel.find({
-            createdAt: {
-                $gte: new Date(`${start}-01-01`),
-                $lte: new Date(`${end}-12-31`),
+        const invoices = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${start}-01-01`),
+                        $lte: new Date(`${end}-12-31`),
+                    },
+                    status: 'Paid',
+                }
             },
-            status: 'Paid'
-        }).select('_id paymentPrice createdAt').lean()
-
+            {
+                $project: {
+                    paymentPrice: 1,
+                    createdAt: {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%d',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            }
+        ])
         var result = [...Array(parseInt(end) - parseInt(start) + 1).fill(0)]
-
 
 
         invoices.forEach(item => {

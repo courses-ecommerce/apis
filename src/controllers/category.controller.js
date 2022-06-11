@@ -24,7 +24,16 @@ const getCategories = async (req, res, next) => {
     try {
         const { name, publish = 'true', limit, page, isPending } = req.query
         let aCountQuery = []
-        let aQuery = []
+        let aQuery = [
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: "_id",
+                    foreignField: 'category',
+                    as: "used"
+                }
+            }
+        ]
         if (name) {
             aQuery.push(
                 { $match: { $text: { $search: name }, publish: publish == 'true' } },
@@ -47,6 +56,24 @@ const getCategories = async (req, res, next) => {
             aQuery.push({ $match: { isPending: isPending == 'true' } })
             aCountQuery.push({ $match: { isPending: isPending == 'true' } })
         }
+        aQuery.push(
+            {
+                $project: {
+                    name: 1,
+                    slug: 1,
+                    publish: 1,
+                    status: 1,
+                    used: {
+                        $cond: {
+                            if: {
+                                $eq: [{ $size: "$used" }, 0]
+                            },
+                            then: false,
+                            else: true
+                        }
+                    }
+                }
+            })
         aCountQuery.push({ $count: "total" })
 
         const totalCount = await CategoryModel.aggregate(aCountQuery)
