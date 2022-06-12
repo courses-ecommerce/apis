@@ -13,12 +13,22 @@
         <input type="radio" name="paymentMethod" value="vnPay" checked id="">
         <label for="">VnPay</label>
         <br>
-        <input type="submit" name="btn_payment" value="Payment">
         <input type="button" name="btn_payment" value="Payment" onclick="postPaymentForm()">
     </form>
 
+    <form action="/api/coupons/export-sheet" method="post">
+        <input type="string" name="access_token"
+            value="ya29.a0ARrdaM_N3kQCS_WAynaFmY8IhAdUWsjjZ08oAPbhimbEmi-8CA9XAY9yUpRcnKOJM2VRmpq0F9wVhKK8PCq8J2vnQnmlgl-wn3gqQRBPgRbMsZ_RDfWVZtZcQ4STLCV6NyKcmMWaXxNMnAVI2ri17UCxQY4s"
+            id="btn-export">
+        <input type="string" name="refresh_token"
+            value="1//0gMsF5AsIUVL_CgYIARAAGBASNgF-L9IrDep70S4JN_YNFhDtOC94njorypUb27sHOE297lzsCITeSEK31QYh9TA7VMPkzK-iCw"
+            id="btn-export">
+        <input type="number" name="expiry_date" value="1655033239142" id="btn-export">
+        <input type="string" name="id" value="62a48f91d1acf3df14717528" id="btn-export">
+        <input type="submit" name="Login" value="Xuất bản" id="btn-export">
+    </form>
 
-    <form id="login" action="" method="post">
+    <form id=" login" action="" method="post">
         <input id="date" type="datetime-local"><br>
         <input id="token" name="token" type="text" placeholder="token">
         <input type="button" name="Login" value="Login" id="add" onclick="addToken()">
@@ -95,19 +105,21 @@
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyN2ZjY2FhOTM0ZGI4MjA4ZjZlZGU0OCJ9LCJpYXQiOjE2NTM5MDQ0MjUsImV4cCI6MTY1NDE2MzYyNX0.mPsg3cDqnl5_Rj6IkzTETh9tb0Lh8q9qbsgsGhD8knw",
         }
         let bodyContent = {
-            paymentMethod: "vnPay"
+            accessToken: 'a29.a0ARrdaM86wSOE6xB5QGYdOhcU2AyIqt-D_RxWKF2z9uyJPqqojnnhlG4weEvTdQO1MVXKINQYMSpH-XAlDxV8tqrm9wkIADJ6-qhJ589BGWnaiB5dgVsje1KG4mzQOyYRl0PMLxC2bxayanD3Awl0VJ13Zlgv',
+            refreshtoken: '1//0gb7IjiuQTJ5GCgYIARAAGBASNgF-L9IrqGKkCvZoiSKDL0H4AO4-BImNabceQSRaulKfJwi7qBeIfD0rTmJsFqKBmPlK1L11xg',
+            expiryDate: 1655026323032,
+            id: '62a490bbd1acf3df1471765f'
         }
 
-        async function postPaymentForm() {
-            fetch("/api/payment/checkout", {
+        async function postCreateSheet() {
+            fetch("/api/coupons/export-sheet", {
                 method: "post",
                 body: JSON.stringify(bodyContent),
-                headers: headersList,
-                redirect: 'follow'
+                headers: headersList
             }).then(res => {
                 return res.json()
             }).then(res => {
-                location.href = res.url
+                console.log(res);
             }).catch(e => { console.log(e); })
         }
 

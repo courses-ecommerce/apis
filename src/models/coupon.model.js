@@ -50,6 +50,11 @@ const couponSchema = new Schema({
         type: Number,
         default: 100,
         min: 1,
+    },
+    // id google sheet để share code giảm giá
+    sheetId: {
+        type: String,
+        default: null
     }
 });
 

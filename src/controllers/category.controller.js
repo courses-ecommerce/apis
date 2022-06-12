@@ -62,7 +62,7 @@ const getCategories = async (req, res, next) => {
                     name: 1,
                     slug: 1,
                     publish: 1,
-                    status: 1,
+                    isPending: 1,
                     used: {
                         $cond: {
                             if: {

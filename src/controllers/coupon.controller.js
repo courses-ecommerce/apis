@@ -4,6 +4,9 @@ const CodeModel = require('../models/code.model');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 var fs = require('fs');
+const { google } = require('googleapis');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+
 
 
 // fn: lấy danh sách mã và phân trang
@@ -348,6 +351,220 @@ const deleteManyCoupon = async (req, res, next) => {
     }
 }
 
+// fn: tạo url login with google
+const postLoginGoogle = (req, res, next) => {
+    try {
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            'http://localhost:3000/api/coupons/google/callback'
+        );
+        const scopes = [
+            'https://www.googleapis.com/auth/spreadsheets',
+        ];
+        const url = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: scopes,
+        });
+
+        res.writeHead(302, {
+            'Location': url
+        });
+        res.end();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+//fn : google callback
+const getGoogleCallback = async (req, res, next) => {
+    try {
+        const { code } = req.query
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            'http://localhost:3000/api/coupons/google/callback'
+        );
+        //lấy access_token
+        const { tokens } = await oauth2Client.getToken(code)
+        req.tokens = tokens
+        res.status(200).json({ message: 'oke', tokens })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'error' })
+    }
+}
+
+// fn: tạo sheet và ghi data
+const postCreateGoogleSheet = async (req, res) => {
+    try {
+        const { access_token, refresh_token, expiry_date, id } = req.body
+
+        // xác thực oauth2 cho google-spreadsheet
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            'http://localhost:3000/api/coupons/google/callback'
+        );
+        oauth2Client.credentials.access_token = access_token;
+        oauth2Client.credentials.refresh_token = refresh_token;
+        oauth2Client.credentials.expiry_date = expiry_date;
+
+        // lấy mã giảm giá
+        const coupon = await CouponModel.aggregate([
+            { $match: { _id: ObjectId(id) } },
+            {
+                $lookup: {
+                    from: "codes",
+                    localField: "_id",
+                    foreignField: "coupon",
+                    as: 'codes'
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: '$author'
+            },
+            {
+                $project: {
+                    title: 1,
+                    type: 1,
+                    apply: 1,
+                    amount: 1,
+                    number: 1,
+                    startDate: {
+                        $dateToString: {
+                            date: "$startDate",
+                            format: '%H:%M:%S %d-%m-%Y',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    expireDate: {
+                        $dateToString: {
+                            date: "$expireDate",
+                            format: '%H:%M:%S %d-%m-%Y',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    maxDiscount: 1,
+                    minPrice: 1,
+                    author: 1,
+                    codes: { code: 1, isActive: 1 },
+                    sheetId: 1,
+                }
+            }
+        ])
+
+        var doc
+        if (coupon[0].sheetId) {
+            // lấy id sheet
+            doc = new GoogleSpreadsheet(coupon[0].sheetId);
+            // xác thực
+            doc.useOAuth2Client(oauth2Client);
+
+        } else {
+            // tạo sheet mới
+            doc = new GoogleSpreadsheet();
+            // xác thực
+            doc.useOAuth2Client(oauth2Client);
+            // set thông tin sheet
+            await doc.createNewSpreadsheetDocument({ title: `${coupon[0].number} Mã ${coupon[0].title}` });
+            await CouponModel.updateOne({ _id: id }, { sheetId: doc.spreadsheetId })
+        }
+        await doc.loadInfo()
+        await doc.updateProperties({ title: `${coupon[0].number} Mã ${coupon[0].title}` });
+        // lấy sheet 1
+        const sheet = doc.sheetsByIndex[0]
+        // clear data cũ
+        await sheet.clearRows()
+
+        // #region format và ghi data
+        await sheet.mergeCells({
+            "startRowIndex": 0,
+            "endRowIndex": 1,
+            "startColumnIndex": 0,
+            "endColumnIndex": 12
+        })
+        await sheet.mergeCells({
+            "startRowIndex": 1,
+            "endRowIndex": 2,
+            "startColumnIndex": 0,
+            "endColumnIndex": 7
+        })
+        await sheet.mergeCells({
+            "startRowIndex": 2,
+            "endRowIndex": 3,
+            "startColumnIndex": 0,
+            "endColumnIndex": 7
+        })
+        await sheet.mergeCells({
+            "startRowIndex": 3,
+            "endRowIndex": 4,
+            "startColumnIndex": 0,
+            "endColumnIndex": 7
+        })
+
+        await sheet.setHeaderRow([`${coupon[0].number} MÃ ${coupon[0].title.toUpperCase()} (Updated at: ${new Date().toLocaleString()})`], 1);
+        await sheet.setHeaderRow([`Giảm ${coupon[0].amount}${coupon[0].type == 'money' ? " VNĐ" : "%"}. Áp dụng toàn bộ khoá học${coupon[0].apply == 'all' ? " trên hệ thống" : ` của tác giả ${coupon[0].author.fullName}`}.`], 2);
+        await sheet.setHeaderRow([`Hiệu lực từ: ${coupon[0].startDate} đến ${coupon[0].expireDate})`], 3);
+        await sheet.setHeaderRow([`Áp dụng ${coupon[0].maxDiscount == Infinity ? "" : `giảm giá tối đa ${coupon[0].maxDiscount} vnđ`} cho khoá học từ ${coupon[0].minPrice} vnđ`], 4);
+        await sheet.setHeaderRow(['code', "isActive"], 5);
+
+        // load data sẵn
+        await sheet.loadCells({ // GridRange object
+            startRowIndex: 0, endRowIndex: coupon[0].number + 5, startColumnIndex: 0, endColumnIndex: 4
+        });
+        var cellA1 = sheet.getCell(0, 0)
+        cellA1.textFormat = {
+            "fontSize": 16,
+            "bold": true
+        }
+        cellA1.padding = {
+            "top": 5,
+            "right": 5,
+            "bottom": 5,
+            "left": 5
+        }
+        for (let i = 1; i < 4; i++) {
+            let cellA1 = sheet.getCell(i, 0)
+            cellA1.textFormat = {
+                "fontSize": 14,
+            }
+            cellA1.padding = {
+                "top": 5,
+                "right": 5,
+                "bottom": 5,
+                "left": 5
+            }
+        }
+
+        for (let i = 4; i < 105; i++) {
+            for (let j = 0; j < 2; j++) {
+                const cellA1 = sheet.getCell(i, j);
+                cellA1.textFormat = {
+                    "fontSize": 12,
+                    "bold": false
+                }
+            }
+
+        }
+        await sheet.addRows(coupon[0].codes);
+        //#endregion
+
+        res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ message: error.message })
+    }
+}
+
 
 module.exports = {
     getCoupons,
@@ -356,4 +573,7 @@ module.exports = {
     updateCoupon,
     deleteCoupon,
     deleteManyCoupon,
+    postLoginGoogle,
+    getGoogleCallback,
+    postCreateGoogleSheet,
 }

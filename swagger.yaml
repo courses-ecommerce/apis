@@ -2476,6 +2476,57 @@ paths:
         500:
           description: "SERVER ERROR"
 
+  /coupons/login-with-google:
+    get:
+      tags:
+        - coupon
+      summary: Login with google
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: string
+        500:
+          description: "SERVER ERROR"
+  /coupons/export-sheet:
+    post:
+      tags:
+        - coupon
+      summary: Lấy dữ liệu mã giảm giá, tạo và ghi vào google sheet
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                refresh_token:
+                  type: string
+                expiry_date:
+                  type: string
+                id:
+                  type: string
+              required: ["access_token", "refresh_token", "expiry_date", "id"]
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link:
+                    type: string
+        500:
+          description: "SERVER ERROR"
   /coupons:
     get:
       tags:
