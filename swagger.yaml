@@ -1216,6 +1216,41 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /teacher/my-revenue:
+    get:
+      tags:
+        - teacher
+      summary: lấy thông tin doanh thu của giáo viên từ ngày a đến b
+      description: ""
+      parameters:
+        - name: start
+          in: query
+          description: "2022-05-01"
+          required: true
+          schema:
+            type: string
+        - name: end
+          in: query
+          description: "2022-06-01"
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  courses:
+                    $ref: "#/components/schemas/Course"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
 
   /invoices:
     get:
@@ -3400,5 +3435,220 @@ paths:
                 properties:
                   total:
                     type: number
+        500:
+          description: "SERVER ERROR"
+
+  /statistics/revenues/teachers:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: thống kê doanh thu của các giảng viên theo tháng
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: "month"
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: year
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: exports
+          in: query
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fullName:
+                          type: string
+                        birthday:
+                          type: string
+                        gender:
+                          type: boolean
+                        phone:
+                          type: string
+                        avatar:
+                          type: string
+                        revenue:
+                          type: string
+                        numOfDetailInvoice:
+                          type: number
+        500:
+          description: "SERVER ERROR"
+  /statistics/revenues/teachers/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: Doanh thu chi tiết của giáo viên trong month-year
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: "month"
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: year
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: exports
+          in: query
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fullName:
+                          type: string
+                        birthday:
+                          type: string
+                        gender:
+                          type: boolean
+                        phone:
+                          type: string
+                        avatar:
+                          type: string
+                        revenue:
+                          type: string
+                        numOfDetailInvoice:
+                          type: number
+                        detailInvoices:
+                          type: object
+                          $ref: "#/components/schemas/DetailInvoice"
+
+        500:
+          description: "SERVER ERROR"
+
+  /statistics/top-teachers-of-year:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: top giáo viên có số lượng bán/doanh thu cao nhất trong năm
+      description: ""
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: top
+          in: query
+          schema:
+            type: number
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fullName:
+                          type: string
+                        birthday:
+                          type: string
+                        gender:
+                          type: boolean
+                        phone:
+                          type: string
+                        avatar:
+                          type: string
+                        revenue:
+                          type: string
+                        numOfDetailInvoice:
+                          type: number
+        500:
+          description: "SERVER ERROR"
+  /statistics/top-teachers-of-months:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: top giáo viên có số lượng bán/doanh thu cao nhất các tháng trong năm
+      description: ""
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: top
+          in: query
+          schema:
+            type: number
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fullName:
+                          type: string
+                        birthday:
+                          type: string
+                        gender:
+                          type: boolean
+                        phone:
+                          type: string
+                        avatar:
+                          type: string
+                        revenue:
+                          type: string
+                        numOfDetailInvoice:
+                          type: number
         500:
           description: "SERVER ERROR"

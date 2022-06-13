@@ -14,4 +14,9 @@ teacherApis.get('/info', passport.jwtAuthentication, teacherController.getMyCour
 // api: cập nhật thông tin teacher
 teacherApis.put('/info', passport.jwtAuthentication, teacherController.putMyInfo)
 
+// api: lấy thông tin doanh thu
+teacherApis.get('/my-revenue', passport.jwtAuthentication, teacherController.getMyRevenue)
+
+
+
 module.exports = teacherApis

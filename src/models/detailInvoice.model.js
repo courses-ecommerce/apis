@@ -21,7 +21,11 @@ const detailInvoiceSchema = new Schema({
     },
     amount: { type: Number, required: true },
     discount: { type: Number, required: true },
-    status: String,
+    status: { type: String, default: '' },
+    payForAuthor: {
+        type: Boolean,
+        default: false
+    }
 },
     {
         timestamps: true

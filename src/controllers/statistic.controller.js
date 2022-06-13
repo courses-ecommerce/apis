@@ -7,6 +7,8 @@ var fs = require('fs');
 const AccountModel = require("../models/users/account.model");
 const DetailInvoiceModel = require("../models/detailInvoice.model");
 const _ = require('lodash')
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 
 // fn: thống kê doanh thu từ ngày a đến b
 const getDailyRevenue = async (req, res) => {
@@ -488,7 +490,6 @@ const getTopSaleCourses = async (req, res, next) => {
     }
 }
 
-
 // fn: thống kê mã giảm giá
 const getCountCoupons = async (req, res, next) => {
     try {
@@ -522,6 +523,476 @@ const getCountCoupons = async (req, res, next) => {
     }
 }
 
+// fn: thống kê doanh thu của các giảng viên theo tháng
+const getTeachersRevenueByMonth = async (req, res, next) => {
+    try {
+        const { page, limit, sort, month, year, exports = 'false' } = req.query
+        let query = [
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: '$account'
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacherInfo'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$teacherInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    'account.role': 'teacher'
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    phone: 1,
+                    account: { email: 1, role: 1 },
+                    teacherInfo: { payments: { accountNumber: 1, cardNumber: 1, name: 1, bankName: 1 } },
+                }
+            }
+        ]
+        if (page && limit) {
+            query.push(
+                { $skip: (parseInt(page) - 1) * parseInt(limit) },
+                { $limit: parseInt(limit) }
+            )
+        }
+        if (sort) {
+            let sortBy = {}
+            let [f, v] = sort.split('-')
+            sortBy[f] = v == 'asc' | v == 1 ? 1 : -1
+            query.push(
+                { $sort: sortBy }
+            )
+        }
+
+        // lấy data teacher
+        const teachers = await UserModel.aggregate(query)
+        // mảng users id
+        const userIds = teachers.map(i => ObjectId(i._id))
+
+        // lấy hoá đơn có tác giả in users id và được tạo vào tháng month năm year
+        const invoices = await DetailInvoiceModel.aggregate([
+            {
+                $project: {
+                    amount: 1,
+                    courseAuthor: 1,
+                    createdAt: 1,
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
+                }
+            },
+            {
+                $match: {
+                    courseAuthor: { $in: userIds },
+                    year: parseInt(year),
+                    month: parseInt(month),
+                }
+            }
+        ])
+
+        const result = teachers.map(item => {
+            item.revenue = 0
+            item.numOfDetailInvoice = 0
+            for (let i = 0; i < invoices.length; i++) {
+                const element = invoices[i];
+                if (JSON.stringify(item._id) == JSON.stringify(element.courseAuthor)) {
+                    item.revenue += element.amount
+                    item.numOfDetailInvoice++
+                }
+            }
+            return item
+        })
+
+        if (exports.toLowerCase().trim() == 'true') {
+            const data = [
+                [`BẢNG THỐNG KÊ HOA HỒNG CỦA GIÁO VIÊN THÁNG ${month}-${year}`],
+                ['Email', 'Tên', 'STK', 'Tên', 'Ngân hàng', 'Số tiền (VNĐ)'],
+            ];
+            result.forEach(teacher => {
+                let info = [
+                    teacher.account.email,
+                    teacher.fullName,
+                    teacher.teacherInfo?.payments.accountNumber || null,
+                    teacher.teacherInfo?.payments.name || null,
+                    teacher.teacherInfo?.payments.bankName || null,
+                    teacher.revenue,
+                ]
+                data.push(info)
+            })
+
+            const range = { s: { c: 0, r: 0 }, e: { c: 13, r: 0 } }; // A1:A4
+            const sheetOptions = { '!merges': [range] };
+            var buffer = xlsx.build([{ name: 'Thống kê hoa hồng theo tháng', data: data }], { sheetOptions }); // Returns a buffer
+            fs.createWriteStream('./src/public/statistics/thong-ke-hoa-hong-theo-thang.xlsx').write(buffer);
+            res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
+            return
+        }
+
+        res.status(200).json({ message: "ok", result })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+// fn: thống kê doanh thu của giảng viên
+const getDetailTeachersRevenue = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { month, year, exports = 'fasle' } = req.query
+
+        let query = [
+            {
+                $match: {
+                    _id: ObjectId(id)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: '$account'
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacherInfo'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$teacherInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    phone: 1,
+                    birthday: 1,
+                    gender: 1,
+                    account: { email: 1, role: 1 },
+                    teacherInfo: { payments: { accountNumber: 1, cardNumber: 1, name: 1, bankName: 1 } },
+                }
+            }
+        ]
+        // lấy data teacher
+        const teacher = (await UserModel.aggregate(query))[0]
+        // lấy hoá đơn có tác giả in users id
+        const invoices = await DetailInvoiceModel.aggregate([
+            {
+                $project: {
+                    invoice: 1,
+                    courseId: 1,
+                    courseSlug: 1,
+                    courseName: 1,
+                    courseCurrentPrice: 1,
+                    courseAuthor: 1,
+                    couponCode: 1,
+                    amount: 1,
+                    discount: 1,
+                    status: 1,
+                    createdAt: 1,
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
+                }
+            },
+            {
+                $match: {
+                    courseAuthor: teacher._id,
+                    year: parseInt(year),
+                    month: parseInt(month),
+                }
+            },
+            {
+                $project: {
+                    invoice: 1,
+                    courseId: 1,
+                    courseSlug: 1,
+                    courseName: 1,
+                    courseCurrentPrice: 1,
+                    courseAuthor: 1,
+                    couponCode: 1,
+                    amount: 1,
+                    discount: 1,
+                    status: 1,
+                    createdAt: {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%d-%m-%Y %H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            },
+        ])
+        teacher.revenue = 0
+        teacher.numOfDetailInvoice = invoices.length
+        for (let i = 0; i < invoices.length; i++) {
+            const element = invoices[i];
+            teacher.revenue += element.amount
+        }
+        teacher.detailInvoices = invoices
+
+        if (exports.toLowerCase().trim() == 'true') {
+            const data = [
+                [`BẢNG THỐNG KÊ CHI TIẾT HOA HỒNG CỦA GIÁO VIÊN THÁNG ${month}-${year}`],
+                ['Email', 'Tên', 'STK', 'Tên', 'Ngân hàng', 'Số tiền (VNĐ)'],
+                [teacher.account.email, teacher.fullName, teacher.teacherInfo?.payments.accountNumber || null, teacher.teacherInfo?.payments.name || null, teacher.teacherInfo?.payments.bankName || null, teacher.revenue],
+                [],
+                ['Bảng chi tiết các hoá đơn'],
+                ['Mã Hoá đơn', 'Mã khoá học', 'Tên khoá học', 'Giá khoá học', 'Mã giảm giá', 'Giá giảm', 'Thanh toán', 'Tạo lúc'],
+            ];
+            invoices.forEach(invoice => {
+                let info = [
+                    invoice.invoice,
+                    invoice.courseId.toString(),
+                    invoice.courseName,
+                    invoice.courseCurrentPrice,
+                    invoice.couponCode,
+                    invoice.discount,
+                    invoice.amount,
+                    invoice.createdAt,
+                ]
+                data.push(info)
+            })
+
+            let range1 = { s: { c: 0, r: 0 }, e: { c: 13, r: 0 } }; // A1:A13
+            const sheetOptions = { '!merges': [range1] };
+            var buffer = xlsx.build([{ name: 'data', data: data }], { sheetOptions }); // Returns a buffer
+            fs.createWriteStream('./src/public/statistics/thong-ke-chi-tiet-hoa-hong-theo-thang.xlsx').write(buffer);
+            res.status(200).json({ message: "ok", teacher, file: '/statistics/thong-ke-chi-tiet-hoa-hong-theo-thang.xlsx' })
+            return
+        }
+        res.status(200).json({ message: "ok", teacher })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+// thống kê top doanh thu/số lượng bán của teacher theo các tháng trong năm
+const getTopMonthlyTeachers = async (req, res, next) => {
+    try {
+        const { top = 5, year } = req.query
+
+        let query = [
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: '$account'
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacherInfo'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$teacherInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    'account.role': 'teacher'
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    phone: 1,
+                    account: { email: 1, role: 1 },
+                    teacherInfo: { payments: { accountNumber: 1, cardNumber: 1, name: 1, bankName: 1 } },
+                }
+            }
+        ]
+        const teachers = await UserModel.aggregate(query)
+
+        const invoices = await DetailInvoiceModel.aggregate([
+            {
+                $project: {
+                    invoice: 1,
+                    courseAuthor: 1,
+                    createdAt: 1,
+                    amount: 1,
+                }
+            },
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $project: {
+                    invoice: 1,
+                    month: { $month: "$createdAt" },
+                    courseAuthor: 1,
+                    amount: 1,
+                }
+            },
+        ])
+
+        var result = [[], [], [], [], [], [], [], [], [], [], [], []]
+        for (let i = 0; i < 12; i++) {
+            let preResult = teachers.map(teacher => {
+                let count = 0
+                let total = 0
+                invoices.forEach(invoice => {
+                    let month = parseInt(invoice.month)
+                    let author = JSON.stringify(invoice.courseAuthor)
+                    if (month == i + 1 && author == JSON.stringify(teacher._id)) {
+                        count++
+                        total += invoice.amount
+                    }
+                })
+                teacher.total = total
+                teacher.count = count
+                return teacher
+            })
+            result[i] = _.orderBy(JSON.parse(JSON.stringify(preResult)), ['count'], ['desc']).slice(0, parseInt(top))
+        }
+        res.status(200).json({ message: "ok", result })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+//  top giáo viên có số lượng bán/doanh thu cao nhất trong năm
+const getTopYearTeachers = async (req, res, next) => {
+    try {
+        const { top = 5, year } = req.query
+
+        let query = [
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: '$account'
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacherInfo'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$teacherInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $match: {
+                    'account.role': 'teacher'
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    phone: 1,
+                    account: { email: 1, role: 1 },
+                    teacherInfo: { payments: { accountNumber: 1, cardNumber: 1, name: 1, bankName: 1 } },
+                }
+            }
+        ]
+        const teachers = await UserModel.aggregate(query)
+
+        const invoices = await DetailInvoiceModel.aggregate([
+            {
+                $project: {
+                    invoice: 1,
+                    courseAuthor: 1,
+                    createdAt: 1,
+                    amount: 1,
+                }
+            },
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $project: {
+                    invoice: 1,
+                    courseAuthor: 1,
+                    amount: 1,
+                }
+            },
+        ])
+
+        var result = teachers.map(teacher => {
+            let count = 0
+            let total = 0
+            invoices.forEach(invoice => {
+                let author = JSON.stringify(invoice.courseAuthor)
+                if (author == JSON.stringify(teacher._id)) {
+                    count++
+                    total += invoice.amount
+                }
+            })
+            teacher.total = total
+            teacher.count = count
+            return teacher
+        })
+        result = _.orderBy(JSON.parse(JSON.stringify(result)), ['count'], ['desc']).slice(0, parseInt(top))
+
+        res.status(200).json({ message: "ok", result })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
 module.exports = {
     getDailyRevenue,
     getMonthlyRevenue,
@@ -531,4 +1002,8 @@ module.exports = {
     getCountCourses,
     getCountCoupons,
     getTopSaleCourses,
+    getTeachersRevenueByMonth,
+    getDetailTeachersRevenue,
+    getTopMonthlyTeachers,
+    getTopYearTeachers
 }

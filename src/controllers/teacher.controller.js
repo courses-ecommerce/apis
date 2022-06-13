@@ -75,8 +75,77 @@ const putMyInfo = async (req, res, next) => {
     }
 }
 
+//fn: lấy thống kê doanh thu
+const getMyRevenue = async (req, res, next) => {
+    try {
+        const { id } = req.user
+        let query = [
+            {
+                $match: {
+                    _id: ObjectId(id)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: '$account'
+            },
+            {
+                $lookup: {
+                    from: 'detailInvoices',
+                    localField: '_id',
+                    foreignField: 'courseAuthor',
+                    as: 'detailInvoices'
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    phone: 1,
+                    birthday: 1,
+                    gender: 1,
+                    account: { email: 1, role: 1 },
+                    detailInvoices: 1,
+                }
+            }
+        ]
+        // lấy data teacher
+        const teacher = (await UserModel.aggregate(query))[0]
+        // lấy hoá đơn có tác giả in users id
+        const invoices = await DetailInvoiceModel.aggregate([
+            {
+                $match: {
+                    courseAuthor: teacher._id
+                }
+            }
+        ])
+        teacher.revenue = 0
+        teacher.numOfDetailInvoice = 0
+        for (let i = 0; i < invoices.length; i++) {
+            const element = invoices[i];
+            if (JSON.stringify(teacher._id) == JSON.stringify(element.courseAuthor)) {
+                teacher.revenue += element.amount
+                teacher.numOfDetailInvoice++
+            }
+        }
+
+        res.status(200).json({ message: "ok", teacher })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
 module.exports = {
     getMyCourses,
     getMyInfo,
     putMyInfo,
+    getMyRevenue
 }

@@ -22,7 +22,7 @@ const postCategory = async (req, res, next) => {
 // fn: lấy category
 const getCategories = async (req, res, next) => {
     try {
-        const { name, publish = 'true', limit, page, isPending } = req.query
+        const { name, publish = 'true', limit, page, isPending, used } = req.query
         let aCountQuery = []
         let aQuery = [
             {
@@ -55,6 +55,30 @@ const getCategories = async (req, res, next) => {
         if (isPending) {
             aQuery.push({ $match: { isPending: isPending == 'true' } })
             aCountQuery.push({ $match: { isPending: isPending == 'true' } })
+        }
+        if (used) {
+            aQuery.push(
+                {
+                    $lookup: {
+                        from: "courses",
+                        localField: '_id',
+                        foreignField: 'category',
+                        as: "used"
+                    }
+                },
+                { $match: { 'used.0': { $exists: used == 'true' } } }
+            )
+            aCountQuery.push(
+                {
+                    $lookup: {
+                        from: "courses",
+                        localField: '_id',
+                        foreignField: 'category',
+                        as: "used"
+                    }
+                },
+                { $match: { 'used.0': { $exists: used == 'true' } } }
+            )
         }
         aQuery.push(
             {

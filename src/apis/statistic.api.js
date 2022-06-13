@@ -4,6 +4,13 @@ const statisticController = require('../controllers/statistic.controller');
 const passport = require('../middlewares/passport.middleware');
 const accessControl = require('../middlewares/access_control.middleware')
 
+
+// api: top giáo viên có số lượng bán/doanh thu cao nhất trong năm
+statisticApis.get('/top-teachers-of-year', statisticController.getTopYearTeachers)
+
+// api: top giáo viên có số lượng bán/doanh thu cao nhất các tháng trong năm
+statisticApis.get('/top-teachers-of-months', statisticController.getTopMonthlyTeachers)
+
 // api: lấy doanh thu từ ngày a đến b tính theo ngày hoặc tháng
 statisticApis.get('/revenues/daily', passport.jwtAuthentication, passport.isAdmin, statisticController.getDailyRevenue)
 
@@ -27,6 +34,12 @@ statisticApis.get('/top-sale-courses', passport.jwtAuthentication, passport.isAd
 
 // api: thống kê số lượng mã giảm giá
 statisticApis.get('/coupons', passport.jwtAuthentication, passport.isAdmin, statisticController.getCountCoupons)
+
+// api: thống kê doanh thu của các giảng viên theo tháng
+statisticApis.get('/revenues/teachers', statisticController.getTeachersRevenueByMonth)
+
+// api: thống kê lương chi tiết của giáo viên
+statisticApis.get('/revenues/teachers/:id', statisticController.getDetailTeachersRevenue)
 
 
 module.exports = statisticApis

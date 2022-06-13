@@ -20,7 +20,7 @@ function ValidateEmail(mail) {
 // GET /api/admin/users?page=1&limit=10&role=user
 const getAccountAndUsers = async (req, res, next) => {
     try {
-        const { page, limit, sort, email, role, active = 'true' } = req.query
+        const { page, limit, sort, email, role, active } = req.query
         let aCountQuery = [
             {
                 $lookup: {
@@ -30,8 +30,6 @@ const getAccountAndUsers = async (req, res, next) => {
                     as: 'account'
                 }
             },
-            { $match: { 'account.isActive': active == 'true' } }
-
         ]
         let aQuery = [
             {
@@ -45,7 +43,6 @@ const getAccountAndUsers = async (req, res, next) => {
             {
                 $unwind: "$account"
             },
-            { $match: { 'account.isActive': active == 'true' } }
         ]
         if (email) {
             aQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
@@ -54,6 +51,10 @@ const getAccountAndUsers = async (req, res, next) => {
         if (role) {
             aQuery.push({ $match: { "account.role": role } })
             aCountQuery.push({ $match: { "account.role": role } })
+        }
+        if (active) {
+            aQuery.push({ $match: { 'account.isActive': active == 'true' } })
+            aCountQuery.push({ $match: { 'account.isActive': active == 'true' } })
         }
         if (sort) {
             let sortBy = {}
