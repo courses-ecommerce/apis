@@ -83,7 +83,7 @@ const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
 
 const postPaymentCheckout = async (req, res, next) => {
     const { user } = req
-    const carts = await CartModel.find({ user })
+    const carts = await CartModel.find({ user, wishlist: false })
         .populate({
             path: 'course',
             populate: { path: "author", select: "_id fullName" },
@@ -214,7 +214,8 @@ const getPaymentCallback = async (req, res, next) => {
                 await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
                 // xoá giỏ hàng
                 await CartModel.deleteMany({ user })
-
+                // cập nhật wishlist thành false
+                await CartModel.updateMany({ user }, { wishlist: true })
             } else {
                 res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
                 // xoá hoá đơn

@@ -13,12 +13,12 @@ const postLogin = async (req, res, next) => {
 
         // check account is existing?
         const account = await AccountModel.findOne({ email }).lean()
-        if (!account) return res.status(401).json({ message: "Email is not existing!" })
+        if (!account) return res.status(401).json({ message: "Email không tồn tại!" })
         if (account.isActive == false) return res.status(401).json({ message: "Tài khoản đã bị khoá." })
 
         // check password
         const isMatch = await bcrypt.compare(password ? password : "", account.password)
-        if (!isMatch) return res.status(401).json({ messagee: "Email or password is incorrect!" })
+        if (!isMatch) return res.status(401).json({ message: "Email hoặc mật khẩu không đúng!" })
 
         // get user 
         const user = await UserModel.findOne({ account: account._id }).lean()

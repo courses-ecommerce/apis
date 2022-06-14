@@ -41,19 +41,27 @@ const getCart = async (req, res, next) => {
         const { user } = req
 
         // lấy giỏ hàng
-        const carts = await CartModel.find({ user })
+        const carts = await CartModel.find({ user, wishlist: false })
             .populate({
                 path: 'course',
                 populate: { path: "author", select: "_id fullName" },
-                select: '_id name thumbnail author currentPrice category level'
+                select: '_id name thumbnail author currentPrice category level wishlist'
             })
             .select("-__v -user")
             .lean()
         const result = await helper.hanlderCheckoutCarts(carts)
+        const wishlist = await CartModel.find({ user, wishlist: true })
+            .populate({
+                path: 'course',
+                populate: { path: "author", select: "_id fullName" },
+                select: '_id name thumbnail author currentPrice category level wishlist'
+            })
+            .select("-__v -user")
+            .lean()
         if (result.error) {
             return res.status(500).json({ message: error.message })
         }
-        res.status(200).json({ message: "ok", totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts })
+        res.status(200).json({ message: "ok", totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })

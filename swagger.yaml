@@ -209,6 +209,9 @@ components:
           $ref: "#/components/schemas/Course"
         coupon:
           type: string
+        wishlist:
+          type: boolean
+          default: false
     CreateCartDto:
       type: object
       properties:
@@ -221,6 +224,8 @@ components:
       properties:
         coupon:
           type: string
+        wishlist:
+          type: boolean
 
     Verify:
       type: object
@@ -1523,7 +1528,7 @@ paths:
     put:
       tags:
         - cart
-      summary: thêm mã giảm giá vào khoá học
+      summary: cập nhật/thêm mã giảm giá vào khoá học
       description: ""
       parameters:
         - name: course

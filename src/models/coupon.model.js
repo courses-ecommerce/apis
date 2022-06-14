@@ -56,7 +56,11 @@ const couponSchema = new Schema({
         type: String,
         default: null
     }
-});
+},
+    {
+        timestamps: true
+    }
+);
 
 const CouponModel = mongoose.model('coupon', couponSchema, 'coupons');
 

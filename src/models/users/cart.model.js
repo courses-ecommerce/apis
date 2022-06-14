@@ -15,6 +15,10 @@ const cartSchema = new Schema({
     coupon: {
         type: String,
         default: null
+    },
+    wishlist: {
+        type: Boolean,
+        default: false
     }
 })
 
