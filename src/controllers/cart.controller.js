@@ -61,7 +61,7 @@ const getCart = async (req, res, next) => {
         if (result.error) {
             return res.status(500).json({ message: error.message })
         }
-        res.status(200).json({ message: "ok", totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
+        res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
