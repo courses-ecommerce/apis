@@ -74,7 +74,7 @@ const putCart = async (req, res, next) => {
     try {
         const { user } = req
         const { course } = req.params
-        const { coupon } = req.body
+        const { coupon, wishlist } = req.body
 
         // lấy giỏ hàng
         const carts = await CartModel.find({ user }).lean()
@@ -82,9 +82,15 @@ const putCart = async (req, res, next) => {
         // kiểm tra giỏ
         const hadCart = await CartModel.findOne({ user, course }).lean()
         if (!hadCart) return res.status(400).json({ message: "giỏ hàng không tồn tại" })
+        if (wishlist) {
+            await CartModel.updateOne({ user, course }, { wishlist })
+            const newCarts = await CartModel.find({ user })
+            return res.status(200).json({ message: 'oke', carts: newCarts })
+        }
         if (coupon == "") {
             await CartModel.updateOne({ user, course }, { coupon })
-            return res.status(200).json({ message: 'gỡ mã giảm giá oke' })
+            const newCarts = await CartModel.find({ user })
+            return res.status(200).json({ message: 'oke', carts: newCarts })
         }
         // kiểm tra mã giảm giá
         const code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
@@ -105,7 +111,6 @@ const putCart = async (req, res, next) => {
             await CartModel.updateOne({ _id: hadCart._id }, { coupon })
         }
         const newCarts = await CartModel.find({ user })
-
         res.status(200).json({ message, carts: newCarts })
     } catch (error) {
         console.log(error);
