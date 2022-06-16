@@ -8,7 +8,8 @@ const MyCourseModel = require('../../models/users/myCourse.model');
 const CartModel = require('../../models/users/cart.model');
 const helper = require('../../helper/index');
 const CodeModel = require('../../models/code.model');
-
+const UserModel = require('../../models/users/user.model');
+const mailConfig = require('../../configs/mail.config');
 
 /** Tạo hoá đơn cho người dùng (chưa thanh toán)
  * @param {Object} data
@@ -216,6 +217,14 @@ const getPaymentCallback = async (req, res, next) => {
                 await CartModel.deleteMany({ user })
                 // cập nhật wishlist thành false
                 await CartModel.updateMany({ user }, { wishlist: true })
+                // gửi email
+                // const userInfo = await UserModel.findById(user).populate('account')
+                // const mail = {
+                //     to: userInfo.account.email,
+                //     subject: 'Hoá đơn thanh toán',
+                //     html: mailConfig.htmlSignupAccount(verifyCode),
+                // };
+
             } else {
                 res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
                 // xoá hoá đơn

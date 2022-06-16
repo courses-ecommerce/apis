@@ -86,6 +86,11 @@ const courseSchema = new Schema({
         type: String,
         enum: ['draft', 'pending', 'approved'],
         default: 'draft'
+    },
+    type: {
+        type: String,
+        default: null,
+        enum: ['Hot', 'Bestseller', null]
     }
 },
     {

@@ -26,8 +26,9 @@ const postCart = async (req, res, next) => {
 
         // thêm khoá học vào giỏ hàng
         await CartModel.create({ user: user._id, course })
+        const carts = await CartModel.find({ user })
 
-        res.status(201).json({ message: "oke" })
+        res.status(201).json({ message: "oke", carts })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
@@ -103,7 +104,9 @@ const putCart = async (req, res, next) => {
         if (result.isApply) {
             await CartModel.updateOne({ _id: hadCart._id }, { coupon })
         }
-        res.status(200).json({ message })
+        const newCarts = await CartModel.find({ user })
+
+        res.status(200).json({ message, carts: newCarts })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
@@ -117,7 +120,8 @@ const deleteCart = async (req, res, next) => {
         const { user } = req
         const { course } = req.params
         await CartModel.deleteOne({ user, course })
-        res.status(200).json({ message: "remove ok" })
+        const carts = await CartModel.find({ user })
+        res.status(200).json({ message: "remove ok", carts })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })

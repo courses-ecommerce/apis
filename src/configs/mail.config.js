@@ -47,14 +47,9 @@ const sendEmail = async ({ to, subject, text, html, ...rest }) => {
 };
 
 const headerHtmlMail = `<h1 style="color: #4c649b; font-size: 48px; border-bottom: solid 2px #ccc;padding-bottom: 10px">
-      Hoàng Toeic<br />
+GENY Courses Eccommerce <br />
     </h1>`;
-const footerHtmlVerifyMail = `<h3 style="color: red">
-        Chú ý: Không đưa mã này cho bất kỳ ai,
-        có thể dẫn đến mất tài khoản.<br />
-        Mã chỉ có hiệu lực <i>10 phút </i> từ khi bạn nhận được mail.
-    </h3>
-    <h1>Cảm ơn./.</h1>`;
+const footerHtmlVerifyMail = `<h1>Cảm ơn./.</h1>`;
 
 // gửi mã xác nhận
 const htmlSignupAccount = (token) => {
@@ -62,10 +57,15 @@ const htmlSignupAccount = (token) => {
     ${headerHtmlMail}
     <h2 style="padding: 10px 0; margin-bottom: 10px;">
         Xin chào,<br />
-        Mã xác nhận đăng ký tài khoản cho website Hoàng Toeic của bạn.<br />
+        Mã xác nhận đăng ký tài khoản cho website GENY Courses Eccommerce của bạn.<br />
     </h2>
     <h3 style="background: #eee;padding: 10px;">
       <i><b>${token}</b></i>
+    </h3>
+    <h3 style="color: red">
+        Chú ý: Không đưa mã này cho bất kỳ ai,
+        có thể dẫn đến mất tài khoản.<br />
+        Mã chỉ có hiệu lực <i>10 phút </i> từ khi bạn nhận được mail.
     </h3>
   ${footerHtmlVerifyMail}
   </div>`;
@@ -77,12 +77,17 @@ const htmlResetPassword = (token) => {
     ${headerHtmlMail}
     <h2 style="padding: 10px 0; margin-bottom: 10px;">
         Xin chào,<br />
-        Hoàng Toeic đã nhận được yêu cầu lấy lại mật khẩu từ bạn.<br />
+        GENY Courses Eccommerce đã nhận được yêu cầu lấy lại mật khẩu từ bạn.<br />
         Đừng lo lắng, hãy nhập mã này để khôi phục:
     </h2>
     <h1 style="background: #eee;padding: 10px;">
       <i><b>${token}</b></i>
     </h1>
+    <h3 style="color: red">
+        Chú ý: Không đưa mã này cho bất kỳ ai,
+        có thể dẫn đến mất tài khoản.<br />
+        Mã chỉ có hiệu lực <i>10 phút </i> từ khi bạn nhận được mail.
+    </h3>
     ${footerHtmlVerifyMail}
   </div>`;
 };
@@ -100,9 +105,19 @@ const htmlWarningLogin = () => {
   </div>`;
 };
 
+// gửi mã đổi mật khẩu
+const htmlInvoices = (token) => {
+  return `<div>
+    ${headerHtmlMail}
+   
+    ${footerHtmlVerifyMail}
+  </div>`;
+};
+
 module.exports = {
   sendEmail,
   htmlSignupAccount,
   htmlResetPassword,
   htmlWarningLogin,
+  htmlInvoices,
 };

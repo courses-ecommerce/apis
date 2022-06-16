@@ -28,7 +28,7 @@ const myCourseApis = require('./src/apis/myCourse.api');
 const statisticApis = require('./src/apis/statistic.api');
 // apis for admin
 const adminUserApis = require('./src/apis/adminUser.api');
-
+require('./src/services/cron.service')
 
 const dev = app.get('env') !== 'production';
 

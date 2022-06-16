@@ -209,6 +209,7 @@ const getCourses = async (req, res, next) => {
                     'author.fullName': 1,
                     'sellNumber': 1,
                     'hashtags': 1,
+                    'type': 1,
                     'rating.rate': 1,
                     'rating.numOfRate': 1,
                     'createdAt': {
@@ -449,6 +450,7 @@ const getCourse = async (req, res, next) => {
                     status: { $first: "$status" },
                     chapters: { $push: "$chapters" },
                     createdAt: { $first: "$createdAt" },
+                    type: { $first: "$type" },
                 }
             },
             {
@@ -480,6 +482,7 @@ const getCourse = async (req, res, next) => {
                     'author.fullName': 1,
                     'hashtags': 1,
                     'publish': 1,
+                    'type': 1,
                     'status': 1,
                     'createdAt': {
                         $dateToString: {
