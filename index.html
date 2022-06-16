@@ -102,7 +102,7 @@
             'X-Remote': true,
             "Access-Control-Allow-Methods": "*",
             "Content-Type": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyN2ZjY2FhOTM0ZGI4MjA4ZjZlZGU0OCJ9LCJpYXQiOjE2NTM5MDQ0MjUsImV4cCI6MTY1NDE2MzYyNX0.mPsg3cDqnl5_Rj6IkzTETh9tb0Lh8q9qbsgsGhD8knw",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHTVMiLCJzdWIiOnsiYWNjb3VudCI6IjYyOWEyYWVlOGJjMTE2NjBkZDE3ODBlZiJ9LCJpYXQiOjE2NTUzOTA5MTAsImV4cCI6MTY1NTY1MDExMH0._TjMR7RK2vTaaRv8eMsExwFBnxa2F9eObf_NhlR5RoE",
         }
         let bodyContent = {
             accessToken: 'a29.a0ARrdaM86wSOE6xB5QGYdOhcU2AyIqt-D_RxWKF2z9uyJPqqojnnhlG4weEvTdQO1MVXKINQYMSpH-XAlDxV8tqrm9wkIADJ6-qhJ589BGWnaiB5dgVsje1KG4mzQOyYRl0PMLxC2bxayanD3Awl0VJ13Zlgv',
@@ -120,7 +120,22 @@
                 return res.json()
             }).then(res => {
                 console.log(res);
-            }).catch(e => { console.log(e); })
+            }).catch(e => {
+                console.log(e);
+            })
+        }
+
+        async function postPaymentForm() {
+            fetch("/api/payment/checkout", {
+                method: "post",
+                body: JSON.stringify({ paymentMethod: 'vnPay' }),
+                headers: headersList
+            }).then(res => {
+                return res.json()
+            }).then(res => {
+                console.log(res);
+            })
+
         }
 
 

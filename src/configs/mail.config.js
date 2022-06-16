@@ -106,12 +106,48 @@ const htmlWarningLogin = () => {
 };
 
 // gửi mã đổi mật khẩu
-const htmlInvoices = (token) => {
+const htmlInvoices = (invoice) => {
   return `<div>
-    ${headerHtmlMail}
-   
-    ${footerHtmlVerifyMail}
-  </div>`;
+  <div
+    style="display: flex;flex-direction: row;justify-content: space-between;align-items: center;border-bottom: 1px solid rgb(194, 193, 193);">
+    <h3>GENY COURSE ECOMMERCE</h3>
+    <span>${invoice.createdAt}</span>
+  </div>
+  <div style="display: flex;flex-direction: row;justify-content: space-between;padding-bottom: 20px;border-bottom: 1px
+    solid rgb(194, 193, 193);">
+    <div style="display: flex;flex: 1;flex-direction: column;gap: 20px;">
+      <h3 style=" text-align: center;text-transform: uppercase;font-size: 24px;">Hoá đơn #${invoice._id}</h3>
+      <span><b>Kính gửi:</b>${invoice.user.fullName}</span>
+      <span><b>Phương thức thanh toán:</b>${invoice.paymentMethod}</span>
+      <span><b>Tổng số tiền ước tính:</b>${invoice.paymentPrice} vnđ</span>
+      <span><b>Giảm giá:</b>${invoice.totalDiscount} vnđ</span>
+      <span><b>Thanh toán:</b>${invoice.paymentPrice} vnđ</span>
+    </div>
+    <div>
+      <img style=" height: 150px;width: 150px;" src="${invoice._id}"
+        alt="qr_code" />
+    </div>
+  </div>
+  <div stype=" margin-top: 20px;width: 100%;">
+    <table style="width: 100%;">
+      <tr>
+        <th colspan="4">Thông tin chi tiết hoá đơn</th>
+      </tr>
+      <tr>
+        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Tên khoá học</th>
+        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Giá</th>
+        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Giảm giá</th>
+        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Tạm tính</th>
+      </tr>
+      <tr>
+        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">ABC</td>
+        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">15</td>
+        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">7</td>
+        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">8</td>
+      </tr>
+    </table>
+  </div>
+</div>`
 };
 
 module.exports = {
