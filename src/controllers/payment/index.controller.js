@@ -10,6 +10,8 @@ const helper = require('../../helper/index');
 const CodeModel = require('../../models/code.model');
 const UserModel = require('../../models/users/user.model');
 const mailConfig = require('../../configs/mail.config');
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 
 /** Tạo hoá đơn cho người dùng (chưa thanh toán)
  * @param {Object} data
@@ -84,8 +86,6 @@ const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
 
 const postPaymentCheckout = async (req, res, next) => {
     try {
-
-
         const { user } = req
         const carts = await CartModel.find({ user, wishlist: false })
             .populate({
@@ -134,7 +134,7 @@ const postPaymentCheckout = async (req, res, next) => {
             await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
             // xoá giỏ hàng
             await CartModel.deleteMany({ user })
-            return
+            return res.status(200).json({ message: "Thanh toán thành công" })
         }
 
 
@@ -210,7 +210,7 @@ const getPaymentCallback = async (req, res, next) => {
 
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
-                let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).select('courseId').lean()
+                let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
                 for (let i = 0; i < detailInvoices.length; i++) {
                     const { courseId, couponCode } = detailInvoices[i];
                     // cập nhật mã giảm giá đã dùng
@@ -224,6 +224,21 @@ const getPaymentCallback = async (req, res, next) => {
                 await CartModel.deleteMany({ user })
                 // cập nhật wishlist thành false
                 await CartModel.updateMany({ user }, { wishlist: true })
+                invoice = (await InvoiceModel.aggregate([
+                    { $match: { _id: data.transactionId } },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "user",
+                            foreignField: '_id',
+                            as: 'user'
+                        }
+                    },
+                    {
+                        $unwind: '$user'
+                    }
+                ]))[0]
+                invoice.detailInvoices = detailInvoices
                 // gửi email
                 const userInfo = await UserModel.findById(user).populate('account')
                 const mail = {
@@ -233,7 +248,6 @@ const getPaymentCallback = async (req, res, next) => {
                 };
                 //gửi mail
                 await mailConfig.sendEmail(mail);
-
             } else {
                 res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
                 // xoá hoá đơn

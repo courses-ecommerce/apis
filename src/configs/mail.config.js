@@ -107,47 +107,121 @@ const htmlWarningLogin = () => {
 
 // gửi mã đổi mật khẩu
 const htmlInvoices = (invoice) => {
-  return `<div>
-  <div
-    style="display: flex;flex-direction: row;justify-content: space-between;align-items: center;border-bottom: 1px solid rgb(194, 193, 193);">
-    <h3>GENY COURSE ECOMMERCE</h3>
-    <span>${invoice.createdAt}</span>
-  </div>
-  <div style="display: flex;flex-direction: row;justify-content: space-between;padding-bottom: 20px;border-bottom: 1px
-    solid rgb(194, 193, 193);">
-    <div style="display: flex;flex: 1;flex-direction: column;gap: 20px;">
-      <h3 style=" text-align: center;text-transform: uppercase;font-size: 24px;">Hoá đơn #${invoice._id}</h3>
-      <span><b>Kính gửi:</b>${invoice.user.fullName}</span>
-      <span><b>Phương thức thanh toán:</b>${invoice.paymentMethod}</span>
-      <span><b>Tổng số tiền ước tính:</b>${invoice.paymentPrice} vnđ</span>
-      <span><b>Giảm giá:</b>${invoice.totalDiscount} vnđ</span>
-      <span><b>Thanh toán:</b>${invoice.paymentPrice} vnđ</span>
-    </div>
-    <div>
-      <img style=" height: 150px;width: 150px;" src="${invoice._id}"
-        alt="qr_code" />
-    </div>
-  </div>
-  <div stype=" margin-top: 20px;width: 100%;">
-    <table style="width: 100%;">
-      <tr>
-        <th colspan="4">Thông tin chi tiết hoá đơn</th>
+  let html = `
+  <div marginwidth="0" marginheight="0">
+  <center>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%">
+      <tbody>
+        <tr>
+          <td align="center" valign="top">
+            <table border="0" cellpadding="0" cellspacing="0">
+              <tbody>
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td valign="top">
+                            <a href="https://manage.maxserver.com/" target="_blank"
+                              data-saferedirecturl="https://www.google.com/url?q=https://manage.maxserver.com&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
+                              <img src="" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
+                                alt="MaxServer.com" class="CToWUd">
+                            </a>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td valign="top">
+                            <p>Kính gửi ${invoice.user.fullName}</p>
+                            <p>
+                              Đây là thông
+                              báo của hệ
+                              thống về một
+                              hóa đơn đã
+                              được tạo lúc ${new Date(invoice.createdAt).toLocaleString()}.
+                            </p>
+                            <p>
+                              Phương thức
+                              thanh toán đã
+                              chọn là:
+                              ${invoice.paymentMethod}
+                            </p>
+                            <p>
+                              <strong>Invoice #${invoice._id}</strong><br>
+                              Tổng số tiền: ${invoice.totalPrice} vnđ<br>
+                              Tổng giảm giá: ${invoice.totalDiscount} vnđ<br>
+                              Tổng thanh toán: ${invoice.paymentPrice} vnđ<br>
+                            </p>
+                            <p>
+                              <strong>
+                                Khoá học:
+                              </strong>
+                            </p>`
+  invoice.detailInvoices.forEach(item => {
+    html += `------------------------------<wbr>------------------------
+      <p> <a href="https://www.course-ecommerce.tk/courses/${item.courseSlug}">${item.courseName}</a><br>
+      Giá: ${item.courseCurrentPrice} vnđ<br>
+      Giảm giá: ${item.discount} vnđ<br>
+      Tạm tính: ${item.amount} vnđ<br>
+      ------------------------------<wbr>------------------------<br>`
+  })
+  html += `<tr>
+                    <td align="center" valign="top">
+                      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <tbody>
+                          <tr>
+                            <td valign="top">
+                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://manage.maxserver.com&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">visit
+                                our
+                                website</a>
+                              <span>
+                                | </span>
+                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
+                                in to your
+                                account</a>
+                              <span>
+                                | </span>
+                              <a href="https://www.course-ecommerce.tk/submitticket.php" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
+                                support</a>
+                              <br>
+                              Copyright ©
+                              hnam.works,
+                              All rights
+                              reserved.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+  </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
       </tr>
-      <tr>
-        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Tên khoá học</th>
-        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Giá</th>
-        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Giảm giá</th>
-        <th style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">Tạm tính</th>
-      </tr>
-      <tr>
-        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">ABC</td>
-        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">15</td>
-        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">7</td>
-        <td style=" border: 1px solid rgb(214, 212, 212);padding: 10px;">8</td>
-      </tr>
-    </table>
-  </div>
+    </tbody>
+  </table>
+</center>
+<div class="yj6qo"></div>
+<div class="adL">
+</div>
 </div>`
+  return html
 };
 
 module.exports = {

@@ -4,6 +4,31 @@ const helper = require('../helper/index');
 const CodeModel = require('../models/code.model');
 const MyCourseModel = require('../models/users/myCourse.model');
 
+const handlerCheckoutCart = async (user) => {
+    try {
+        const carts = await CartModel.find({ user, wishlist: false })
+            .populate({
+                path: 'course',
+                populate: { path: "author", select: "_id fullName" },
+                select: '_id name thumbnail author currentPrice category level wishlist'
+            })
+            .select("-__v -user")
+            .lean()
+        const result = await helper.hanlderCheckoutCarts(carts)
+        const wishlist = await CartModel.find({ user, wishlist: true })
+            .populate({
+                path: 'course',
+                populate: { path: "author", select: "_id fullName" },
+                select: '_id name thumbnail author currentPrice category level wishlist'
+            })
+            .select("-__v -user")
+            .lean()
+        return { result, wishlist, carts }
+    } catch (error) {
+        console.log(error);
+        return { result: { error: true } }
+    }
+}
 
 
 
@@ -26,9 +51,9 @@ const postCart = async (req, res, next) => {
 
         // thêm khoá học vào giỏ hàng
         await CartModel.create({ user: user._id, course })
-        const carts = await CartModel.find({ user })
+        const { result, wishlist, carts } = await handlerCheckoutCart(user)
 
-        res.status(201).json({ message: "oke", carts })
+        res.status(201).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
@@ -41,24 +66,7 @@ const getCart = async (req, res, next) => {
     try {
         const { user } = req
 
-        // lấy giỏ hàng
-        const carts = await CartModel.find({ user, wishlist: false })
-            .populate({
-                path: 'course',
-                populate: { path: "author", select: "_id fullName" },
-                select: '_id name thumbnail author currentPrice category level wishlist'
-            })
-            .select("-__v -user")
-            .lean()
-        const result = await helper.hanlderCheckoutCarts(carts)
-        const wishlist = await CartModel.find({ user, wishlist: true })
-            .populate({
-                path: 'course',
-                populate: { path: "author", select: "_id fullName" },
-                select: '_id name thumbnail author currentPrice category level wishlist'
-            })
-            .select("-__v -user")
-            .lean()
+        const { result, wishlist, carts } = await handlerCheckoutCart(user)
         if (result.error) {
             return res.status(500).json({ message: error.message })
         }
@@ -84,34 +92,32 @@ const putCart = async (req, res, next) => {
         if (!hadCart) return res.status(400).json({ message: "giỏ hàng không tồn tại" })
         if (wishlist) {
             await CartModel.updateOne({ user, course }, { wishlist })
-            const newCarts = await CartModel.find({ user })
-            return res.status(200).json({ message: 'oke', carts: newCarts })
         }
-        if (coupon == "") {
+        else if (coupon == "") {
             await CartModel.updateOne({ user, course }, { coupon })
-            const newCarts = await CartModel.find({ user })
-            return res.status(200).json({ message: 'oke', carts: newCarts })
         }
-        // kiểm tra mã giảm giá
-        const code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
-        if (!code) return res.status(400).json({ message: "mã giảm giá không tồn tại" })
-        if (!code.isActive) return res.status(400).json({ message: "mã giảm giá đã sử dụng" })
+        else {
+            // kiểm tra mã giảm giá
+            const code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
+            if (!code) return res.status(400).json({ message: "mã giảm giá không tồn tại" })
+            if (!code.isActive) return res.status(400).json({ message: "mã giảm giá đã sử dụng" })
 
-        // kiểm tra mã có đang dùng không
-        const isExisted = carts.some(cart => cart.coupon === coupon)
-        if (isExisted) return res.status(400).json({ message: "mã giảm giá đã được áp dụng trong khoá học khác" })
+            // kiểm tra mã có đang dùng không
+            const isExisted = carts.some(cart => cart.coupon === coupon)
+            if (isExisted) return res.status(400).json({ message: "mã giảm giá đã được áp dụng trong khoá học khác" })
 
-        // lấy khoá học
-        const c = await CourseModel.findById(course).lean()
+            // lấy khoá học
+            const c = await CourseModel.findById(course).lean()
 
-        // kiểm tra mã giảm giá có áp dụng được cho khoá học này
-        let result = helper.hanlderApplyDiscountCode(c, code)
-        let message = result.message
-        if (result.isApply) {
-            await CartModel.updateOne({ _id: hadCart._id }, { coupon })
+            // kiểm tra mã giảm giá có áp dụng được cho khoá học này
+            let result = helper.hanlderApplyDiscountCode(c, code)
+            let message = result.message
+            if (result.isApply) {
+                await CartModel.updateOne({ _id: hadCart._id }, { coupon })
+            }
         }
-        const newCarts = await CartModel.find({ user })
-        res.status(200).json({ message, carts: newCarts })
+        const data = await handlerCheckoutCart(user)
+        res.status(200).json({ message: "ok", numOfCarts: data.result.carts.length, totalPrice: data.result.totalPrice, totalDiscount: data.result.totalDiscount, estimatedPrice: data.result.estimatedPrice, carts: data.result.carts, wishlist: data.wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
@@ -125,8 +131,8 @@ const deleteCart = async (req, res, next) => {
         const { user } = req
         const { course } = req.params
         await CartModel.deleteOne({ user, course })
-        const carts = await CartModel.find({ user })
-        res.status(200).json({ message: "remove ok", carts })
+        const { result, wishlist, carts } = await handlerCheckoutCart(user)
+        res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
