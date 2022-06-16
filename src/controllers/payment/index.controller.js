@@ -174,7 +174,7 @@ const postPaymentCheckout = async (req, res, next) => {
         if (asyncCheckout) {
             asyncCheckout
                 .then(checkoutUrl => {
-                    res.status(302).json({ message: "chuyển tiếp", 'location': checkoutUrl.href })
+                    res.status(200).json({ message: "chuyển tiếp", 'location': checkoutUrl.href })
                     res.end();
                 })
                 .catch(err => {
@@ -185,7 +185,7 @@ const postPaymentCheckout = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.error });
+        res.status(500).json({ message: error.message });
     }
 }
 
