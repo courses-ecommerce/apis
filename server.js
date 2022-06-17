@@ -32,38 +32,4 @@ global._io.use(passport.jwtAuthenticationSocket);
 
 global._io.on('connection', SocketService.connection)
 
-// io.on("connection", async (socket) => {
-//     console.log("> a user connected socket");
-//     // await _redis.SADD('123', 'id1')
-//     // await _redis.SADD('123', 'id2')
-//     // await _redis.SADD('123', 'id3')
-
-//     // ngắt kết nối
-//     socket.on("disconnect", async () => {
-//         let value = await _redis.SMEMBERS('123')
-//         console.log("a user disconnected socket", value);
-//         await _redis.DEL(userId)
-//         value = await _redis.SMEMBERS('123')
-
-//         console.log("a user disconnected socket", value);
-//         io.emit("information", { msg: "a user loggedout" })
-//     })
-
-//     // thêm user vào danh sách
-//     socket.on("postUserData", async userId => {
-//         console.log(userId, " loggedin with socket");
-//         await _redis.SADD(userId, socket.id)
-//         io.emit("information", { msg: "a user loggedin", users })
-//     })
-
-//     // gửi tin nhắn đến người nhận
-//     socket.on("sendPrivateMessage", async ({ senderId, receiverId, text }) => {
-//         const userReceiver = await getUserByUserId(receiverId)
-//         io.to(userReceiver.socketId).emit("getPrivateMessage", {
-//             senderId,
-//             text
-//         })
-//     })
-
-// })
 

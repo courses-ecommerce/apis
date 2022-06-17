@@ -202,11 +202,14 @@ const getPaymentCallback = async (req, res, next) => {
                 break;
         }
         if (data) {
-            let invoice = null
+            let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo, status: "Paid" })
+            if (invoice) {
+                return res.status(400).json({ message: 'Bad request' })
+            }
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-                res.status(200).json({ isSuccess: data.isSuccess, message: data.message, invoice })
+                // res.status(200).json({ isSuccess: data.isSuccess, message: data.message, invoice })
 
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
@@ -239,6 +242,9 @@ const getPaymentCallback = async (req, res, next) => {
                     }
                 ]))[0]
                 invoice.detailInvoices = detailInvoices
+                invoice.createdAt = new Date(invoice.createdAt).toLocaleString()
+                res.render('payment', { message: data.message, invoice: invoice })
+
                 // gửi email
                 const userInfo = await UserModel.findById(user).populate('account')
                 const mail = {
@@ -249,7 +255,9 @@ const getPaymentCallback = async (req, res, next) => {
                 //gửi mail
                 await mailConfig.sendEmail(mail);
             } else {
-                res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
+                // res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
+                res.render('paymentErro', { message: data.message })
+
                 // xoá hoá đơn
                 await InvoiceModel.deleteOne({ _id: data.transactionId })
                 await DetailInvoiceModel.deleteMany({ invoice: data.transactionId })

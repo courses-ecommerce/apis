@@ -46,6 +46,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsConfig));
 app.use(cookieParser());
 app.use(express.static(__dirname + '/src/public'));
+app.set('view engine', 'ejs');
+app.set('views', './src/views')
 
 app.get('/', (req, res) => {
     return res.sendFile(__dirname + '/index.html')

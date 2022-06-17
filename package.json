@@ -25,6 +25,7 @@
     "cors": "^2.8.5",
     "cron": "^2.0.0",
     "dotenv": "^16.0.0",
+    "ejs": "^3.1.8",
     "express": "^4.17.3",
     "get-video-duration": "^4.1.0",
     "google-did-you-mean": "^2.0.0",
