@@ -354,10 +354,15 @@ const deleteManyCoupon = async (req, res, next) => {
 // fn: tạo url login with google
 const postLoginGoogle = (req, res, next) => {
     try {
+        const host = req.get('host')
+        let uri = `http://${host}/api/coupons/google/callback`
+        if (host != 'localhost:3000') {
+            uri = `https://${host}/api/coupons/google/callback`
+        }
         const oauth2Client = new google.auth.OAuth2(
             process.env.GOOGLE_CLIENT_ID,
             process.env.GOOGLE_CLIENT_SECRET,
-            'http://localhost:3000/api/coupons/google/callback'
+            uri
         );
         const scopes = [
             'https://www.googleapis.com/auth/spreadsheets',
@@ -380,11 +385,16 @@ const postLoginGoogle = (req, res, next) => {
 //fn : google callback
 const getGoogleCallback = async (req, res, next) => {
     try {
+        const host = req.get('host')
+        let uri = `http://${host}/api/coupons/google/callback`
+        if (host != 'localhost:3000') {
+            uri = `https://${host}/api/coupons/google/callback`
+        }
         const { code } = req.query
         const oauth2Client = new google.auth.OAuth2(
             process.env.GOOGLE_CLIENT_ID,
             process.env.GOOGLE_CLIENT_SECRET,
-            'http://localhost:3000/api/coupons/google/callback'
+            uri
         );
         //lấy access_token
         const { tokens } = await oauth2Client.getToken(code)
@@ -400,12 +410,16 @@ const getGoogleCallback = async (req, res, next) => {
 const postCreateGoogleSheet = async (req, res) => {
     try {
         const { access_token, refresh_token, expiry_date, id } = req.body
-
+        const host = req.get('host')
+        let uri = `http://${host}/api/coupons/google/callback`
+        if (host != 'localhost:3000') {
+            uri = `https://${host}/api/coupons/google/callback`
+        }
         // xác thực oauth2 cho google-spreadsheet
         const oauth2Client = new google.auth.OAuth2(
             process.env.GOOGLE_CLIENT_ID,
             process.env.GOOGLE_CLIENT_SECRET,
-            'http://localhost:3000/api/coupons/google/callback'
+            uri
         );
         oauth2Client.credentials.access_token = access_token;
         oauth2Client.credentials.refresh_token = refresh_token;
