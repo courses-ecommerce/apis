@@ -17,7 +17,7 @@ adminUserApis.get('/:id', passport.jwtAuthentication, passport.isAdmin, adminUse
 adminUserApis.post('/', passport.jwtAuthentication, passport.isAdmin, adminUserController.postAccountAndUser)
 
 // api: tạo nhiều tài khoản người dùng
-// adminUserApis.post('/multiple', dontStorageUpload.single('file'), adminUserController.postMultiAccountAndUser)
+adminUserApis.post('/multiple', dontStorageUpload.single('file'), adminUserController.postMultiAccountAndUser)
 adminUserApis.post('/multiple', passport.jwtAuthentication, passport.isAdmin, dontStorageUpload.single('file'), adminUserController.postMultiAccountAndUser)
 
 // api: cập nhật tài khoản người dùng

@@ -91,7 +91,6 @@ const putCart = async (req, res, next) => {
         const hadCart = await CartModel.findOne({ user, course }).lean()
         if (!hadCart) return res.status(400).json({ message: "giỏ hàng không tồn tại" })
         if (wishlist == true || wishlist == false) {
-            console.log("có nè");
             await CartModel.updateOne({ user, course }, { wishlist })
         }
         else if (coupon == "") {

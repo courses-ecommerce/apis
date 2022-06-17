@@ -10,6 +10,7 @@ const postCategory = async (req, res, next) => {
         const { account } = req
         if (account.role == 'admin') {
             req.body.publish = true
+            req.body.isPending = false
         }
         await CategoryModel.create(req.body)
         return res.status(201).json({ message: 'ok' })

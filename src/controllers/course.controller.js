@@ -48,7 +48,11 @@ const postCourse = async (req, res, next) => {
             { name, category, description, currentPrice, originalPrice, saleOff, author, thumbnail, lang, intendedLearners, requirements, targets, level, hashtags }
         )
         res.status(201).json({ message: "ok" })
-        fs.unlinkSync(image.path);
+        try {
+            fs.unlinkSync(image.path);
+        } catch (error) {
+
+        }
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error 1" })

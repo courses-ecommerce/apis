@@ -5,7 +5,8 @@ var bcrypt = require('bcryptjs')
 var xlsx = require('node-xlsx').default
 var fs = require('fs');
 const MyCourseModel = require('../models/users/myCourse.model');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const TeacherModel = require('../models/users/teacher.model');
 const ObjectId = mongoose.Types.ObjectId;
 
 function ValidateEmail(mail) {
@@ -160,6 +161,9 @@ const postMultiAccountAndUser = async (req, res, next) => {
                             const newAcc = await AccountModel.create({ email, password: password.toString().trim(), role })
                             if (newAcc) {
                                 const newUser = await UserModel.create({ fullName, account: newAcc._id, gender: gender.toString().toLowerCase() == 'true' })
+                                if (newUser && newAcc.role == 'teacher') {
+                                    await TeacherModel.create({ user: newUser._id })
+                                }
                                 if (newUser) {
                                     await HistorySearchModel.create({ user: newUser._id })
                                     sucess++

@@ -12,7 +12,7 @@ async function ConnectRedis() {
     _redis.on('error', (err) => console.log('Redis Client Error', err));
     await _redis.connect()
 }
-ConnectRedis()
+// ConnectRedis()
 
 
 

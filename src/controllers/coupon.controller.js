@@ -367,9 +367,10 @@ const postLoginGoogle = (req, res, next) => {
             scope: scopes,
         });
 
-        res.writeHead(302, {
-            'Location': url
-        });
+        // res.writeHead(302, {
+        //     'Location': url
+        // });
+        res.status(200).json({ location: url })
         res.end();
     } catch (error) {
         console.log(error);

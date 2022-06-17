@@ -8,13 +8,14 @@ const teacherSchema = new Schema({
         ref: 'user',
     },
     payments: {
-        accountNumber: { type: String },
-        cardNumber: { type: String },
-        name: { type: String },
-        bankName: { type: String },
+        accountNumber: { type: String, default: "" },
+        cardNumber: { type: String, default: "" },
+        name: { type: String, default: "" },
+        bankName: { type: String, default: "" },
     },
     description: {
-        type: String
+        type: String,
+        default: ""
     },
     isVerified: {
         type: Boolean,
