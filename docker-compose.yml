@@ -1,0 +1,16 @@
+version: '2'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+  web:
+    build: .
+    working_dir: /usr/src/app
+    command: /bin/bash startup.sh
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo

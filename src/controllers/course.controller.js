@@ -334,7 +334,6 @@ const getCourses = async (req, res, next) => {
             }
         }
         const courses = await CourseModel.aggregate(aQuery)
-        console.log(courses);
         aCountQuery.push({ $count: "total" })
         const totalCourse = await CourseModel.aggregate(aCountQuery)
         let total = totalCourse[0]?.total || 0
