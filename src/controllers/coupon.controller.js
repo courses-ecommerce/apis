@@ -402,7 +402,7 @@ const getGoogleCallback = async (req, res, next) => {
         res.status(200).json({ message: 'oke', tokens })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -422,7 +422,7 @@ const postCreateGoogleSheet = async (req, res) => {
             uri
         );
         oauth2Client.credentials.access_token = access_token;
-        oauth2Client.credentials.refresh_token = refresh_token;
+        oauth2Client.credentials.refresh_token = 'refresh_token';
         oauth2Client.credentials.expiry_date = expiry_date;
 
         // lấy mã giảm giá
@@ -559,18 +559,18 @@ const postCreateGoogleSheet = async (req, res) => {
                 "left": 5
             }
         }
-
-        for (let i = 4; i < 105; i++) {
-            for (let j = 0; j < 2; j++) {
-                const cellA1 = sheet.getCell(i, j);
-                cellA1.textFormat = {
-                    "fontSize": 12,
-                    "bold": false
-                }
-            }
-
-        }
         await sheet.addRows(coupon[0].codes);
+
+        // for (let i = 4; i < 105; i++) {
+        //     for (let j = 0; j < 2; j++) {
+        //         const cellA1 = sheet.getCell(i, j);
+        //         cellA1.textFormat = {
+        //             "fontSize": 12,
+        //             "bold": false
+        //         }
+        //     }
+
+        // }
         //#endregion
 
         res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
