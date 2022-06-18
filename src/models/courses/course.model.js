@@ -22,7 +22,7 @@ const courseSchema = new Schema({
     },
     thumbnail: {
         type: String,
-        default: '/url'
+        default: 'https://res.cloudinary.com/uthcmc/image/upload/v1655526230/thumbnail/62ac7fcf5e9692dfc35dc211.jpg'
     },
     description: {
         type: String,

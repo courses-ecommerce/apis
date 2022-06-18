@@ -64,9 +64,15 @@ const postCourse = async (req, res, next) => {
 const putCourse = async (req, res, next) => {
     try {
         const user = req.user
+        const image = req.file
         const account = req.account
         const { id } = req.params
         var newCourse = req.body
+        if (image) {
+            // upload image lên cloud
+            let thumbnail = await helper.uploadImageToCloudinary(image, id)
+            newCourse.thumbnail = thumbnail
+        }
         // tránh hacker
         if (newCourse.sellNumber) {
             delete newCourse.sellNumber
@@ -95,8 +101,11 @@ const putCourse = async (req, res, next) => {
 
         // cập nhật theo id
         await CourseModel.updateOne({ _id: id }, newCourse)
-        return res.status(200).json({ message: 'ok' })
-
+        res.status(200).json({ message: 'ok' })
+        try {
+            fs.unlinkSync(image.path);
+        } catch (error) {
+        }
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "error" })
