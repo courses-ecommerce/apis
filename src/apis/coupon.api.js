@@ -10,6 +10,7 @@ couponApis.get('/login-with-google', couponController.postLoginGoogle)
 couponApis.get('/google/callback', couponController.getGoogleCallback)
 
 // api: xuất mã giảm giá ra google sheet
+couponApis.post('/export-sheet', couponController.postCreateGoogleSheet)
 couponApis.post('/export-sheet', passport.jwtAuthentication, couponController.postCreateGoogleSheet)
 
 // api: danh sách mã và phân trang

@@ -190,13 +190,14 @@ const getCoupon = async (req, res, next) => {
 // fn: tạo mới mã
 const postCoupon = async (req, res, next) => {
     try {
-        const user = req.user
+        const { user, account } = req
         const { title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number } = req.body
         req.body.author = user._id
 
-        console.log('startDate', startDate);
         let data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
-
+        if (account.role == 'admin') {
+            data.apply = 'all'
+        }
         if (type == 'percent') {
             if (amount > 100 || amount <= 0) {
                 return res.status(400).json({ message: "amount phải > 0 và <= 100" })
@@ -479,11 +480,22 @@ const postCreateGoogleSheet = async (req, res) => {
 
         var doc
         if (coupon[0].sheetId) {
-            // lấy id sheet
-            doc = new GoogleSpreadsheet(coupon[0].sheetId);
-            // xác thực
-            doc.useOAuth2Client(oauth2Client);
-
+            try {
+                // lấy id sheet
+                doc = new GoogleSpreadsheet(coupon[0].sheetId);
+                // xác thực
+                doc.useOAuth2Client(oauth2Client);
+                await doc.loadInfo()
+            } catch (error) { // có thể do login 1 acc khác nên đã có sheet id => k có quyền sửa => tạo 1 file mới
+                // tạo sheet mới
+                doc = new GoogleSpreadsheet();
+                // xác thực
+                doc.useOAuth2Client(oauth2Client);
+                // set thông tin sheet
+                await doc.createNewSpreadsheetDocument({ title: `${coupon[0].number} Mã ${coupon[0].title}` });
+                await CouponModel.updateOne({ _id: id }, { sheetId: doc.spreadsheetId })
+                await doc.loadInfo()
+            }
         } else {
             // tạo sheet mới
             doc = new GoogleSpreadsheet();
@@ -492,8 +504,9 @@ const postCreateGoogleSheet = async (req, res) => {
             // set thông tin sheet
             await doc.createNewSpreadsheetDocument({ title: `${coupon[0].number} Mã ${coupon[0].title}` });
             await CouponModel.updateOne({ _id: id }, { sheetId: doc.spreadsheetId })
+            await doc.loadInfo()
         }
-        await doc.loadInfo()
+
         await doc.updateProperties({ title: `${coupon[0].number} Mã ${coupon[0].title}` });
         // lấy sheet 1
         const sheet = doc.sheetsByIndex[0]
@@ -561,21 +574,11 @@ const postCreateGoogleSheet = async (req, res) => {
         }
         await sheet.addRows(coupon[0].codes);
 
-        // for (let i = 4; i < 105; i++) {
-        //     for (let j = 0; j < 2; j++) {
-        //         const cellA1 = sheet.getCell(i, j);
-        //         cellA1.textFormat = {
-        //             "fontSize": 12,
-        //             "bold": false
-        //         }
-        //     }
-
-        // }
         //#endregion
 
         res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(200).json({ message: error.message })
     }
 }
