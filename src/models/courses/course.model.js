@@ -84,7 +84,7 @@ const courseSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['draft', 'pending', 'approved'],
+        enum: ['draft', 'pending', 'approved', 'denied'],
         default: 'draft'
     },
     type: {

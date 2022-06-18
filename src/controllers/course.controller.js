@@ -677,7 +677,7 @@ const getHotCourses = async (req, res, next) => {
             })
         }
         aQuery.push(
-            { $match: { publish: true, } },
+            { $match: { publish: true, type: { $in: ["Hot", 'Bestseller'] } } },
             {
                 $lookup: {
                     from: 'rates',
