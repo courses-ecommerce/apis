@@ -101,6 +101,14 @@
                     <span><b>Thanh toán:</b>
                         <%= invoice.paymentPrice%> vnđ
                     </span>
+                    <span><b>Trạng thái:</b>
+                        <% if(invoice.status=='Paid' ){%>
+                            Đã thanh toán
+                            <%}else{%>
+                                Đã huỷ
+                                <% }%>
+
+                    </span>
                 </div>
                 <div id="qrcode">
                 </div>
@@ -120,7 +128,7 @@
                         <tr>
                             <td>
                                 <a href="https://www.course-ecommerce.tk/course/<%=item.courseSlug %>">
-                                    <%= item.courseName%>
+                                    <%= item.courseName %>
                                 </a>
                             </td>
                             <td>
@@ -130,7 +138,7 @@
                                 <%= item.discount%> vnđ
                             </td>
                             <td>
-                                <%= item.amount%> vnđ
+                                <%= item.amount %> vnđ
                             </td>
                         </tr>
                         <%}) %>
@@ -138,6 +146,7 @@
             </div>
 
             <% } %>
+
     </div>
     <div style="margin: auto;height: auto; width: 200px; padding: 10px;">
         <button onclick="PrintElem()">In hoá đơn</button>

@@ -145,7 +145,7 @@ const htmlInvoices = (invoice) => {
                               báo của hệ
                               thống về một
                               hóa đơn đã
-                              được tạo lúc ${new Date(invoice.createdAt).toLocaleString()}.
+                              được tạo lúc ${invoice.createdAt}.
                             </p>
                             <p>
                               Phương thức

@@ -202,15 +202,16 @@ const getPaymentCallback = async (req, res, next) => {
                 break;
         }
         if (data) {
-            let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo, status: "Paid" })
+            let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo })
+                .populate('user').lean()
             if (invoice) {
-                return res.status(400).json({ message: 'Bad request' })
+                res.redirect(`/api/payment/invoice/${invoice._id}`)
+                return
             }
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-                // res.status(200).json({ isSuccess: data.isSuccess, message: data.message, invoice })
-
+                res.redirect(`/api/payment/invoice/${invoice._id}`)
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
@@ -243,8 +244,9 @@ const getPaymentCallback = async (req, res, next) => {
                 ]))[0]
                 invoice.detailInvoices = detailInvoices
                 invoice.createdAt = new Date(invoice.createdAt).toLocaleString()
-                res.render('payment', { message: data.message, invoice: invoice })
-
+                invoice.totalPrice = invoice.totalPrice.toLocaleString()
+                invoice.totalDiscount = invoice.totalDiscount.toLocaleString()
+                invoice.paymentPrice = invoice.paymentPrice.toLocaleString()
                 // gửi email
                 const userInfo = await UserModel.findById(user).populate('account')
                 const mail = {
@@ -255,12 +257,11 @@ const getPaymentCallback = async (req, res, next) => {
                 //gửi mail
                 await mailConfig.sendEmail(mail);
             } else {
-                // res.status(400).json({ isSuccess: data.isSuccess, message: data.message })
-                res.render('paymentErro', { message: data.message })
-
                 // xoá hoá đơn
+                res.redirect(`/api/payment/invoice/${data.transactionId}`)
                 await InvoiceModel.deleteOne({ _id: data.transactionId })
                 await DetailInvoiceModel.deleteMany({ invoice: data.transactionId })
+                return
             }
         } else {
             res.status(500).json({ message: "Callback not found" })
@@ -271,9 +272,38 @@ const getPaymentCallback = async (req, res, next) => {
     }
 }
 
+const getInvoiceInfo = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        let invoice = await InvoiceModel.findById(id)
+            .populate('user').lean()
+        if (invoice) {
+            let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
+            detailInvoices = detailInvoices.map(item => {
+                item.courseCurrentPrice = item.courseCurrentPrice.toLocaleString()
+                item.discount = item.discount.toLocaleString()
+                item.amount = item.amount.toLocaleString()
+                return item
+            })
+            invoice.detailInvoices = detailInvoices
+            invoice.createdAt = new Date(invoice.createdAt).toLocaleString()
+            invoice.totalPrice = invoice.totalPrice.toLocaleString()
+            invoice.totalDiscount = invoice.totalDiscount.toLocaleString()
+            invoice.paymentPrice = invoice.paymentPrice.toLocaleString()
+            res.render('payment', { invoice: invoice })
+        } else {
+            res.status(401).json({ message: '404' })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
 
 module.exports = {
     postPaymentCheckout,
     getPaymentCallback,
+    getInvoiceInfo,
 }
 
