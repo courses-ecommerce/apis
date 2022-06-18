@@ -36,7 +36,10 @@ const handlerCheckoutCart = async (user) => {
 const postCart = async (req, res, next) => {
     try {
         const { course } = req.body
-        const { user } = req
+        const { user, account } = req
+        if (account.role != 'student') {
+            return res.status(400).json({ message: "Tài khoản không thể mua khoá học" })
+        }
         // kiểm tra khoá học
         const hadCourse = await CourseModel.findById(course).lean()
         if (!hadCourse) return res.status(400).json({ message: "mã khoá học không hợp lệ" })
