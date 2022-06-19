@@ -26,6 +26,7 @@ const invoiceApis = require('./src/apis/invoice.api');
 const rateApis = require('./src/apis/rate.api');
 const myCourseApis = require('./src/apis/myCourse.api');
 const statisticApis = require('./src/apis/statistic.api');
+const webConfigApis = require('./src/apis/webConfig.api');
 // apis for admin
 const adminUserApis = require('./src/apis/adminUser.api');
 require('./src/services/cron.service')
@@ -72,6 +73,7 @@ app.use('/api/invoices', invoiceApis)
 app.use('/api/rate', rateApis)
 app.use('/api/admin/users', adminUserApis)
 app.use('/api/statistics', statisticApis)
+app.use('/api/admin/web-configs', webConfigApis)
 
 
 module.exports = app

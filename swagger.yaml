@@ -43,6 +43,8 @@ tags:
     description: apis liên quan hoá đơn
   - name: statistic
     description: apis liên quan thống kê
+  - name: admin web configs
+    description: apis liên quan đến web configs
 
 # Basic authentication
 components:
@@ -3655,5 +3657,68 @@ paths:
                           type: string
                         numOfDetailInvoice:
                           type: number
+        500:
+          description: "SERVER ERROR"
+  /admin/web-configs:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin web configs
+      summary: thông tin cấu hình web
+      description: ""
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      numOfTopCourses:
+                        type: number
+                      numOfSalesOfBestSellerCourses:
+                        type: number
+        401:
+          description: "unauthorize"
+        500:
+          description: "SERVER ERROR"
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin web configs
+      summary: thông tin cấu hình web
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                numOfTopCourses:
+                  type: number
+                numOfSalesOfBestSellerCourses:
+                  type: number
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      numOfTopCourses:
+                        type: number
+                      numOfSalesOfBestSellerCourses:
+                        type: number
+        401:
+          description: "unauthorize"
         500:
           description: "SERVER ERROR"
