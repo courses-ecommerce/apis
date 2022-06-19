@@ -257,10 +257,7 @@ const getPaymentCallback = async (req, res, next) => {
                 //gửi mail
                 await mailConfig.sendEmail(mail);
             } else {
-                // xoá hoá đơn
                 res.redirect(`/api/payment/invoice/${data.transactionId}`)
-                await InvoiceModel.deleteOne({ _id: data.transactionId })
-                await DetailInvoiceModel.deleteMany({ invoice: data.transactionId })
                 return
             }
         } else {
