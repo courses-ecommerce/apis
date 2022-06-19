@@ -578,6 +578,8 @@ const getRelatedCourses = async (req, res, next) => {
                     as: 'category'
                 }
             },
+            { $unwind: '$author' },
+            { $unwind: '$category' },
             {
                 $lookup: {
                     from: 'rates',
@@ -711,6 +713,8 @@ const getHotCourses = async (req, res, next) => {
                     as: 'category'
                 }
             },
+            { $unwind: '$author' },
+            { $unwind: '$category' },
             {
                 $sort: { sellNumber: -1, rating: -1 }
             },
