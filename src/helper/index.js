@@ -191,7 +191,11 @@ const getVideoDuration = async (videoPath) => {
     try {
         var duration = null
         if (process.env.NODE_ENV == 'production') {
-            duration = await getVideoDurationInSeconds(videoPath, '/apps/apis/node_modules/@ffprobe-installer/linux-x64/ffprobe')
+            try {
+                duration = await getVideoDurationInSeconds(videoPath, '/apps/apis/node_modules/@ffprobe-installer/linux-x64/ffprobe')
+            } catch (error) {
+                duration = await getVideoDurationInSeconds(videoPath)
+            }
         } else {
             duration = await getVideoDurationInSeconds(videoPath)
         }

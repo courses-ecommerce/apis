@@ -159,11 +159,22 @@ const getMyCourse = async (req, res, next) => {
                     "preserveNullAndEmptyArrays": true
                 }
             },
-            {
+            { // lấy những lesson publish = true
                 $lookup: {
                     from: "lessons",
                     localField: 'chapters._id',
                     foreignField: "chapter",
+                    let: {},
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$publish", true]
+                                }
+                            }
+
+                        }
+                    ],
                     as: 'chapters.lessons'
                 }
             },

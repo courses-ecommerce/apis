@@ -46,8 +46,12 @@ const postLesson = async (req, res, next) => {
 // fn: cập nhật lesson
 const putLesson = async (req, res, next) => {
     try {
-        const file = req.files['file'][0] // video/slide
-        var resource
+        var resource, file
+        try {
+            file = req.files['file'][0] // video/slide
+        } catch (error) {
+            file = null
+        }
         try {
             resource = req.files['resource'][0] // resource
         } catch (error) {
@@ -74,8 +78,15 @@ const putLesson = async (req, res, next) => {
                 if (result.error) {
                     return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
                 }
+                console.log('result', result);
                 req.body.video = [result.eager[0].secure_url, result.secure_url]
                 await LessonModel.updateOne({ _id: id }, req.body)
+                try {
+                    fs.unlinkSync(resource.path);
+                } catch (error) { }
+                try {
+                    fs.unlinkSync(file.path);
+                } catch (error) { }
                 return
             } else if (file && type == "slide") {
                 const result = await helper.uploadFileToCloudinary(file, id)
@@ -91,8 +102,12 @@ const putLesson = async (req, res, next) => {
         await LessonModel.updateOne({ _id: id }, req.body)
         res.status(200).json({ message: "updating oke" })
 
-        fs.unlinkSync(resource.path);
-        fs.unlinkSync(file.path);
+        try {
+            fs.unlinkSync(resource.path);
+        } catch (error) { }
+        try {
+            fs.unlinkSync(file.path);
+        } catch (error) { }
 
 
     } catch (error) {
