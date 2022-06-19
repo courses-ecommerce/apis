@@ -4,6 +4,7 @@ const UserModel = require('../models/users/user.model');
 const AccountModel = require('../models/users/account.model');
 const ChapterModel = require('../models/courses/chapter.model');
 const CourseModel = require('../models/courses/course.model');
+var fs = require('fs');
 
 
 // fn: cho phép thao tác (chỉ author)
@@ -46,7 +47,12 @@ const postLesson = async (req, res, next) => {
 const putLesson = async (req, res, next) => {
     try {
         const file = req.files['file'][0] // video/slide
-        const resource = req.files['resource'][0] // resource
+        var resource
+        try {
+            resource = req.files['resource'][0] // resource
+        } catch (error) {
+            resource = null
+        }
         const { id } = req.params
         const { chapter, number, title, description, type, text } = req.body
 
@@ -63,7 +69,7 @@ const putLesson = async (req, res, next) => {
                 const duration = await helper.getVideoDuration(file.path)
                 req.body.duration = duration
 
-                res.status(200).json({ message: "updating oke" })
+                res.status(200).json({ message: "updating" })
                 const result = await helper.uploadVideoToCloudinary(file, id)
                 if (result.error) {
                     return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
@@ -116,9 +122,9 @@ const getLesson = async (req, res, next) => {
 const getLessons = async (req, res, next) => {
     try {
         const { chapter } = req.query
-        const lessons = await LessonModel.find({ chapter }).sort(['number', 1]).lean()
+        const lessons = await LessonModel.find({ chapter }).sort([['number', 1]]).lean()
 
-        lessons ? message = "Invalid id" : message = "ok"
+        lessons ? message = "Chapter id required" : message = "ok"
 
         res.status(200).json({ message, lessons })
     } catch (error) {

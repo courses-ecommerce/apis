@@ -380,7 +380,7 @@ const getCountCourses = async (req, res, next) => {
 // fn: thống kê số lượng bán của khoá học
 const getTopSaleCourses = async (req, res, next) => {
     try {
-        const { top = 5, year, exports = 'false' } = req.query
+        const { top = 5, year = new Date().getFullYear(), exports = 'false' } = req.query
         let query = [
             {
                 $project: {
@@ -428,22 +428,23 @@ const getTopSaleCourses = async (req, res, next) => {
             .groupBy(x => x._id.month)
             .map((value, key) => ({ month: key, courses: value }))
             .value();
-
+        console.log(data[0].courses);
         // làm sạch data
-        data.map(item => {
+        data = data.map(item => {
             item.month = parseInt(item.month)
             item.courses.map(i => {
-                let haveCode = i.couponCode.filter(course => course.couponCode != '').length
+                let haveCode = i.couponCode.filter(course => course != '').length
                 i.haveCode = haveCode
                 delete i.couponCode
                 i._id = i._id.courseId
                 return i
             })
+            item.courses = item.courses.slice(0, parseInt(top))
             return item
         })
 
         // khởi tạo khuôn data
-        let result = Array(12).fill(Array(parseInt(top)).fill(null))
+        let result = Array(12).fill([])
         result = JSON.parse(JSON.stringify(result))
 
         // điền data vào khuôn

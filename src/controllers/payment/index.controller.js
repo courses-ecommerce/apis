@@ -290,7 +290,7 @@ const getInvoiceInfo = async (req, res, next) => {
             invoice.paymentPrice = invoice.paymentPrice.toLocaleString()
             res.render('payment', { invoice: invoice })
         } else {
-            res.status(401).json({ message: '404' })
+            res.render('paymentErro', { message: 'Hoá đơn không tồn tại' })
         }
     } catch (error) {
         console.log(error);

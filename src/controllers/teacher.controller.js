@@ -2,7 +2,9 @@ const UserModel = require('../models/users/user.model');
 const AccountModel = require('../models/users/account.model');
 const TeacherModel = require('../models/users/teacher.model');
 const CourseModel = require('../models/courses/course.model');
-
+const mongoose = require('mongoose');
+const DetailInvoiceModel = require('../models/detailInvoice.model');
+const ObjectId = mongoose.Types.ObjectId;
 
 
 // fn: lấy list khoá học đã tạo
@@ -47,6 +49,157 @@ const getMyCourses = async (req, res, next) => {
     }
 }
 
+// fn: lấy chi tiết khoá học đã tạo
+const getDetailMyCourse = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const course = await CourseModel.aggregate([
+            {
+                $match: { _id: ObjectId(id) }
+            },
+            {   // tính rate trung bình
+                $lookup: {
+                    from: 'rates',
+                    localField: '_id',
+                    foreignField: 'course',
+                    pipeline: [
+                        {
+                            $group: {
+                                _id: '$course',
+                                rate: { $avg: '$rate' },
+                                numOfRate: { $count: {} },
+                                star5: { $sum: { $cond: [{ $eq: ['$rate', 5] }, 1, 0] } },
+                                star4: { $sum: { $cond: [{ $eq: ['$rate', 4] }, 1, 0] } },
+                                star3: { $sum: { $cond: [{ $eq: ['$rate', 3] }, 1, 0] } },
+                                star2: { $sum: { $cond: [{ $eq: ['$rate', 2] }, 1, 0] } },
+                                star1: { $sum: { $cond: [{ $eq: ['$rate', 1] }, 1, 0] } },
+                            },
+                        }
+                    ],
+                    as: 'rating'
+                }
+            },
+            { // unwind rating
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            { // lookup user
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            { // unwind author
+                $unwind: "$author"
+            },
+            { // lookup categorys
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { // unwind category
+                $unwind: "$category"
+            },
+            { // lookup chapters
+                $lookup: {
+                    from: 'chapters',
+                    localField: '_id',
+                    foreignField: 'course',
+                    as: 'chapters'
+                }
+            },
+            {
+                $unwind: {
+                    path: "$chapters",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            { // lookup lessons
+                $lookup: {
+                    from: 'lessons',
+                    localField: 'chapters._id',
+                    foreignField: 'chapter',
+                    as: 'chapters.lessons'
+                }
+            },
+            { // group
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    slug: { $first: "$slug" },
+                    category: { $first: "$category" },
+                    thumbnail: { $first: "$thumbnail" },
+                    description: { $first: "$description" },
+                    lang: { $first: "$lang" },
+                    intendedLearners: { $first: "$intendedLearners" },
+                    requirements: { $first: "$requirements" },
+                    targets: { $first: "$targets" },
+                    level: { $first: "$level" },
+                    currentPrice: { $first: "$currentPrice" },
+                    originalPrice: { $first: "$originalPrice" },
+                    saleOff: { $first: "$saleOff" },
+                    rating: { $first: "$rating" },
+                    author: { $first: "$author" },
+                    hashtags: { $first: "$hashtags" },
+                    publish: { $first: "$publish" },
+                    status: { $first: "$status" },
+                    chapters: { $push: "$chapters" },
+                }
+            },
+            {
+                $project: {
+                    'slug': 1,
+                    'name': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
+                    'thumbnail': 1,
+                    'description': 1,
+                    'lang': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
+                    'currentPrice': 1,
+                    'originalPrice': 1,
+                    'saleOff': 1,
+                    'sellNumber': 1,
+                    'rating.rate': 1,
+                    'rating.numOfRate': 1,
+                    'rating.star5': 1,
+                    'rating.star4': 1,
+                    'rating.star3': 1,
+                    'rating.star2': 1,
+                    'rating.star1': 1,
+                    'author._id': 1,
+                    'author.fullName': 1,
+                    'hashtags': 1,
+                    'publish': 1,
+                    'status': 1,
+                    'chapters': 1,
+                }
+            }
+        ])
+        if (course[0]) {
+            if (!course[0].chapters[0].name) { course[0].chapters = [] }
+            return res.status(200).json({ message: 'ok', course: course[0] })
+        }
+
+        res.status(404).json({ message: 'không tìm thấy' })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
 // fn: lấy info teacher
 const getMyInfo = async (req, res, next) => {
     try {
@@ -75,14 +228,15 @@ const putMyInfo = async (req, res, next) => {
     }
 }
 
-//fn: lấy thống kê doanh thu
+//fn: lấy thống kê doanh thu theo tháng
 const getMyRevenue = async (req, res, next) => {
     try {
-        const { id } = req.user
+        const { year = new Date().getFullYear(), month = new Date().getMonth() + 1 } = req.query
+        const { _id } = req.user
         let query = [
             {
                 $match: {
-                    _id: ObjectId(id)
+                    _id: ObjectId(_id)
                 }
             },
             {
@@ -97,21 +251,12 @@ const getMyRevenue = async (req, res, next) => {
                 $unwind: '$account'
             },
             {
-                $lookup: {
-                    from: 'detailInvoices',
-                    localField: '_id',
-                    foreignField: 'courseAuthor',
-                    as: 'detailInvoices'
-                }
-            },
-            {
                 $project: {
                     fullName: 1,
                     phone: 1,
                     birthday: 1,
                     gender: 1,
                     account: { email: 1, role: 1 },
-                    detailInvoices: 1,
                 }
             }
         ]
@@ -122,6 +267,21 @@ const getMyRevenue = async (req, res, next) => {
             {
                 $match: {
                     courseAuthor: teacher._id
+                }
+            },
+            {
+                $project: {
+                    amount: 1,
+                    courseAuthor: 1,
+                    createdAt: 1,
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
+                }
+            },
+            {
+                $match: {
+                    year: parseInt(year),
+                    month: parseInt(month),
                 }
             }
         ])
@@ -147,5 +307,6 @@ module.exports = {
     getMyCourses,
     getMyInfo,
     putMyInfo,
-    getMyRevenue
+    getMyRevenue,
+    getDetailMyCourse
 }

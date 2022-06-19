@@ -825,13 +825,13 @@ const getDetailPendingCourse = async (req, res, next) => {
                     as: 'rating'
                 }
             },
-            {
+            { // unwind rating
                 $unwind: {
                     "path": "$rating",
                     "preserveNullAndEmptyArrays": true
                 }
             },
-            {
+            { // lookup user
                 $lookup: {
                     from: 'users',
                     localField: 'author',
@@ -839,10 +839,10 @@ const getDetailPendingCourse = async (req, res, next) => {
                     as: 'author'
                 }
             },
-            {
+            { // unwind author
                 $unwind: "$author"
             },
-            {
+            { // lookup categorys
                 $lookup: {
                     from: 'categorys',
                     localField: 'category',
@@ -850,10 +850,10 @@ const getDetailPendingCourse = async (req, res, next) => {
                     as: 'category'
                 }
             },
-            {
+            { // unwind category
                 $unwind: "$category"
             },
-            {
+            { // lookup chapters
                 $lookup: {
                     from: 'chapters',
                     localField: '_id',
@@ -867,7 +867,7 @@ const getDetailPendingCourse = async (req, res, next) => {
                     preserveNullAndEmptyArrays: true
                 }
             },
-            {
+            { // lookup lessons
                 $lookup: {
                     from: 'lessons',
                     localField: 'chapters._id',
@@ -875,7 +875,7 @@ const getDetailPendingCourse = async (req, res, next) => {
                     as: 'chapters.lessons'
                 }
             },
-            {
+            { // group
                 $group: {
                     _id: "$_id",
                     name: { $first: "$name" },
@@ -929,7 +929,7 @@ const getDetailPendingCourse = async (req, res, next) => {
                     'hashtags': 1,
                     'publish': 1,
                     'status': 1,
-                    'chapters': 1
+                    'chapters': 1,
                 }
             }
         ])

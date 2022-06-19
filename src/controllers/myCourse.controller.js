@@ -18,7 +18,12 @@ const getMyCourses = async (req, res, next) => {
                     as: 'course'
                 }
             },
-            { $unwind: "$course" },
+            {
+                $unwind: {
+                    "path": "$course",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             {
                 $lookup: {
                     from: "users",
@@ -36,7 +41,12 @@ const getMyCourses = async (req, res, next) => {
                     as: 'chapters'
                 }
             },
-            { $unwind: "$chapters" },
+            {
+                $unwind: {
+                    "path": "$chapters",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             {
                 $lookup: {
                     from: "lessons",
@@ -45,8 +55,6 @@ const getMyCourses = async (req, res, next) => {
                     as: 'chapters.lessons'
                 }
             },
-
-
             {
                 $group: {
                     _id: "$_id",
@@ -145,7 +153,12 @@ const getMyCourse = async (req, res, next) => {
                     as: 'chapters'
                 }
             },
-            { $unwind: "$chapters" },
+            {
+                $unwind: {
+                    "path": "$chapters",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             {
                 $lookup: {
                     from: "lessons",

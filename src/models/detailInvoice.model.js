@@ -17,7 +17,8 @@ const detailInvoiceSchema = new Schema({
         required: true
     },
     couponCode: {
-        type: String
+        type: String,
+        default: ""
     },
     amount: { type: Number, required: true },
     discount: { type: Number, required: true },

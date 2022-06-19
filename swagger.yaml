@@ -332,7 +332,7 @@ components:
         name:
           type: string
         category:
-          $ref: "#/components/schemas/Category"
+          type: string
         thumbnail:
           type: string
         description:
@@ -540,8 +540,6 @@ components:
     UpdateLessonDto:
       type: object
       properties:
-        chapter:
-          type: string
         number:
           type: number
           description: số thứ tự của chương
@@ -1170,6 +1168,35 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /teacher/courses/{id}:
+    get:
+      tags:
+        - teacher
+      summary: lấy thông tin khoá học, danh sách chương và bài học mỗi chương
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  courses:
+                    $ref: "#/components/schemas/Course"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /teacher/info/{id}:
     get:
       tags:

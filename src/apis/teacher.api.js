@@ -8,13 +8,15 @@ const accessControl = require('../middlewares/access_control.middleware')
 // api: lấy thông tin khoá học đã tạo
 teacherApis.get('/courses', passport.jwtAuthentication, teacherController.getMyCourses)
 
+teacherApis.get('/courses/:id', passport.jwtAuthentication, teacherController.getDetailMyCourse)
+
 // api: lấy thông tin teacher
 teacherApis.get('/info', passport.jwtAuthentication, teacherController.getMyCourses)
 
 // api: cập nhật thông tin teacher
 teacherApis.put('/info', passport.jwtAuthentication, teacherController.putMyInfo)
 
-// api: lấy thông tin doanh thu
+// api: lấy thông tin doanh thu theo tháng
 teacherApis.get('/my-revenue', passport.jwtAuthentication, teacherController.getMyRevenue)
 
 
