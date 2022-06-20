@@ -27,6 +27,7 @@ const getInvoices = async (req, res, next) => {
                     'totalDiscount': 1,
                     'paymentPrice': 1,
                     'status': 1,
+                    'paymentMethod': 1,
                     // 'user': 1
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
                     'createdAt': {
@@ -90,6 +91,9 @@ const getDetailInvoice = async (req, res, next) => {
                 }
             },
             {
+                $unwind: "$user"
+            },
+            {
                 $lookup: {
                     from: "detailInvoices",
                     localField: '_id',
@@ -103,6 +107,7 @@ const getDetailInvoice = async (req, res, next) => {
                     'totalPrice': 1,
                     'totalDiscount': 1,
                     'paymentPrice': 1,
+                    'paymentMethod': 1,
                     'status': 1,
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
                     'createdAt': {
