@@ -3401,13 +3401,13 @@ paths:
                     type: number
         500:
           description: "SERVER ERROR"
-  /statistics/top-sale-courses:
+  /statistics/top-sale-courses/year:
     get:
       security:
         - bearerAuth: []
       tags:
         - statistic
-      summary: top số lượng bán khoá học trong năm
+      summary: top số lượng bán khoá học trong 1 năm
       description: ""
       parameters:
         - name: top
@@ -3440,6 +3440,52 @@ paths:
                       type: string
         500:
           description: "SERVER ERROR"
+  /statistics/top-sale-courses/month:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistic
+      summary: top số lượng bán khoá học trong 1 tháng
+      description: ""
+      parameters:
+        - name: top
+          in: query
+          schema:
+            type: number
+            default: "5"
+        - name: year
+          in: query
+          schema:
+            type: number
+            default: 2022
+          required: true
+        - name: month
+          in: query
+          schema:
+            type: number
+            default: 6
+          required: true
+        - name: exports
+          in: query
+          schema:
+            type: string
+            enum: ["false", "true"]
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: string
+        500:
+          description: "SERVER ERROR"
+
   /statistics/coupons:
     get:
       security:

@@ -14,10 +14,11 @@ const ObjectId = mongoose.Types.ObjectId;
 const getDailyRevenue = async (req, res) => {
     try {
         // type = 'day', 'month'
-        let { start, end, type = 'day', exports = 'false' } = req.query
-
-        let startDate = new Date(start)
-        let endDate = new Date(end)
+        let now = new Date().getTime()
+        let oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).getTime()
+        let { start = oneMonthAgo, end = now, type = 'day', exports = 'false' } = req.query
+        let startDate = new Date(parseInt(start))
+        let endDate = new Date(parseInt(end))
         const invoices = await InvoiceModel.aggregate([
             {
                 $match: {
@@ -78,13 +79,11 @@ const getDailyRevenue = async (req, res) => {
         }
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
-                [`BẢNG THỐNG KÊ DOANH THU THEO ${type == 'day' ? 'NGÀY' : "THÁNG"} TỪ ${start} ĐẾN ${end}`],
-                [`${type == 'day' ? 'NGÀY' : "THÁNG"}`],
-                [`Doanh thu (vnđ)`],
+                [`BẢNG THỐNG KÊ DOANH THU THEO ${type == 'day' ? 'NGÀY' : "THÁNG"} TỪ ${startDate.toISOString().split("T")[0]} ĐẾN ${endDate.toISOString().split("T")[0]}`],
+                [`${type == 'day' ? 'NGÀY' : "THÁNG"}`, `Doanh thu (vnđ)`],
             ];
             for (const key in result) {
-                data[1].push(key)
-                data[2].push(result[key])
+                data.push([key, result[key]])
             }
             const range = { s: { c: 0, r: 0 }, e: { c: 10, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
@@ -377,10 +376,71 @@ const getCountCourses = async (req, res, next) => {
     }
 }
 
-// fn: thống kê số lượng bán của khoá học
-const getTopSaleCourses = async (req, res, next) => {
+// fn: thống kê top số lượng bán của khoá học trong 1 năm
+const getTopSaleCoursesOfYear = async (req, res, next) => {
     try {
         const { top = 5, year = new Date().getFullYear(), exports = 'false' } = req.query
+        let query = [
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { courseId: "$courseId" },
+                    courseName: { $first: "$courseName" },
+                    courseSlug: { $first: "$courseSlug" },
+                    count: { $count: {} },
+                }
+            },
+            {
+                $project: {
+                    courseId: 1,
+                    courseName: 1,
+                    courseSlug: 1,
+                    count: 1,
+                }
+            },
+            { $sort: { count: -1, } },
+            { $limit: parseInt(top) },
+        ]
+        // group theo id va month
+        const detailInvoices = await DetailInvoiceModel.aggregate(query)
+        // làm sạch data
+        const result = detailInvoices.map(item => {
+            item._id = item._id.courseId
+            return item
+        })
+        if (exports.toLowerCase().trim() == 'true') {
+            const data = [
+                [`BẢNG THỐNG KÊ TOP ${top} KHOÁ HỌC CÓ SỐ LƯỢNG BÁN TRONG NĂM ${year}`],
+                [`Top`, 'Khoá học', 'số lượng bán']
+            ];
+            result.forEach((item, index) => {
+                data.push([index + 1, `=HYPERLINK("https://www.course-ecommerce.tk/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+            });
+
+            const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4
+            const sheetOptions = { '!merges': [range] };
+            var buffer = xlsx.build([{ name: 'Thống kê khoá học', data: data }], { sheetOptions }); // Returns a buffer
+            fs.createWriteStream('./src/public/statistics/thong-ke-top-khoa-hoc.xlsx').write(buffer);
+            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-top-khoa-hoc.xlsx' })
+        }
+        res.status(200).json({ message: "ok", result })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
+// fn: thống kê top số lượng bán của khoá học trong 1 tháng
+const getTopSaleCoursesOfMonth = async (req, res, next) => {
+    try {
+        const { top = 5, year = new Date().getFullYear(), month = new Date().getMonth() + 1, exports = 'false' } = req.query
         let query = [
             {
                 $project: {
@@ -396,15 +456,15 @@ const getTopSaleCourses = async (req, res, next) => {
             },
             {
                 $match: {
-                    year: parseInt(year)
+                    year: parseInt(year),
+                    month: parseInt(month),
                 }
             },
             {
                 $group: {
-                    _id: { courseId: "$courseId", month: "$month" },
+                    _id: { courseId: "$courseId" },
                     courseName: { $first: "$courseName" },
                     courseSlug: { $first: "$courseSlug" },
-                    couponCode: { $push: "$couponCode" },
                     count: { $count: {} },
                 }
             },
@@ -412,71 +472,30 @@ const getTopSaleCourses = async (req, res, next) => {
                 $project: {
                     courseId: 1,
                     courseName: 1,
-                    couponCode: 1,
                     courseSlug: 1,
                     count: 1,
-                    month: 1,
                 }
             },
-            { $sort: { '_id.month': 1, count: -1, } },
+            { $sort: { count: -1, } },
+            { $limit: parseInt(top) },
         ]
         // group theo id va month
         const detailInvoices = await DetailInvoiceModel.aggregate(query)
 
-        // group theo month
-        let data = _(detailInvoices)
-            .groupBy(x => x._id.month)
-            .map((value, key) => ({ month: key, courses: value }))
-            .value();
-        console.log(data[0].courses);
-        // làm sạch data
-        data = data.map(item => {
-            item.month = parseInt(item.month)
-            item.courses.map(i => {
-                let haveCode = i.couponCode.filter(course => course != '').length
-                i.haveCode = haveCode
-                delete i.couponCode
-                i._id = i._id.courseId
-                return i
-            })
-            item.courses = item.courses.slice(0, parseInt(top))
+        const result = detailInvoices.map(item => {
+            item._id = item._id.courseId
             return item
         })
 
-        // khởi tạo khuôn data
-        let result = Array(12).fill([])
-        result = JSON.parse(JSON.stringify(result))
-
-        // điền data vào khuôn
-        for (let i = 0; i < 12; i++) {
-            if (data[i]?.month) {
-                result[data[i].month - 1] = data[i].courses
-            } else {
-                continue
-            }
-        }
-
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
-                [`BẢNG THỐNG KÊ TOP ${top} KHOÁ HỌC CÓ SỐ LƯỢNG BÁN TRONG NĂM ${year}`],
-                ['Tháng',], ['Tháng 1',], ['Tháng 2',], ['Tháng 3',], ['Tháng 4',], ['Tháng 5',], ['Tháng 6',], ['Tháng 7',], ['Tháng 8',], ['Tháng 9',], ['Tháng 10',], ['Tháng 11',], ['Tháng 12'],
+                [`BẢNG THỐNG KÊ TOP ${top} KHOÁ HỌC CÓ SỐ LƯỢNG BÁN TRONG THÁNG ${month}-${year}`],
+                ['Top', "Khoá học", "Số lượng bán"]
             ];
-            for (let i = 1; i <= top; i++) {
-                data[1].push(`Top ${i}`)
-            }
-            for (let i = 2; i <= 13; i++) {
-                let courses = result[i - 2].map(i => {
-                    let string = null
-                    if (i) {
-                        // string = '=HYPERLINK("https://hnam.works/' + i.courseSlug + '","' + i?.courseName + '. Số lượng:' + i.count + '")'
-                        string = i.courseName + '. Số lượng:' + i.count
-                    } else {
-                        string = null
-                    }
-                    return string
-                })
-                data[i] = [...data[i], ...courses]
-            }
+            result.forEach((item, index) => {
+                data.push([index + 1, `=HYPERLINK("https://www.course-ecommerce.tk/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+            })
+
             const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê khoá học', data: data }], { sheetOptions }); // Returns a buffer
@@ -494,7 +513,7 @@ const getTopSaleCourses = async (req, res, next) => {
 // fn: thống kê mã giảm giá
 const getCountCoupons = async (req, res, next) => {
     try {
-        const { active = 'true', countdown } = req.query
+        const { active, countdown } = req.query
 
         let query = {}
 
@@ -801,7 +820,7 @@ const getDetailTeachersRevenue = async (req, res, next) => {
 // thống kê top doanh thu/số lượng bán của teacher theo các tháng trong năm
 const getTopMonthlyTeachers = async (req, res, next) => {
     try {
-        const { top = 5, year } = req.query
+        const { top = 5, year = new Date().getFullYear() } = req.query
 
         let query = [
             {
@@ -1002,7 +1021,8 @@ module.exports = {
     getCountUsersByMonth,
     getCountCourses,
     getCountCoupons,
-    getTopSaleCourses,
+    getTopSaleCoursesOfYear,
+    getTopSaleCoursesOfMonth,
     getTeachersRevenueByMonth,
     getDetailTeachersRevenue,
     getTopMonthlyTeachers,
