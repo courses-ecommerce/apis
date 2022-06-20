@@ -116,6 +116,7 @@ const getMyInvoices = async (req, res, next) => {
                     'totalPrice': 1,
                     'totalDiscount': 1,
                     'paymentPrice': 1,
+                    'paymentMethod': 1,
                     'status': 1,
                     // 'user': 1
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
@@ -185,6 +186,7 @@ const getDetailMyInvoices = async (req, res, next) => {
                     'totalPrice': 1,
                     'totalDiscount': 1,
                     'paymentPrice': 1,
+                    'paymentMethod': 1,
                     'status': 1,
                     // 'user': 1
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
