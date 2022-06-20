@@ -112,7 +112,7 @@ Bước 4: Khởi động server
 npm start
 ```
 
-Bước 5: Truy cập `http://localhost:3000/api-docs`
+Bước 5: Truy cập `http://localhost:3000/api-docs` để xem APIs
 
 ## License
 
