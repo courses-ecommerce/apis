@@ -3183,13 +3183,13 @@ paths:
           in: query
           schema:
             type: string
-            default: "2022-05-10"
+          description: "dấu thời gian"
           required: true
         - name: end
           in: query
           schema:
             type: string
-            default: "2022-06-10"
+          description: "dấu thời gian"
           required: true
         - name: type
           in: query
