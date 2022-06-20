@@ -14,11 +14,18 @@ const ObjectId = mongoose.Types.ObjectId;
 const getDailyRevenue = async (req, res) => {
     try {
         // type = 'day', 'month'
-        let now = new Date().getTime()
-        let oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).getTime()
+        let now = Date.now()
+        let oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 2)).getTime()
         let { start = oneMonthAgo, end = now, type = 'day', exports = 'false' } = req.query
         let startDate = new Date(parseInt(start))
         let endDate = new Date(parseInt(end))
+
+        // tính khoản cách giữa 2 ngày
+        let numberOfDays = Math.ceil((end - start) / (24 * 60 * 60 * 1000));
+        if (numberOfDays > 31) {
+            type = "month"
+        }
+
         const invoices = await InvoiceModel.aggregate([
             {
                 $match: {
