@@ -41,14 +41,50 @@ const getInvoices = async (req, res, next) => {
             },
 
         ]
+        let countQuery = [
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
+                    'status': 1,
+                    'paymentMethod': 1,
+                    // 'user': 1
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            },
+
+        ]
         if (status) {
             query.unshift({ $match: { status: status } })
+            countQuery.unshift({ $match: { status: status } })
         }
         if (transaction) {
             query.unshift({ $match: { transactionId: transaction } })
+            countQuery.unshift({ $match: { transactionId: transaction } })
         }
         if (user) {
             query.unshift({ $match: { user: user } })
+            countQuery.unshift({ $match: { user: user } })
         }
         if (limit && page) {
             query.push(
@@ -65,8 +101,8 @@ const getInvoices = async (req, res, next) => {
         }
 
         const invoices = await InvoiceModel.aggregate(query)
-        query.push({ $count: "total" })
-        const totalCount = await InvoiceModel.aggregate(query)
+        countQuery.push({ $count: "total" })
+        const totalCount = await InvoiceModel.aggregate(countQuery)
         const total = totalCount[0]?.total || 0
         res.status(200).json({ message: 'ok', total, invoices, page, limit })
     } catch (error) {

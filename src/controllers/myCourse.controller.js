@@ -72,8 +72,73 @@ const getMyCourses = async (req, res, next) => {
                 }
             }
         ]
+        let countQuery = [
+            { $match: { user: ObjectId(user._id) } },
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: 'course',
+                    foreignField: "_id",
+                    as: 'course'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$course",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'course.author',
+                    foreignField: "_id",
+                    as: 'course.author'
+                }
+            },
+            { $unwind: "$course.author" },
+            {
+                $lookup: {
+                    from: "chapters",
+                    localField: 'course._id',
+                    foreignField: "course",
+                    as: 'chapters'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$chapters",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: "lessons",
+                    localField: 'chapters._id',
+                    foreignField: "chapter",
+                    as: 'chapters.lessons'
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    course: { $first: "$course" },
+                    chapters: { $push: "$chapters" },
+                    progress: { $first: "$progress" },
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
+                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    "progress": 1,
+                }
+            }
+        ]
         if (name) {
             query.push({ $match: { "course.name": new RegExp(name, 'img') } })
+            countQuery.push({ $match: { "course.name": new RegExp(name, 'img') } })
         }
         // ?sort=createdAt-asc || ?sort=progress-asc
         if (sort) {
@@ -90,6 +155,9 @@ const getMyCourses = async (req, res, next) => {
         }
 
         const myCourses = await MyCourseModel.aggregate(query)
+        countQuery.push({ $count: 'total' })
+        const count = await MyCourseModel.aggregate(countQuery)
+        let total = count[0]?.total || 0
         // tính phần trăm hoàn thành khoá học
         var result = myCourses.map(item => {
             let tu = 0
@@ -113,7 +181,7 @@ const getMyCourses = async (req, res, next) => {
                 result = _.orderBy(result, 'percentProgress', value)
             }
         }
-        res.status(200).json({ message: "ok", myCourses: result })
+        res.status(200).json({ message: "ok", total, myCourses: result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })

@@ -6,6 +6,7 @@ const accessControl = require('../middlewares/access_control.middleware')
 
 
 // api: lấy danh sách hoá đơn và phân trang
+invoiceApis.get('/', invoiceController.getInvoices)
 invoiceApis.get('/', passport.jwtAuthentication, passport.isAdmin, invoiceController.getInvoices)
 
 // api: lấy thông tin chi tiết hoá đơn
