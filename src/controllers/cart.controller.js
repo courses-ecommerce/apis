@@ -96,11 +96,11 @@ const putCart = async (req, res, next) => {
         if (wishlist == true || wishlist == false) {
             await CartModel.updateOne({ user, course }, { wishlist })
         }
-        if (coupon == "") {
+        if (coupon && coupon == "") {
             message = "Gỡ mã giảm giá ok"
             await CartModel.updateOne({ user, course }, { coupon })
         }
-        else {
+        else if (coupon && coupon != "") {
             // kiểm tra mã giảm giá
             const code = await CodeModel.findOne({ code: coupon }).populate('coupon').lean()
             if (!code) return res.status(400).json({ message: "mã giảm giá không tồn tại" })
