@@ -479,6 +479,8 @@ const postCreateGoogleSheet = async (req, res) => {
         ])
 
         var doc
+        // trường hợp: user 1 đã exports sheet rồi => tồn tại sheetId.
+        // nếu user 2 exports lại => k có quyền chỉnh sửa (vì sheet của user 1) => tạo sheet mới
         if (coupon[0].sheetId) {
             try {
                 // lấy id sheet

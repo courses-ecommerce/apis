@@ -86,7 +86,7 @@ const putCart = async (req, res, next) => {
         const { user } = req
         const { course } = req.params
         const { coupon, wishlist } = req.body
-
+        let message = 'ok'
         // lấy giỏ hàng
         const carts = await CartModel.find({ user }).lean()
 
@@ -96,7 +96,8 @@ const putCart = async (req, res, next) => {
         if (wishlist == true || wishlist == false) {
             await CartModel.updateOne({ user, course }, { wishlist })
         }
-        else if (coupon == "") {
+        if (coupon == "") {
+            message = "Gỡ mã giảm giá ok"
             await CartModel.updateOne({ user, course }, { coupon })
         }
         else {
@@ -114,13 +115,13 @@ const putCart = async (req, res, next) => {
 
             // kiểm tra mã giảm giá có áp dụng được cho khoá học này
             let result = helper.hanlderApplyDiscountCode(c, code)
-            let message = result.message
+            message = result.message
             if (result.isApply) {
                 await CartModel.updateOne({ _id: hadCart._id }, { coupon })
             }
         }
         const data = await handlerCheckoutCart(user)
-        res.status(200).json({ message: "ok", numOfCarts: data.result.carts.length, totalPrice: data.result.totalPrice, totalDiscount: data.result.totalDiscount, estimatedPrice: data.result.estimatedPrice, carts: data.result.carts, wishlist: data.wishlist })
+        res.status(200).json({ message: message, numOfCarts: data.result.carts.length, totalPrice: data.result.totalPrice, totalDiscount: data.result.totalDiscount, estimatedPrice: data.result.estimatedPrice, carts: data.result.carts, wishlist: data.wishlist })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error" })
