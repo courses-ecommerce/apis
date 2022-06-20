@@ -118,7 +118,6 @@ const putCart = async (req, res, next) => {
             let result = helper.hanlderApplyDiscountCode(c, code)
             message = result.message
             statusCode = result.statusCode
-            console.log(result);
             if (result.isApply) {
                 await CartModel.updateOne({ _id: hadCart._id }, { coupon })
             }

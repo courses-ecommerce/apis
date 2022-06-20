@@ -116,4 +116,4 @@ Bước 5: Truy cập `http://localhost:3000/api-docs` để xem APIs
 
 ## License
 
-MIT
+[MIT](https://choosealicense.com/licenses/mit/)

@@ -56,7 +56,13 @@ const getCoupons = async (req, res, next) => {
                             timezone: "Asia/Ho_Chi_Minh"
                         }
                     },
-                    'maxDiscount': 1,
+                    'maxDiscount': {
+                        $cond: {
+                            if: { $eq: [Infinity, "$maxDiscount"] },
+                            then: "Không giới hạn",
+                            else: "$maxDiscount"
+                        }
+                    },
                     'minPrice': 1,
                     'number': 1,
                     'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
@@ -94,9 +100,9 @@ const getCoupons = async (req, res, next) => {
             )
         }
 
-        // if (account.role == 'teacher') {
-        //     aQuery.push({ $match: { author: user._id } })
-        // }
+        if (account.role == 'teacher') {
+            aQuery.push({ $match: { author: user._id } })
+        }
         const coupons = await CouponModel.aggregate(aQuery)
 
         let data = coupons.map(item => {
@@ -166,7 +172,13 @@ const getCoupon = async (req, res, next) => {
                             timezone: "Asia/Ho_Chi_Minh"
                         }
                     },
-                    'maxDiscount': 1,
+                    'maxDiscount': {
+                        $cond: {
+                            if: { $eq: [Infinity, "$maxDiscount"] },
+                            then: "Không giới hạn",
+                            else: "$maxDiscount"
+                        }
+                    },
                     'minPrice': 1,
                     'number': 1,
                     'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
@@ -193,7 +205,6 @@ const postCoupon = async (req, res, next) => {
         const { user, account } = req
         const { title, type, apply, amount, startDate, expireDate, maxDiscount, minPrice, number } = req.body
         req.body.author = user._id
-
         let data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
         if (account.role == 'admin') {
             data.apply = 'all'
