@@ -143,18 +143,19 @@ const hanlderCheckoutCarts = async (carts) => {
 //fn: kiểm tra mã giảm giá cho khoá học
 const hanlderApplyDiscountCode = (course, code) => {
     try {
+        var message = "Không đủ điều kiện"
+        var statusCode = 400
         // kiểm tra mã đã dùng chưa
         if (code.isActive == false) {
-            return { isApply: false, discountAmount: 0, message: "mã đã sử dụng" }
+            return { isApply: false, statusCode, discountAmount: 0, message: "Mã giảm giá đã dùng" }
         }
         // kiểm tra hết hạn
         const isExpired = new Date(code.coupon.expireDate) < new Date()
         if (isExpired) {
-            return { isApply: false, discountAmount: 0, message: "mã hết hạn" }
+            return { isApply: false, statusCode, discountAmount: 0, message: "Mã giảm giá đã hết hạn" }
         }
 
         // giá tối tiểu <= giá khoá học && số lượng >= 1
-        var message = "không đủ điều kiện"
         let isApply = code.coupon.minPrice <= course.currentPrice
         // kiểm tra loại áp dung
         switch (code.coupon.apply) {
@@ -170,7 +171,8 @@ const hanlderApplyDiscountCode = (course, code) => {
         // tính tiền giảm nếu áp dụng thành công
         let discountAmount = 0
         if (isApply) {
-            message = "ok"
+            message = "Áp dụng thành công"
+            statusCode = 200
             // tính tiền giảm giá theo tiền mặt và giảm giá %
             discountAmount = code.coupon.type === 'money' ? code.coupon.amount : code.coupon.amount * course.currentPrice / 100
             // tiền giảm giá có vượt giá trị giảm tối đa ?
@@ -179,10 +181,10 @@ const hanlderApplyDiscountCode = (course, code) => {
             }
         }
 
-        return { isApply, discountAmount, message }
+        return { isApply, statusCode, discountAmount, message }
     } catch (error) {
         console.log(error);
-        return { isApply: false, discountAmount: 0, message: "mã lỗi" }
+        return { isApply: false, statusCode: 400, discountAmount: 0, message: "Mã lỗi" }
     }
 }
 

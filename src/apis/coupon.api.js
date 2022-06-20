@@ -17,6 +17,7 @@ couponApis.post('/export-sheet', passport.jwtAuthentication, couponController.po
 couponApis.get('/', passport.jwtAuthentication, couponController.getCoupons)
 
 // api: chi tiết mã
+couponApis.get('/:id', couponController.getCoupon)
 couponApis.get('/:id', passport.jwtAuthentication, couponController.getCoupon)
 
 // api: thêm mã
