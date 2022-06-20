@@ -1481,6 +1481,33 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /user/invoices/{id}:
+    get:
+      tags:
+        - user
+      summary: lấy chi tiết lịch sử thanh toán
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoices:
+                    $ref: "#/components/schemas/Invoice"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /user/history:
     get:
       tags:

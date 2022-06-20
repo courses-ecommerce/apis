@@ -21,5 +21,7 @@ userApis.get('/history', passport.jwtAuthentication, userController.getHistorySe
 // api: lấy lịch sử thanh toán
 userApis.get('/invoices', passport.jwtAuthentication, userController.getMyInvoices)
 
+userApis.get('/invoices/:id', passport.jwtAuthentication, userController.getDetailMyInvoices)
+
 
 module.exports = userApis

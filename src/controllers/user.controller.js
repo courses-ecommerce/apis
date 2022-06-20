@@ -6,7 +6,8 @@ const HistoryViewModel = require('../models/users/historyView.model');
 const InvoiceModel = require('../models/invoice.model');
 const helper = require('../helper');
 const uniqid = require('uniqid');
-
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 // fn: lấy thông tin user hiện tại
 const getUser = async (req, res, next) => {
     try {
@@ -87,7 +88,7 @@ const getMyInvoices = async (req, res, next) => {
         let query = [
             {
                 $match: {
-                    user: user._id
+                    user: user._id, status: "Paid"
                 }
             },
             {
@@ -107,6 +108,24 @@ const getMyInvoices = async (req, res, next) => {
                     localField: '_id',
                     foreignField: 'invoice',
                     as: "detailInvoices"
+                }
+            },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
+                    'status': 1,
+                    // 'user': 1
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                 }
             },
             { $limit: parseInt(limit) },
@@ -130,6 +149,73 @@ const getMyInvoices = async (req, res, next) => {
     }
 }
 
+// fn: lấy lịch sử thanh toán
+const getDetailMyInvoices = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { user } = req
+        let query = [
+            {
+                $match: {
+                    user: user._id, status: "Paid", _id: id
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $lookup: {
+                    from: 'detailInvoices',
+                    localField: '_id',
+                    foreignField: 'invoice',
+                    as: "detailInvoices"
+                }
+            },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
+                    'status': 1,
+                    // 'user': 1
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    detailInvoices: 1,
+                }
+            },
+
+        ]
+        const invoice = (await InvoiceModel.aggregate(query))[0]
+        if (!invoice) {
+            return res.status(404).json({ message: 'Not found' })
+        }
+        query.push({ $count: "total" })
+        const totalCount = await InvoiceModel.aggregate(query)
+        const total = totalCount[0]?.total || 0
+
+        res.status(200).json({ message: 'ok', total, invoice })
+
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ message: "error" })
+    }
+}
+
 
 module.exports = {
     getUser,
@@ -137,4 +223,5 @@ module.exports = {
     postActiveTeacherRole,
     getHistorySearchAndView,
     getMyInvoices,
+    getDetailMyInvoices,
 }
