@@ -117,6 +117,7 @@ const putCourse = async (req, res, next) => {
 // ex: ?sort=score&name=api&category=web-development&price=10-50&hashtags=nodejs-mongodb&rating=4.5
 const getCourses = async (req, res, next) => {
     try {
+        const { user } = req
         var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true', status } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
@@ -346,10 +347,20 @@ const getCourses = async (req, res, next) => {
                 aQuery.push({ $sort: sortBy })
             }
         }
+
+        // nếu user đã login => loại những khoá học đã mua
+        if (user) {
+            let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
+            let exceptIds = khoaHocDaMuas.map(item => item.course)
+            aQuery.push({ $match: { _id: { $nin: exceptIds } } })
+            aCountQuery.push({ $match: { _id: { $nin: exceptIds } } })
+        }
+
         const courses = await CourseModel.aggregate(aQuery)
         aCountQuery.push({ $count: "total" })
         const totalCourse = await CourseModel.aggregate(aCountQuery)
         let total = totalCourse[0]?.total || 0
+
         return res.status(200).json({ message: 'ok', searchKey, total, courses })
     } catch (error) {
         console.log(error);
@@ -512,7 +523,7 @@ const getCourse = async (req, res, next) => {
         ])
         if (course[0]) {
             if (user) {
-                const myCourse = await MyCourseModel.findOne({ user, course }).lean()
+                const myCourse = await MyCourseModel.findOne({ user, course: course[0] }).lean()
                 if (myCourse) {
                     course[0].isBuyed = true
                 }
@@ -520,7 +531,7 @@ const getCourse = async (req, res, next) => {
             if (!course[0].chapters[0].name) { course[0].chapters = [] }
             res.status(200).json({ message: 'ok', course: course[0] })
         } else {
-            res.status(400).json({ message: 'mã khoá học không tồn tại' })
+            res.status(404).json({ message: 'mã khoá học không tồn tại' })
         }
         // lưu lịch sử xem
         if (user && course[0]) {
@@ -556,7 +567,7 @@ const getRelatedCourses = async (req, res, next) => {
             {
                 $match: {
                     $and: [
-                        { hashtags: { $in: course.hashtags } },
+                        { category: course.category },
                         { _id: { $ne: ObjectId(course._id) } },
                         { publish: true },
                     ]
@@ -637,10 +648,109 @@ const getSuggestCourses = async (req, res, next) => {
         const { limit = 10 } = req.query
         const user = req.user
         let searchKey = {}
-        var courses = null
+        var courses = []
         var keyword = ''
+        var query = [
+            {
+                // tính rate trung bình
+                $lookup: {
+                    from: 'rates',
+                    localField: '_id',
+                    foreignField: 'course',
+                    pipeline: [
+                        {
+                            $group: {
+                                _id: '$course',
+                                rate: { $avg: '$rate' },
+                                numOfRate: { $count: {} }
+                            }
+                        }
+                    ],
+                    as: 'rating'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: "$author"
+            },
+            {
+                $unwind: {
+                    "path": "$category",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    'slug': 1,
+                    'name': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
+                    'thumbnail': 1,
+                    'description': 1,
+                    'language': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
+                    'currentPrice': 1,
+                    'originalPrice': 1,
+                    'saleOff': 1,
+                    'author._id': 1,
+                    'author.fullName': 1,
+                    'sellNumber': 1,
+                    'hashtags': 1,
+                    'type': 1,
+                    'rating.rate': 1,
+                    'rating.numOfRate': 1,
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'updatedAt': {
+                        $dateToString: {
+                            date: "$updatedAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'status': 1,
+                    //'score': { $meta: "textScore" },
+                }
+            },
+            { $limit: parseInt(limit) }
+        ]
         if (user) {
             // nếu có user
+            if (user) {
+                let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
+                let exceptIds = khoaHocDaMuas.map(item => item.course)
+                query.unshift({ $match: { _id: { $nin: exceptIds } } })
+            }
             // lấy first recent search
             const historySearchOfUser = await HistorySearchModel.findOne({ user: user._id }).lean()
             keyword = historySearchOfUser ? historySearchOfUser.historySearchs[0] : null
@@ -650,14 +760,20 @@ const getSuggestCourses = async (req, res, next) => {
                     searchKey.original = keyword
                     keyword = searchKey.suggestion
                 }
+                query.unshift({
+                    $match: { $text: { $search: keyword }, publish: true }
+                })
                 // tìm khoá học liên quan lịch sử tìm kiếm
-                courses = await CourseModel.find({ $text: { $search: keyword }, publish: true }).populate('author', 'fullName').populate('category', 'name slug')
-                    .limit(parseInt(limit))
+                courses = await CourseModel.aggregate(query)
             } else {
-                courses = []
+                let historyViews = await HistoryViewModel.findOne({ user }).lean()
+                let courseId = historyViews?.historyViews[0]
+                if (courseId) {
+                    req.params.id = courseId
+                    courses = await getRelatedCourses(req, res, next)
+                    return
+                }
             }
-        } else {
-            courses = []
         }
         return res.status(200).json({ message: "ok", keyword, courses })
 
@@ -671,6 +787,7 @@ const getSuggestCourses = async (req, res, next) => {
 // get /hot?category=slug
 const getHotCourses = async (req, res, next) => {
     try {
+        const { user } = req
         const { limit = 12, category } = req.query
         let aQuery = []
         if (category) {
@@ -722,6 +839,12 @@ const getHotCourses = async (req, res, next) => {
                 $limit: parseInt(limit)
             })
 
+        // nếu user đã login => loại những khoá học đã mua
+        if (user) {
+            let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
+            let exceptIds = khoaHocDaMuas.map(item => item.course)
+            aQuery.unshift({ $match: { _id: { $nin: exceptIds } } })
+        }
         const courses = await CourseModel.aggregate(aQuery)
         return res.status(200).json({ message: "ok", courses })
 

@@ -21,7 +21,7 @@ courseApis.get('/suggest', passport.jwtAuthenticationOrNull, courseController.ge
 courseApis.get('/:id', passport.jwtAuthenticationOrNull, courseController.getCourse)
 
 // api lấy danh sách khoá học liên quan theo category
-courseApis.get('/:id/related', courseController.getRelatedCourses)
+courseApis.get('/:id/related', passport.jwtAuthenticationOrNull, courseController.getRelatedCourses)
 
 // api cập nhật khoá học theo slug
 courseApis.put('/:id', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), dontStorageUpload.single('thumbnail'), courseController.putCourse)
