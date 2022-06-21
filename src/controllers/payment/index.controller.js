@@ -203,7 +203,7 @@ const getPaymentCallback = async (req, res, next) => {
                 break;
         }
         if (data) {
-            let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo })
+            let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo, status: { $ne: "Unpaid" } })
                 .populate('user').lean()
             if (invoice) {
                 res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
