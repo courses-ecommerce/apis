@@ -258,7 +258,7 @@ const getPaymentCallback = async (req, res, next) => {
                 //gửi mail
                 await mailConfig.sendEmail(mail);
             } else {
-                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
+                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${data.transactionId}`)
                 return
             }
         } else {
@@ -266,7 +266,7 @@ const getPaymentCallback = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "Server error" })
+        res.status(500).json({ message: error.message })
     }
 }
 
