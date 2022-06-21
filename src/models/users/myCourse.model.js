@@ -19,7 +19,7 @@ const myCourseSchema = new Schema({
             ref: "lesson"
         },
         timeline: {
-            type: number,
+            type: Number,
             default: 0
         },
         complete: { type: Boolean, default: false }
