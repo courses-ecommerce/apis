@@ -276,6 +276,8 @@ const getMyCourse = async (req, res, next) => {
                 mau += chapter.lessons.length
                 // điền timeline và complete vào lesson
                 chapter.lessons.map(lesson => {
+                    lesson.complete = false
+                    lesson.timeline = 0
                     for (let i = 0; i < item.progress.length; i++) {
                         const element = item.progress[i];
                         if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
