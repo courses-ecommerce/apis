@@ -8,6 +8,7 @@ const CouponModel = require('../models/coupon.model')
 const { getVideoDurationInSeconds } = require('get-video-duration')
 var voucher_codes = require('voucher-code-generator');
 const CodeModel = require('../models/code.model');
+var QRCode = require('qrcode')
 
 
 // fn: upload image to cloudinary
@@ -217,6 +218,15 @@ const generateDiscountCode = (length = 10, number = 1) => {
 
 }
 
+// tạo qr code
+const generateQR = async text => {
+    try {
+        return await QRCode.toDataURL(text)
+    } catch (err) {
+        return null
+    }
+}
+
 module.exports = {
     generateVerifyCode,
     isVerifyEmail,
@@ -226,5 +236,6 @@ module.exports = {
     uploadVideoToCloudinary,
     uploadFileToCloudinary,
     generateDiscountCode,
-    hanlderApplyDiscountCode
+    hanlderApplyDiscountCode,
+    generateQR
 };

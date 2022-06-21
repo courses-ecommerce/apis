@@ -2,7 +2,7 @@ const DetailInvoiceModel = require("../models/detailInvoice.model");
 const InvoiceModel = require("../models/invoice.model")
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
-
+const helper = require('../helper')
 
 // fn: get all invoice và phân trang
 const getInvoices = async (req, res, next) => {
@@ -157,7 +157,13 @@ const getDetailInvoice = async (req, res, next) => {
                 }
             }
         ])
-        res.status(200).json({ message: 'ok', invoice })
+        if (invoice[0]) {
+            invoice[0].qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/student/history-payment/${id}`)
+
+        } else {
+            return res.status(404).json({ message: "Not found" })
+        }
+        res.status(200).json({ message: 'ok', invoice: invoice[0] })
 
     } catch (error) {
         console.log(error);

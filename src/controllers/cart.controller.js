@@ -86,7 +86,6 @@ const putCart = async (req, res, next) => {
         const { user } = req
         const { course } = req.params
         const { coupon, wishlist } = req.body
-        console.log(req.body);
         let message = 'Áp dụng thành công'
         let statusCode = 200
         // lấy giỏ hàng

@@ -206,13 +206,13 @@ const getPaymentCallback = async (req, res, next) => {
             let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo })
                 .populate('user').lean()
             if (invoice) {
-                res.redirect(`/api/payment/invoice/${invoice._id}`)
+                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
                 return
             }
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-                res.redirect(`/api/payment/invoice/${invoice._id}`)
+                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
@@ -258,7 +258,7 @@ const getPaymentCallback = async (req, res, next) => {
                 //gửi mail
                 await mailConfig.sendEmail(mail);
             } else {
-                res.redirect(`/api/payment/invoice/${data.transactionId}`)
+                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
                 return
             }
         } else {
@@ -274,7 +274,7 @@ const getInvoiceInfo = async (req, res, next) => {
     try {
         const { id } = req.params
 
-        let invoice = await InvoiceModel.findById(id)
+        let invoice = await InvoiceModel.findOne({ _id: id, status: { $ne: 'Paid' } })
             .populate('user').lean()
         if (invoice) {
             let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
