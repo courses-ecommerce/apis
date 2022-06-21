@@ -155,18 +155,14 @@ const getDetailMyInvoices = async (req, res, next) => {
     try {
         const { id } = req.params
         const { user } = req
-        let query = [
-            {
-                $match: {
-                    user: user._id, status: "Paid", _id: id
-                }
-            },
+        const invoice = await InvoiceModel.aggregate([
+            { $match: { _id: id, user: user._id } },
             {
                 $lookup: {
-                    from: 'users',
+                    from: "users",
                     localField: 'user',
                     foreignField: '_id',
-                    as: "user"
+                    as: 'user'
                 }
             },
             {
@@ -174,10 +170,10 @@ const getDetailMyInvoices = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: 'detailInvoices',
+                    from: "detailInvoices",
                     localField: '_id',
                     foreignField: 'invoice',
-                    as: "detailInvoices"
+                    as: 'detailInvoices'
                 }
             },
             {
@@ -188,7 +184,6 @@ const getDetailMyInvoices = async (req, res, next) => {
                     'paymentPrice': 1,
                     'paymentMethod': 1,
                     'status': 1,
-                    // 'user': 1
                     'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
                     'createdAt': {
                         $dateToString: {
@@ -197,24 +192,21 @@ const getDetailMyInvoices = async (req, res, next) => {
                             timezone: "Asia/Ho_Chi_Minh"
                         }
                     },
-                    detailInvoices: 1,
+                    'detailInvoices': 1
                 }
-            },
+            }
+        ])
+        if (invoice[0]) {
+            invoice[0].qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/student/history-payment/${id}`)
 
-        ]
-        const invoice = (await InvoiceModel.aggregate(query))[0]
-        if (!invoice) {
-            return res.status(404).json({ message: 'Not found' })
+        } else {
+            return res.status(404).json({ message: "Not found" })
         }
-        query.push({ $count: "total" })
-        const totalCount = await InvoiceModel.aggregate(query)
-        const total = totalCount[0]?.total || 0
-
-        res.status(200).json({ message: 'ok', total, invoice })
+        res.status(200).json({ message: 'ok', invoice: invoice[0] })
 
     } catch (error) {
         console.log(error);
-        res.status(200).json({ message: "error" })
+        return res.status(500).json({ message: error.message })
     }
 }
 
