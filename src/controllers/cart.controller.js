@@ -86,6 +86,7 @@ const putCart = async (req, res, next) => {
         const { user } = req
         const { course } = req.params
         const { coupon, wishlist } = req.body
+        console.log(req.body);
         let message = 'Áp dụng thành công'
         let statusCode = 200
         // lấy giỏ hàng
@@ -97,7 +98,7 @@ const putCart = async (req, res, next) => {
         if (wishlist == true || wishlist == false) {
             await CartModel.updateOne({ user, course }, { wishlist })
         }
-        if (coupon && coupon == "") {
+        if (coupon == "") {
             message = "Gỡ mã giảm giá thành công"
             await CartModel.updateOne({ user, course }, { coupon })
         }

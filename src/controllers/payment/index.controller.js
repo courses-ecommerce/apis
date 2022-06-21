@@ -67,6 +67,7 @@ const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
             await DetailInvoiceModel.create({
                 invoice: invoice._id,
                 courseId: course._id,
+                courseThumbnail: course.thumbnail,
                 courseSlug: course.slug,
                 courseName: course.name,
                 courseCurrentPrice: course.currentPrice,
