@@ -19,8 +19,8 @@ const myCourseSchema = new Schema({
             ref: "lesson"
         },
         timeline: {
-            type: String,
-            default: null
+            type: number,
+            default: 0
         },
         complete: { type: Boolean, default: false }
     }
