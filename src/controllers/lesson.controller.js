@@ -124,7 +124,7 @@ const getLesson = async (req, res, next) => {
 
         const lesson = await LessonModel.findById(id).lean()
 
-        lesson ? message = "Invalid id" : message = "ok"
+        lesson ? message = "ok" : message = "Invalid id"
 
         res.status(200).json({ message, lesson })
     } catch (error) {
