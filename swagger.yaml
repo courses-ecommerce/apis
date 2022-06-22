@@ -2015,26 +2015,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-    get:
-      tags:
-        - course
-      summary: Lấy chi tiết khoá học theo id
-      description: ""
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: "ok"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Course"
-        500:
-          description: "SERVER ERROR"
     delete:
       tags:
         - course
@@ -2061,6 +2041,27 @@ paths:
       description: ""
       parameters:
         - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        500:
+          description: "SERVER ERROR"
+  /courses/{slug}:
+    get:
+      tags:
+        - course
+      summary: Lấy chi tiết khoá học theo slug
+      description: ""
+      parameters:
+        - name: slug
           in: path
           required: true
           schema:

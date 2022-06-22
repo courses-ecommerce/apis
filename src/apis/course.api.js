@@ -18,7 +18,7 @@ courseApis.get('/hot', passport.jwtAuthenticationOrNull, courseController.getHot
 courseApis.get('/suggest', passport.jwtAuthenticationOrNull, courseController.getSuggestCourses)
 
 // api xem chi tiết khoá học theo id
-courseApis.get('/:id', passport.jwtAuthenticationOrNull, courseController.getCourse)
+courseApis.get('/:slug', passport.jwtAuthenticationOrNull, courseController.getCourse)
 
 // api lấy danh sách khoá học liên quan theo category
 courseApis.get('/:id/related', passport.jwtAuthenticationOrNull, courseController.getRelatedCourses)
@@ -27,7 +27,7 @@ courseApis.get('/:id/related', passport.jwtAuthenticationOrNull, courseControlle
 courseApis.put('/:id', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), dontStorageUpload.single('thumbnail'), courseController.putCourse)
 
 // api lấy thông tin đánh giá của khoá học
-courseApis.get('/:id/rate', courseController.getRates)
+courseApis.get('/:id/rate', passport.jwtAuthenticationOrNull, courseController.getRates)
 
 // api: xoá khoá học
 courseApis.delete('/:id', passport.jwtAuthentication, courseController.deleteCourse)

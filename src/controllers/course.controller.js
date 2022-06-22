@@ -371,12 +371,12 @@ const getCourses = async (req, res, next) => {
 // fn: Xem khoá học theo id
 const getCourse = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { slug } = req.params
         const { user } = req
 
         const course = await CourseModel.aggregate([
             {
-                $match: { _id: ObjectId(id) }
+                $match: { slug: slug }
             },
             {   // tính rate trung bình
                 $lookup: {
@@ -855,11 +855,12 @@ const getHotCourses = async (req, res, next) => {
 }
 
 
-// fn: lấy thông tin đánh giá khoá học
+// fn: lấy thông tin đánh giá khoá học và đánh giá của user nếu có
 const getRates = async (req, res, next) => {
     try {
         const { page = 1, limit = 10 } = req.query
         const { id } = req.params
+        const { user } = req
         // lấy id khoá học
         const course = await CourseModel.findById(id).lean()
         if (!course) return res.status(404).json({ message: "Course not found" })
@@ -869,10 +870,14 @@ const getRates = async (req, res, next) => {
             .populate('author', '_id fullName')
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
-        return res.status(200).json({ message: 'ok', rates })
+        var userRating = null
+        if (user) {
+            userRating = await RateModel.findOne({ user, course }).lean()
+        }
+        return res.status(200).json({ message: 'ok', userRating, rates })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
