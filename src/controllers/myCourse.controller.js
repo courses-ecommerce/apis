@@ -2,6 +2,7 @@ const MyCourseModel = require("../models/users/myCourse.model");
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
+const LessonModel = require("../models/courses/lesson.model");
 
 // fn: lấy danh sách khoá học đã mua và phân trang
 const getMyCourses = async (req, res, next) => {
@@ -306,16 +307,35 @@ const getMyCourse = async (req, res, next) => {
 const putProgress = async (req, res, next) => {
     try {
         const { id } = req.params
-        const { lessonId, timeline, complete = false } = req.body
+        var { lessonId, timeline, complete = false } = req.body
 
-        const mc = await MyCourseModel.findById(id).lean()
-        let isExisted = mc.progress.some(item => JSON.stringify(item.lessonId) == JSON.stringify(lessonId))
-        if (isExisted) {
-            await MyCourseModel.updateOne({ _id: id, 'progress.lessonId': lessonId }, {
-                $set: { 'progress.$.timeline': timeline, 'progress.$.complete': complete == "true" }
-            })
+        const mc = await MyCourseModel.aggregate([
+            { $match: { _id: ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'lessons',
+                    localField: "progress.lessonId",
+                    foreignField: "_id",
+                    as: "lesson"
+                }
+            }
+        ])
+        const lesson = await LessonModel.findById(lessonId).lean()
+        if (lesson) {
+            let isExisted = mc[0].progress?.some(item => JSON.stringify(item.lessonId) == JSON.stringify(lessonId)) || false
+            if (parseInt(lesson.duration) * 0.9 <= parseInt(timeline)) {
+                complete = 'true'
+            }
+            if (isExisted) {
+
+                await MyCourseModel.updateOne({ _id: id, 'progress.lessonId': lessonId }, {
+                    $set: { 'progress.$.timeline': parseInt(timeline), 'progress.$.complete': complete == "true" }
+                })
+            } else {
+                await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline, complete: complete == "true" } } })
+            }
         } else {
-            await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline, complete: complete == "true" } } })
+            return res.status(404).json({ message: 'Not found' })
         }
         res.status(200).json({ message: "update oke" })
     } catch (error) {
