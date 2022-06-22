@@ -23,9 +23,14 @@ const myCourseSchema = new Schema({
             default: 0
         },
         complete: { type: Boolean, default: false }
+    },
+    // bài giảng mà user xem lần gần nhất
+    lastView: {
+        type: String,
+        default: null
     }
 }
-    // , { timestamps: true }
+    , { timestamps: true }
 )
 
 

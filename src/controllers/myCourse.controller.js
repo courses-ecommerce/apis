@@ -253,6 +253,7 @@ const getMyCourse = async (req, res, next) => {
                     course: { $first: "$course" },
                     chapters: { $push: "$chapters" },
                     progress: { $first: "$progress" },
+                    lastView: { $first: "$lastView" },
                 }
             },
             {
@@ -261,6 +262,7 @@ const getMyCourse = async (req, res, next) => {
                     "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
                     "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
                     "progress": 1,
+                    "lastView": 1,
                 }
             }
         ]
@@ -279,6 +281,7 @@ const getMyCourse = async (req, res, next) => {
                 chapter.lessons.map(lesson => {
                     lesson.complete = false
                     lesson.timeline = 0
+                    lesson.lastView = false
                     for (let i = 0; i < item.progress.length; i++) {
                         const element = item.progress[i];
                         if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
@@ -286,6 +289,9 @@ const getMyCourse = async (req, res, next) => {
                             lesson.timeline = element.timeline
                             break
                         }
+                    }
+                    if (JSON.stringify(lesson._id) == JSON.stringify(item.lastView)) {
+                        lesson.lastView = true
                     }
                     return lesson
                 })
@@ -298,7 +304,7 @@ const getMyCourse = async (req, res, next) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
 
     }
 }
@@ -327,8 +333,13 @@ const putProgress = async (req, res, next) => {
                     // { $set: { "progress.$.timeline": parseInt(timeline) } }
                 )
             } else {
+                if (parseInt(lesson.duration) < parseInt(timeline)) {
+                    complete = 'true'
+                }
                 await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline: parseInt(timeline), complete: complete == "true" } } })
             }
+            // cập nhật last view
+            await MyCourseModel.updateOne({ _id: id }, { lastView: lessonId })
         } else {
             return res.status(404).json({ message: 'Not found' })
         }
