@@ -12,7 +12,12 @@ async function ConnectRedis() {
     _redis.on('error', (err) => console.log('Redis Client Error', err));
     await _redis.connect()
 }
-// ConnectRedis()
+
+const dev = app.get('env') !== 'production';
+if (!dev) {
+    ConnectRedis()
+}
+
 
 
 

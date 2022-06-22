@@ -24,7 +24,7 @@ const postRate = async (req, res, next) => {
         res.status(200).json({ message: 'ok' })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: 'error' })
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -41,7 +41,7 @@ const putRate = async (req, res, next) => {
         res.status(200).json({ message: "update rate ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 

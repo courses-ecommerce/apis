@@ -38,7 +38,7 @@ const postLesson = async (req, res, next) => {
         res.status(201).json({ message: "create ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        res.status(500).json({ message: error.message, error: error.message })
     }
 }
 
@@ -112,7 +112,7 @@ const putLesson = async (req, res, next) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        res.status(500).json({ message: error.message, error: error.message })
     }
 }
 
@@ -129,7 +129,7 @@ const getLesson = async (req, res, next) => {
         res.status(200).json({ message, lesson })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        res.status(500).json({ message: error.message, error: error.message })
     }
 }
 
@@ -144,7 +144,7 @@ const getLessons = async (req, res, next) => {
         res.status(200).json({ message, lessons })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        res.status(500).json({ message: error.message, error: error.message })
     }
 }
 
@@ -163,7 +163,7 @@ const deleteLesson = async (req, res, next) => {
         await LessonModel.deleteOne({ _id: id })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        res.status(500).json({ message: error.message, error: error.message })
     }
 }
 

@@ -53,7 +53,7 @@ const getConversations = async (req, res, next) => {
         res.status(200).json({ message: "ok", conversations })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -200,7 +200,7 @@ const postMessage = async (req, res, next) => {
         await ConversationModel.updateOne({ _id: conversation }, { recentAt })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -217,7 +217,7 @@ const getMessages = async (req, res, next) => {
         res.status(200).json({ message: "ok", messages })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -237,7 +237,7 @@ const updateSeenMessage = async (req, res, next) => {
         res.status(200).json({ message: "update ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 
