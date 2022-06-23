@@ -162,7 +162,7 @@ const getMyCourses = async (req, res, next) => {
         let total = count[0]?.total || 0
 
         // hiện đánh giá nếu user đã đánh giá
-        const userRatings = await RateModel.find({ user }).select('rate content course')
+        const userRatings = await RateModel.find({ author: user }).select('rate content course author')
         // tính phần trăm hoàn thành khoá học và hiện đánh giá nếu có
         var result = myCourses.map(item => {
             // tính tiến độ % hoàn thành khoá học
@@ -176,7 +176,6 @@ const getMyCourses = async (req, res, next) => {
             })
             // thêm đánh giá nếu có
             userRatings.forEach(rate => {
-                console.log(JSON.stringify(rate.course), '==', JSON.stringify(item.course._id));
                 if (JSON.stringify(rate.course) == JSON.stringify(item.course._id)) {
                     item.rating = rate
                 }
@@ -280,7 +279,7 @@ const getMyCourse = async (req, res, next) => {
         ]
 
         const myCourse = await MyCourseModel.aggregate(query)
-        const myRating = await RateModel.findOne({ user, course: myCourse[0].course._id }).select('rate content')
+        const myRating = await RateModel.findOne({ author: user, course: myCourse[0].course._id }).select('rate content')
         // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
         var result = myCourse.map(item => {
             item.rating = myRating

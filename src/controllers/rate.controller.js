@@ -36,7 +36,8 @@ const putRate = async (req, res, next) => {
 
         const rating = await RateModel.findById(id).lean()
         if (!rating) return res.status(400).json({ message: "id không hợp lệ" })
-        if (user._id != rating.user) return res.status(401).json({ message: "không được phép" })
+        console.log(user._id, '!=', rating.author);
+        if (JSON.stringify(user._id) != JSON.stringify(rating.author)) return res.status(401).json({ message: "không được phép" })
         await RateModel.updateOne({ _id: id }, req.body)
         res.status(200).json({ message: "update rate ok" })
     } catch (error) {
