@@ -5,7 +5,19 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const cookieParser = require('cookie-parser');
+var compression = require('compression')
 
+app.use(compression({
+    level: 6,
+    threshold: 100 * 1000,
+    filter: (req, res) => {
+        if (req.headers['x-no-compress']) {
+            return false
+        } else {
+            return compression.filter(req, res)
+        }
+    }
+}))
 
 const swaggerDocument = YAML.load('./swagger.yaml')
 const corsConfig = require('./src/configs/cors.config');
@@ -34,7 +46,7 @@ require('./src/services/cron.service')
 const dev = app.get('env') !== 'production';
 
 
-const MONGO_URI = dev ? process.env.MONGO_URI_LOCAL : process.env.MONGO_URI;
+const MONGO_URI = dev ? process.env.MONGO_URI : process.env.MONGO_URI;
 const mongoose = require('mongoose');
 mongoose.connect(MONGO_URI, {})
     .then(result => console.log('> Connect mongoDB successful ', MONGO_URI))

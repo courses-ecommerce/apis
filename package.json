@@ -21,6 +21,7 @@
     "accesscontrol": "^2.2.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.29.0",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "cron": "^2.0.0",

@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
 const LessonModel = require("../models/courses/lesson.model");
+const RateModel = require("../models/courses/rate.model");
 
 // fn: lấy danh sách khoá học đã mua và phân trang
 const getMyCourses = async (req, res, next) => {
@@ -159,8 +160,12 @@ const getMyCourses = async (req, res, next) => {
         countQuery.push({ $count: 'total' })
         const count = await MyCourseModel.aggregate(countQuery)
         let total = count[0]?.total || 0
-        // tính phần trăm hoàn thành khoá học
+
+        // hiện đánh giá nếu user đã đánh giá
+        const userRatings = await RateModel.find({ user }).select('rate content course')
+        // tính phần trăm hoàn thành khoá học và hiện đánh giá nếu có
         var result = myCourses.map(item => {
+            // tính tiến độ % hoàn thành khoá học
             let tu = 0
             item.progress.forEach(i => {
                 i.complete ? tu++ : tu += 0
@@ -169,7 +174,13 @@ const getMyCourses = async (req, res, next) => {
             item.chapters.forEach(chapter => {
                 mau += chapter.lessons.length
             })
-
+            // thêm đánh giá nếu có
+            userRatings.forEach(rate => {
+                console.log(JSON.stringify(rate.course), '==', JSON.stringify(item.course._id));
+                if (JSON.stringify(rate.course) == JSON.stringify(item.course._id)) {
+                    item.rating = rate
+                }
+            })
             delete item.progress
             delete item.chapters
             item.percentProgress = tu * 100 / mau
@@ -182,6 +193,7 @@ const getMyCourses = async (req, res, next) => {
                 result = _.orderBy(result, 'percentProgress', value)
             }
         }
+
         res.status(200).json({ message: "ok", total, myCourses: result })
     } catch (error) {
         console.log(error);
@@ -268,8 +280,10 @@ const getMyCourse = async (req, res, next) => {
         ]
 
         const myCourse = await MyCourseModel.aggregate(query)
+        const myRating = await RateModel.findOne({ user, course: myCourse[0].course._id }).select('rate content')
         // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
         var result = myCourse.map(item => {
+            item.rating = myRating
             let tu = 0
             item.progress.forEach(i => {
                 i.complete ? tu++ : tu += 0
@@ -300,6 +314,8 @@ const getMyCourse = async (req, res, next) => {
             delete item.progress
             return item
         })
+
+
         res.status(200).json({ message: "ok", myCourse: result[0] })
 
     } catch (error) {
