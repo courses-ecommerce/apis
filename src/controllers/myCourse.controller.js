@@ -4,6 +4,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
 const LessonModel = require("../models/courses/lesson.model");
 const RateModel = require("../models/courses/rate.model");
+const ChapterModel = require('../models/courses/chapter.model');
 
 // fn: lấy danh sách khoá học đã mua và phân trang
 const getMyCourses = async (req, res, next) => {
@@ -278,10 +279,15 @@ const getMyCourse = async (req, res, next) => {
             }
         ]
 
+
         const myCourse = await MyCourseModel.aggregate(query)
         const myRating = await RateModel.findOne({ author: user, course: myCourse[0].course._id }).select('rate content')
         // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
+        const lastView = await LessonModel.findById(myCourse[0].lastView)
+        const chapterOfLastView = await ChapterModel.findById(lastView.chapter)
         var result = myCourse.map(item => {
+            item.chapterOfLastView = chapterOfLastView
+            item.lastView = lastView
             item.rating = myRating
             let tu = 0
             item.progress.forEach(i => {
@@ -348,8 +354,12 @@ const putProgress = async (req, res, next) => {
                     // { $set: { "progress.$.timeline": parseInt(timeline) } }
                 )
             } else {
+                if (parseInt(lesson.duration) * 0.9 <= parseInt(timeline)) {
+                    complete = 'true'
+                }
                 if (parseInt(lesson.duration) < parseInt(timeline)) {
                     complete = 'true'
+                    timeline = parseInt(lesson.duration)
                 }
                 await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline: parseInt(timeline), complete: complete == "true" } } })
             }
