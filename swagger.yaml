@@ -1965,14 +1965,34 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /courses/{id}:
+  /courses/{slug}:
+    get:
+      tags:
+        - course
+      summary: Lấy chi tiết khoá học theo slug
+      description: ""
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        500:
+          description: "SERVER ERROR"
     put:
       tags:
         - course
       summary: Cập nhật khoá học
       description: ""
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
@@ -2021,7 +2041,7 @@ paths:
       summary: xoá khoá học bằng id
       description: ""
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
@@ -2033,32 +2053,11 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-  /courses/check/{id}:
+  /courses/check/{slug}:
     get:
       tags:
         - course
       summary: Lấy chi tiết khoá học (bảo gồm cả nội dung khoá học) để admin xem và duyệt
-      description: ""
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: "ok"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Course"
-        500:
-          description: "SERVER ERROR"
-  /courses/{slug}:
-    get:
-      tags:
-        - course
-      summary: Lấy chi tiết khoá học theo slug
       description: ""
       parameters:
         - name: slug
@@ -2076,14 +2075,14 @@ paths:
         500:
           description: "SERVER ERROR"
 
-  /courses/{id}/related:
+  /courses/{slug}/related:
     get:
       tags:
         - course
       summary: Lấy danh sách khoá học liên quan theo tags
       description: ""
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
@@ -2147,14 +2146,14 @@ paths:
                   $ref: "#/components/schemas/Course"
         500:
           description: "SERVER ERROR"
-  /courses/{id}/rate:
+  /courses/{slug}/rate:
     get:
       tags:
         - course
       summary: Lấy danh sách đánh giá của khoá học
       description: ""
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:

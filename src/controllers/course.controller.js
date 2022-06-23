@@ -66,11 +66,15 @@ const putCourse = async (req, res, next) => {
         const user = req.user
         const image = req.file
         const account = req.account
-        const { id } = req.params
+        const { slug } = req.params
         var newCourse = req.body
+
+        // lấy thông tin hiện tại
+        const course = await CourseModel.findOne({ slug }).lean()
+        if (!course) return res.status(404).json({ message: "Course not found!" })
         if (image) {
             // upload image lên cloud
-            let thumbnail = await helper.uploadImageToCloudinary(image, id)
+            let thumbnail = await helper.uploadImageToCloudinary(image, slug)
             newCourse.thumbnail = thumbnail
         }
         // tránh hacker
@@ -85,9 +89,7 @@ const putCourse = async (req, res, next) => {
                 delete newCourse.publish
             }
         }
-        // lấy thông tin hiện tại
-        const course = await CourseModel.findById(id)
-        if (!course) return res.status(404).json({ message: "Course not found!" })
+
         // check permit 
         if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
             return res.status(401).json({ message: "not permited" })
@@ -100,7 +102,7 @@ const putCourse = async (req, res, next) => {
         }
 
         // cập nhật theo id
-        await CourseModel.updateOne({ _id: id }, newCourse)
+        await CourseModel.updateOne({ _id: course._id }, newCourse)
         res.status(200).json({ message: 'ok' })
         try {
             fs.unlinkSync(image.path);
@@ -108,7 +110,7 @@ const putCourse = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -368,7 +370,7 @@ const getCourses = async (req, res, next) => {
     }
 }
 
-// fn: Xem khoá học theo id
+// fn: Xem khoá học theo slug
 const getCourse = async (req, res, next) => {
     try {
         const { slug } = req.params
@@ -517,9 +519,6 @@ const getCourse = async (req, res, next) => {
                     'chapters': { _id: 1, number: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, description: 1 } },
                 }
             },
-            {
-                $limit: 1
-            }
         ])
         if (course[0]) {
             if (user) {
@@ -551,17 +550,17 @@ const getCourse = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: error.message })
     }
 }
 
-// fn: Xem danh sách khoá học liên quan theo id (category, hashtags, rating)
+// fn: Xem danh sách khoá học liên quan theo slug (category, hashtags, rating)
 const getRelatedCourses = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { slug } = req.params
         const { page = 1, limit = 12 } = req.query
         // course
-        const course = await CourseModel.findById(id).lean()
+        const course = await CourseModel.findOne({ slug: slug }).lean()
         // tìm khoá học liên quan theo hasgtag
         const courses = await CourseModel.aggregate([
             {
@@ -635,7 +634,7 @@ const getRelatedCourses = async (req, res, next) => {
         return res.status(200).json({ message: 'ok', total, courses })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -850,7 +849,7 @@ const getHotCourses = async (req, res, next) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -859,10 +858,10 @@ const getHotCourses = async (req, res, next) => {
 const getRates = async (req, res, next) => {
     try {
         const { page = 1, limit = 10 } = req.query
-        const { id } = req.params
+        const { slug } = req.params
         const { user } = req
         // lấy id khoá học
-        const course = await CourseModel.findById(id).lean()
+        const course = await CourseModel.findOne({ slug }).lean()
         if (!course) return res.status(404).json({ message: "Course not found" })
         // lấy thông tin đánh giá khoá học
         const rates = await RateModel.find({ course: course._id })
@@ -885,11 +884,11 @@ const getRates = async (req, res, next) => {
 //fn: xoá khoá học
 const deleteCourse = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { slug } = req.params
         const { account, user } = req
 
         // kiểm tra khoá học có tồn tại không?
-        const course = await CourseModel.findById(id).lean()
+        const course = await CourseModel.findOne({ slug }).lean()
         if (!course) {
             return res.status(400).json({ message: "Mã khoá học không hợp lệ" })
         }
@@ -900,20 +899,20 @@ const deleteCourse = async (req, res, next) => {
         }
 
         // kiểm tra khoá học có người mua chưa ?
-        const isBuyed = await MyCourseModel.findOne({ course: id }).lean()
+        const isBuyed = await MyCourseModel.findOne({ course: course._id }).lean()
         if (isBuyed) {
             return res.status(400).json({ message: "Khoá học đã có người mua. Không thể xoá" })
         }
 
         // xoá khoá học
-        await CourseModel.deleteOne({ _id: id })
+        await CourseModel.deleteOne({ slug: slug })
         res.status(200).json({ message: "delete ok" })
 
-        let chapters = await ChapterModel.find({ course: id }).select("_id").lean()
+        let chapters = await ChapterModel.find({ course: course._id }).select("_id").lean()
         chapters = chapters.map(obj => obj._id)
         // xoá chapters và lesson của từng chapter
         await LessonModel.deleteMany({ chapter: { $in: chapters } })
-        await ChapterModel.deleteMany({ course: id })
+        await ChapterModel.deleteMany({ course: course._id })
 
     } catch (error) {
         console.log(error);
@@ -925,11 +924,11 @@ const deleteCourse = async (req, res, next) => {
 //fn: xem khoá học để kiểm duyệt (có cả nội dung bài giảng)
 const getDetailPendingCourse = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { slug } = req.params
 
         const course = await CourseModel.aggregate([
             {
-                $match: { _id: ObjectId(id) }
+                $match: { slug: slug }
             },
             {   // tính rate trung bình
                 $lookup: {

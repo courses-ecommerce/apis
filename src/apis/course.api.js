@@ -21,19 +21,19 @@ courseApis.get('/suggest', passport.jwtAuthenticationOrNull, courseController.ge
 courseApis.get('/:slug', passport.jwtAuthenticationOrNull, courseController.getCourse)
 
 // api lấy danh sách khoá học liên quan theo category
-courseApis.get('/:id/related', passport.jwtAuthenticationOrNull, courseController.getRelatedCourses)
+courseApis.get('/:slug/related', passport.jwtAuthenticationOrNull, courseController.getRelatedCourses)
 
 // api cập nhật khoá học theo slug
-courseApis.put('/:id', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), dontStorageUpload.single('thumbnail'), courseController.putCourse)
+courseApis.put('/:slug', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), dontStorageUpload.single('thumbnail'), courseController.putCourse)
 
 // api lấy thông tin đánh giá của khoá học
-courseApis.get('/:id/rate', passport.jwtAuthenticationOrNull, courseController.getRates)
+courseApis.get('/:slug/rate', passport.jwtAuthenticationOrNull, courseController.getRates)
 
 // api: xoá khoá học
-courseApis.delete('/:id', passport.jwtAuthentication, courseController.deleteCourse)
+courseApis.delete('/:slug', passport.jwtAuthentication, courseController.deleteCourse)
 
 // api: xem chi tiết khoá học đang chờ duyệt
-courseApis.get('/check/:id', passport.jwtAuthentication, passport.isAdmin, courseController.getDetailPendingCourse)
+courseApis.get('/check/:slug', passport.jwtAuthentication, passport.isAdmin, courseController.getDetailPendingCourse)
 
 
 module.exports = courseApis
