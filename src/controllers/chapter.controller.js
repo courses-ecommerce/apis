@@ -31,11 +31,23 @@ const isPermitted = async (req, res, next) => {
 // fn: tạo chapter mới
 const postChapter = async (req, res, next) => {
     try {
-        const { course, name, number } = req.body
+        var { course, name, number } = req.body
         const { user } = req
         const c = await CourseModel.findById(course).lean()
         if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
             return res.status(403).json({ message: "Not permitted" })
+        }
+        number = parseInt(number)
+        // check chapter nào có number = number hay không? dời toàn bộ chapter có number > number
+        const currentChapter = await ChapterModel.findOne({ course, number })
+        if (currentChapter) {
+            await ChapterModel.updateMany(
+                { course, number: { $gte: number } },
+                { $inc: { number: 1 } }
+            )
+        } else {
+            const latestChapter = (await ChapterModel.find({ course }).sort({ number: -1 }))[0]
+            number = latestChapter?.number + 1 || 0
         }
         await ChapterModel.create({ number, course, name })
         res.status(201).json({ message: "ok" })
@@ -99,10 +111,8 @@ const putChapter = async (req, res, next) => {
             await ChapterModel.updateMany({
                 course: chapter.course,
                 number: {
-                    $and: [
-                        { $gt: start },
-                        { $lt: end },
-                    ]
+                    $gt: start,
+                    $lt: end,
                 }
             }, { $inc: { number: step } })
         }
@@ -120,6 +130,13 @@ const putChapter = async (req, res, next) => {
 const deleteChapter = async (req, res, next) => {
     try {
         const { id } = req.params
+
+        const chapter = await ChapterModel.findById(id).lean()
+        await ChapterModel.updateMany(
+            { course: chapter.course, number: { $gt: chapter.number } },
+            { $inc: { number: -1 } }
+        )
+
         // xoá chapter
         await ChapterModel.deleteOne({ _id: id })
         // xoá lesson liên quan

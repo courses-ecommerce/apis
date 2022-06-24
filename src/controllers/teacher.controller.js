@@ -4,6 +4,7 @@ const TeacherModel = require('../models/users/teacher.model');
 const CourseModel = require('../models/courses/course.model');
 const mongoose = require('mongoose');
 const DetailInvoiceModel = require('../models/detailInvoice.model');
+const ChapterModel = require('../models/courses/chapter.model');
 const ObjectId = mongoose.Types.ObjectId;
 
 
@@ -122,11 +123,17 @@ const getDetailMyCourse = async (req, res, next) => {
                     preserveNullAndEmptyArrays: true
                 }
             },
+            { $sort: { 'chapters.number': 1 } },
+
             { // lookup lessons
                 $lookup: {
                     from: 'lessons',
-                    localField: 'chapters._id',
-                    foreignField: 'chapter',
+                    let: { chapterId: "$chapters._id" },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$$chapterId', "$chapter"] } } },
+                        { $sort: { number: 1 } }
+
+                    ],
                     as: 'chapters.lessons'
                 }
             },
@@ -189,7 +196,7 @@ const getDetailMyCourse = async (req, res, next) => {
             }
         ])
         if (course[0]) {
-            if (!course[0].chapters[0].name) { course[0].chapters = [] }
+            if (!course[0].chapters[0]?.name) { course[0].chapters = [] }
             return res.status(200).json({ message: 'ok', course: course[0] })
         }
 

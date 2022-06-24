@@ -681,14 +681,10 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê hoa hồng theo tháng', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-hoa-hong-theo-thang.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
+            res.status(200).json({ message: "ok", total, result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
             return
         }
-        if (page && limit) {
-            let start = (parseInt(page) - 1) * parseInt(limit)
-            let end = start + parseInt(limit)
-            result = result.slice(start, end)
-        }
+
 
         res.status(200).json({ message: "ok", total, result })
 

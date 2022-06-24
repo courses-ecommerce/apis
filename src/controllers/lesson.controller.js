@@ -34,8 +34,21 @@ const isPermitted = async (req, res, next) => {
 // fn: tạo mới lesson
 const postLesson = async (req, res, next) => {
     try {
-        const { chapter, number, title, description } = req.body
-        await LessonModel.create(req.body)
+        var { chapter, number, title, description } = req.body
+        number = parseInt(number)
+        // check lesson nào có number = number hay không? dời toàn bộ lesson có number > number
+        const currentLesson = await LessonModel.findOne({ chapter, number })
+        if (currentLesson) {
+            await LessonModel.updateMany(
+                { chapter, number: { $gte: number } },
+                { $inc: { number: 1 } }
+            )
+        } else {
+            const latestLesson = (await LessonModel.find({ chapter }).sort({ number: -1 }))[0]
+            number = latestLesson?.number + 1 || 0
+        }
+
+        await LessonModel.create({ chapter, number, title, description })
         res.status(201).json({ message: "create ok" })
     } catch (error) {
         console.log(error);
@@ -78,10 +91,8 @@ const putLesson = async (req, res, next) => {
             await LessonModel.updateMany({
                 chapter: lesson.chapter,
                 number: {
-                    $and: [
-                        { $gt: start },
-                        { $lt: end },
-                    ]
+                    $gt: start,
+                    $lt: end,
                 }
             }, { $inc: { number: step } })
         }
@@ -183,7 +194,12 @@ const deleteLesson = async (req, res, next) => {
         const { id } = req.params
         const lesson = await LessonModel.findById(id).lean()
 
-        lesson ? message = "Invalid id" : message = "delete ok"
+        // update number của các lesson có number > lesson.number
+        await LessonModel.updateMany(
+            { chapter: lesson.chapter, number: { $gt: lesson.number } },
+            { $inc: { number: -1 } }
+        )
+        lesson ? message = "delete ok" : message = "Invalid id"
 
         res.status(200).json({ message })
 
