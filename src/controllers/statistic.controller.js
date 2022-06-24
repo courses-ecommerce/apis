@@ -618,14 +618,14 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
                 { $limit: parseInt(limit) }
             )
         }
-        if (sort) {
-            let sortBy = {}
-            let [f, v] = sort.split('-')
-            sortBy[f] = v == 'asc' | v == 1 ? 1 : -1
-            query.push(
-                { $sort: sortBy }
-            )
-        }
+        // if (sort) {
+        //     let sortBy = {}
+        //     let [f, v] = sort.split('-')
+        //     sortBy[f] = v == 'asc' | v == 1 ? 1 : -1
+        //     query.push(
+        //         { $sort: sortBy }
+        //     )
+        // }
 
         // lấy data teacher
         const teachers = await UserModel.aggregate(query)
@@ -657,7 +657,7 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             return i
         })
 
-        const result = teachers.map(item => {
+        var result = teachers.map(item => {
             item.revenue = 0
             item.numOfDetailInvoice = 0
             for (let i = 0; i < invoices.length; i++) {
@@ -669,6 +669,11 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             }
             return item
         })
+        if (sort) {
+            let [f, v] = sort.split('-')
+            result = _.orderBy(result, [f], [v]);
+        }
+
 
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
