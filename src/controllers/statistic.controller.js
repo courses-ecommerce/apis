@@ -553,7 +553,7 @@ const getCountCoupons = async (req, res, next) => {
 // fn: thống kê doanh thu của các giảng viên theo tháng
 const getTeachersRevenueByMonth = async (req, res, next) => {
     try {
-        const { page, limit, sort, month, year, exports = 'false' } = req.query
+        const { page, limit, sort, month = new Date().getMonth() + 1, year = new Date().getFullYear(), exports = 'false' } = req.query
         let query = [
             {
                 $lookup: {
@@ -684,7 +684,7 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
 const getDetailTeachersRevenue = async (req, res, next) => {
     try {
         const { id } = req.params
-        const { month, year, exports = 'fasle' } = req.query
+        const { month = new Date().getMonth() + 1, year = new Date().getFullYear(), exports = 'fasle' } = req.query
 
         let query = [
             {
