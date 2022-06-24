@@ -15,6 +15,7 @@ const isPermitted = async (req, res, next) => {
         const course = await CourseModel.findOne({ _id: chapter.course }).lean()
         // kiểm tra user có phải là author không
         if (JSON.stringify(user._id) === JSON.stringify(course.author)) {
+            req.chapter = chapter
             next()
         } else {
             return res.status(403).json({ message: "Not permitted" })
@@ -32,7 +33,7 @@ const postChapter = async (req, res, next) => {
     try {
         const { course, name, number } = req.body
         const { user } = req
-        const c = await CourseModel.findById(course)
+        const c = await CourseModel.findById(course).lean()
         if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
             return res.status(403).json({ message: "Not permitted" })
         }
@@ -79,7 +80,35 @@ const getChapters = async (req, res, next) => {
 const putChapter = async (req, res, next) => {
     try {
         const { id } = req.params
-        await ChapterModel.updateOne({ _id: id }, req.body)
+        const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
+        var { number } = data
+        number = parseInt(number)
+        const { chapter } = req
+        if (number) {
+            let start, end, step
+            if (number < chapter.number) {
+                start = number - 1
+                end = chapter.number
+                step = 1
+            } else {
+                start = chapter.number
+                end = number + 1
+                step = -1
+            }
+            // cập nhật number các chapter khác.
+            await ChapterModel.updateMany({
+                course: chapter.course,
+                number: {
+                    $and: [
+                        { $gt: start },
+                        { $lt: end },
+                    ]
+                }
+            }, { $inc: { number: step } })
+        }
+
+        await ChapterModel.updateOne({ _id: id }, data)
+
         res.status(200).json({ message: " update ok" })
     } catch (error) {
         console.log(error);

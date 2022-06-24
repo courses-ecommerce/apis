@@ -612,21 +612,6 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
                 }
             }
         ]
-        if (page && limit) {
-            query.push(
-                { $skip: (parseInt(page) - 1) * parseInt(limit) },
-                { $limit: parseInt(limit) }
-            )
-        }
-        // if (sort) {
-        //     let sortBy = {}
-        //     let [f, v] = sort.split('-')
-        //     sortBy[f] = v == 'asc' | v == 1 ? 1 : -1
-        //     query.push(
-        //         { $sort: sortBy }
-        //     )
-        // }
-
         // lấy data teacher
         const teachers = await UserModel.aggregate(query)
         // mảng users id
@@ -669,12 +654,12 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             }
             return item
         })
+        result = result.filter(item => item.revenue > 0)
+        let total = result.length
         if (sort) {
             let [f, v] = sort.split('-')
             result = _.orderBy(result, [f], [v]);
         }
-
-
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
                 [`BẢNG THỐNG KÊ HOA HỒNG CỦA GIÁO VIÊN THÁNG ${month}-${year}`],
@@ -699,8 +684,13 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
             return
         }
+        if (page && limit) {
+            let start = (parseInt(page) - 1) * parseInt(limit)
+            let end = start + parseInt(limit)
+            result = result.slice(start, end)
+        }
 
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: "ok", total, result })
 
     } catch (error) {
         console.log(error);

@@ -13,10 +13,11 @@ const isPermitted = async (req, res, next) => {
         const { user, account } = req
         const { id, chapter } = req.params
         if (chapter) {
-            var ct = await ChapterModel.findById(chapter)
+            var ct = await ChapterModel.findById(chapter).lean()
         } else {
             const lesson = await LessonModel.findById(id).lean()
-            var ct = await ChapterModel.findById(lesson.chapter)
+            req.lesson = lesson
+            var ct = await ChapterModel.findById(lesson.chapter).lean()
         }
         const c = await CourseModel.findById(ct.course).lean()
         if (JSON.stringify(c.author) !== JSON.stringify(user._id)) {
@@ -58,7 +59,33 @@ const putLesson = async (req, res, next) => {
             resource = null
         }
         const { id } = req.params
-        const { chapter, number, title, description, type, text } = req.body
+        const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
+        var { number, title, description, type, text } = data
+        number = parseInt(number)
+        const { lesson } = req
+        if (number) {
+            let start, end, step
+            if (number < lesson.number) {
+                start = number - 1
+                end = lesson.number
+                step = 1
+            } else {
+                start = lesson.number
+                end = number + 1
+                step = -1
+            }
+            // cập nhật number các lesson khác.
+            await LessonModel.updateMany({
+                chapter: lesson.chapter,
+                number: {
+                    $and: [
+                        { $gt: start },
+                        { $lt: end },
+                    ]
+                }
+            }, { $inc: { number: step } })
+        }
+
 
         if (resource) {
             const result = await helper.uploadFileToCloudinary(resource, id)
@@ -99,7 +126,7 @@ const putLesson = async (req, res, next) => {
         }
 
         // cập nhật lesson
-        await LessonModel.updateOne({ _id: id }, req.body)
+        await LessonModel.updateOne({ _id: id }, data)
         res.status(200).json({ message: "updating oke" })
 
         try {
