@@ -26,7 +26,7 @@ const getDailyRevenue = async (req, res) => {
             type = "month"
         }
 
-        const invoices = await InvoiceModel.aggregate([
+        var invoices = await InvoiceModel.aggregate([
             {
                 $match: {
                     createdAt: {
@@ -49,6 +49,12 @@ const getDailyRevenue = async (req, res) => {
                 }
             }
         ])
+        // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
+        invoices = invoices.map(i => {
+            i.paymentPrice = i.paymentPrice * 0.2
+            return i
+        })
+
 
         var result = null
         if (type.toLowerCase().trim() == 'day') {
@@ -114,7 +120,7 @@ const getMonthlyRevenue = async (req, res, next) => {
         year = parseInt(year)
 
         // lấy danh sách hoá đơn đã thanh toán trong năm year và năm year - 1
-        const invoices = await InvoiceModel.aggregate([
+        var invoices = await InvoiceModel.aggregate([
             {
                 $match: {
                     createdAt: {
@@ -137,6 +143,11 @@ const getMonthlyRevenue = async (req, res, next) => {
                 }
             }
         ])
+        // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
+        invoices = invoices.map(i => {
+            i.paymentPrice = i.paymentPrice * 0.2
+            return i
+        })
 
         // doanh thu mỗi tháng
         var result = Array(number + 1).fill(Array(12).fill(0))
@@ -179,7 +190,7 @@ const getYearlyRevenue = async (req, res) => {
     try {
         const { start, end, exports = 'false' } = req.query
 
-        const invoices = await InvoiceModel.aggregate([
+        var invoices = await InvoiceModel.aggregate([
             {
                 $match: {
                     createdAt: {
@@ -202,6 +213,13 @@ const getYearlyRevenue = async (req, res) => {
                 }
             }
         ])
+
+        // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
+        invoices = invoices.map(i => {
+            i.paymentPrice = i.paymentPrice * 0.2
+            return i
+        })
+
         var result = [...Array(parseInt(end) - parseInt(start) + 1).fill(0)]
 
 
@@ -615,7 +633,7 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
         const userIds = teachers.map(i => ObjectId(i._id))
 
         // lấy hoá đơn có tác giả in users id và được tạo vào tháng month năm year
-        const invoices = await DetailInvoiceModel.aggregate([
+        var invoices = await DetailInvoiceModel.aggregate([
             {
                 $project: {
                     amount: 1,
@@ -633,6 +651,11 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
                 }
             }
         ])
+        // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
+        invoices = invoices.map(i => {
+            i.amount = i.amount * 0.8
+            return i
+        })
 
         const result = teachers.map(item => {
             item.revenue = 0
@@ -731,7 +754,7 @@ const getDetailTeachersRevenue = async (req, res, next) => {
         // lấy data teacher
         const teacher = (await UserModel.aggregate(query))[0]
         // lấy hoá đơn có tác giả in users id
-        const invoices = await DetailInvoiceModel.aggregate([
+        var invoices = await DetailInvoiceModel.aggregate([
             {
                 $project: {
                     invoice: 1,
@@ -778,6 +801,11 @@ const getDetailTeachersRevenue = async (req, res, next) => {
                 }
             },
         ])
+        invoices = invoices.map(i => {
+            i.amount = i.amount * 0.8
+            return i
+        })
+
         teacher.revenue = 0
         teacher.numOfDetailInvoice = invoices.length
         for (let i = 0; i < invoices.length; i++) {

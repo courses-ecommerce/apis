@@ -115,6 +115,7 @@ const getInvoices = async (req, res, next) => {
 //fn : get detail invoice
 const getDetailInvoice = async (req, res, next) => {
     try {
+        const CLIENT_URL = `https://www.course-ecommerce.tk/invoice/`
         const { id } = req.params
         const invoice = await InvoiceModel.aggregate([
             { $match: { _id: id } },
@@ -158,7 +159,7 @@ const getDetailInvoice = async (req, res, next) => {
             }
         ])
         if (invoice[0]) {
-            invoice[0].qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/student/history-payment/${id}`)
+            invoice[0].qrcode = await helper.generateQR(CLIENT_URL + id)
 
         } else {
             return res.status(404).json({ message: "Not found" })
