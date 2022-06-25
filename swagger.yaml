@@ -3557,6 +3557,10 @@ paths:
       parameters:
         - $ref: "#/components/parameters/page"
         - $ref: "#/components/parameters/limit"
+        - name: "email"
+          in: query
+          schema:
+            type: string
         - name: "month"
           in: query
           schema:

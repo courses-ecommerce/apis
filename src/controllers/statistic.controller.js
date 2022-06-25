@@ -571,7 +571,7 @@ const getCountCoupons = async (req, res, next) => {
 // fn: thống kê doanh thu của các giảng viên theo tháng
 const getTeachersRevenueByMonth = async (req, res, next) => {
     try {
-        const { page, limit, sort, month = new Date().getMonth() + 1, year = new Date().getFullYear(), exports = 'false' } = req.query
+        const { email, page, limit, sort, month = new Date().getMonth() + 1, year = new Date().getFullYear(), exports = 'false' } = req.query
         let query = [
             {
                 $lookup: {
@@ -612,6 +612,9 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
                 }
             }
         ]
+        if (email) {
+            query.push({ $match: { 'account.email': new RegExp(email, 'igm') } })
+        }
         // lấy data teacher
         const teachers = await UserModel.aggregate(query)
         // mảng users id
