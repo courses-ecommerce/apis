@@ -688,7 +688,6 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             return
         }
 
-
         res.status(200).json({ message: "ok", total, result })
 
     } catch (error) {
@@ -937,6 +936,7 @@ const getTopMonthlyTeachers = async (req, res, next) => {
                 teacher.count = count
                 return teacher
             })
+            preResult = preResult.filter(item => item.total > 0)
             result[i] = _.orderBy(JSON.parse(JSON.stringify(preResult)), ['count'], ['desc']).slice(0, parseInt(top))
         }
         res.status(200).json({ message: "ok", result })
@@ -949,7 +949,7 @@ const getTopMonthlyTeachers = async (req, res, next) => {
 //  top giáo viên có số lượng bán/doanh thu cao nhất trong năm
 const getTopYearTeachers = async (req, res, next) => {
     try {
-        const { top = 5, year } = req.query
+        const { top = 5, year = new Date().getFullYear() } = req.query
 
         let query = [
             {
@@ -1033,6 +1033,8 @@ const getTopYearTeachers = async (req, res, next) => {
             teacher.count = count
             return teacher
         })
+        result = result.filter(item => item.total > 0)
+
         result = _.orderBy(JSON.parse(JSON.stringify(result)), ['count'], ['desc']).slice(0, parseInt(top))
 
         res.status(200).json({ message: "ok", result })

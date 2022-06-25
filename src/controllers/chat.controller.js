@@ -1,3 +1,4 @@
+const helper = require('../helper');
 const ConversationModel = require('../models/chats/conversation.model');
 const MessageModel = require('../models/chats/message.model');
 
@@ -89,7 +90,7 @@ const postConversation = async (req, res, next) => {
 
             if (pendingConversation) {
                 // user là người đc yêu cầu kết nối
-                if (pendingConversation.pending == user._id) {
+                if (JSON.stringify(pendingConversation.pending) == JSON.stringify(user._id)) {
                     // đánh dấu đã xem
                     let seenAt = new Date()
                     await MessageModel.updateMany({ conversation: pendingConversation._id }, { seen: true, seenAt })
@@ -128,7 +129,7 @@ const postConversation = async (req, res, next) => {
         await ConversationModel.updateOne({ _id: conversation }, { recentAt })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -168,7 +169,7 @@ const postAcceptConversation = async (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -177,24 +178,53 @@ const postAcceptConversation = async (req, res, next) => {
  */
 const postMessage = async (req, res, next) => {
     try {
+        var images = null
+        try {
+            images = req.files['images']
+        } catch (error) {
+        }
+
         const { conversation, text } = req.body
         const { user } = req
         // kiểm tra hội thoại
         const cvst = await ConversationModel.findById(conversation)
         if (!cvst) return res.status(400).json({ message: "invalid conversation id " })
-        // tạo tin nhắn
-        let tinNhan = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
+
+        if (images) {
+            images.forEach(async image => {
+                const result = await helper.uploadFileToCloudinary(image, Date.now())
+
+                // tạo tin nhắn
+                let tinNhan = await MessageModel.create({ conversation, text: result.secure_url, type: "image", sender: user._id })
+                // lấy mảng socket id thành viên
+                let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
+                let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
+                // gửi tới từng socket id
+                socketIdsMem1.forEach(id => {
+                    _io.to(id).emit('send-message', { text: tinNhan })
+                });
+                socketIdsMem2.forEach(id => {
+                    _io.to(id).emit('send-message', { text: tinNhan })
+                });
+            })
+        }
+        if (text) {
+            // tạo tin nhắn
+            let tinNhan = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
+            // lấy mảng socket id thành viên
+            let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
+            let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
+            // gửi tới từng socket id
+            socketIdsMem1.forEach(id => {
+                _io.to(id).emit('send-message', { text: tinNhan })
+            });
+            socketIdsMem2.forEach(id => {
+                _io.to(id).emit('send-message', { text: tinNhan })
+            });
+        }
+
         res.status(201).json({ message: "ok" })
-        // lấy mảng socket id thành viên
-        let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
-        let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
-        // gửi tới từng socket id
-        socketIdsMem1.forEach(id => {
-            _io.to(id).emit('send-message', { text: tinNhan })
-        });
-        socketIdsMem2.forEach(id => {
-            _io.to(id).emit('send-message', { text: tinNhan })
-        });
+
         // cập nhật hội thoại
         let recentAt = new Date()
         await ConversationModel.updateOne({ _id: conversation }, { recentAt })
@@ -214,6 +244,7 @@ const getMessages = async (req, res, next) => {
         const messages = await MessageModel.find({ conversation }).populate('sender', '_id avatar fullName')
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
+            .sort({ createdAt: 1 })
         res.status(200).json({ message: "ok", messages })
     } catch (error) {
         console.log(error);

@@ -16,6 +16,11 @@ const messageSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'user',
     },
+    type: {
+        type: String,
+        enum: ['text', 'image'],
+        default: 'text'
+    },
     text: {
         type: String,
         required: true
