@@ -159,7 +159,7 @@ const getMonthlyRevenue = async (req, res, next) => {
             const y = new Date(item.createdAt).getFullYear()
             result[y - year + number][m] += item.paymentPrice
         })
-        result = result.map((item, index) => {
+        let preResult = result.map((item, index) => {
             item = { year: year - index, data: item }
             return item
         })
@@ -178,10 +178,10 @@ const getMonthlyRevenue = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-thang.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-doanh-so-theo-thang.xlsx' })
+            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-thang.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: "ok", result: preResult })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -231,7 +231,7 @@ const getYearlyRevenue = async (req, res) => {
             result[index] += item.paymentPrice
         })
 
-        result = result.map((item, index) => {
+        let preResult = result.map((item, index) => {
             item = { year: parseInt(start) + index, data: item }
             return item
         })
@@ -251,9 +251,9 @@ const getYearlyRevenue = async (req, res) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-nam.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-doanh-so-theo-nam.xlsx' })
+            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-nam.xlsx' })
         }
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: "ok", result: preResult })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
