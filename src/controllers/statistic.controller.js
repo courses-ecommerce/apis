@@ -60,16 +60,20 @@ const getDailyRevenue = async (req, res) => {
         if (type.toLowerCase().trim() == 'day') {
             let differenceInTime = endDate.getTime() - startDate.getTime();
             let differenceInDays = differenceInTime / (1000 * 3600 * 24);
-            result = {}
+            result = []
             for (let i = 0; i < differenceInDays + 1; i++) {
                 let startDateString = startDate.toISOString().split("T")[0]
-                result[startDateString] = 0
+                result.push({ "date": startDateString, value: 0 })
                 startDate.setDate(startDate.getDate() + 1)
             }
             // tính doanh thu mỗi ngày
-            invoices.forEach(invoice => {
-                let dateString = invoice.createdAt
-                result[dateString] += invoice.paymentPrice
+            result.forEach(item => {
+                invoices.forEach(invoice => {
+                    let dateString = invoice.createdAt
+                    if (item.date == dateString) {
+                        item.value += invoice.paymentPrice
+                    }
+                })
             })
         } else if (type.toLowerCase().trim() == 'month') {
             startMonth = startDate.getMonth()
@@ -78,16 +82,20 @@ const getDailyRevenue = async (req, res) => {
             endYear = endDate.getFullYear()
 
             let numOfMonth = (endYear - startYear - 1) * 12 + 12 - startMonth + 1 + endMonth
-            result = {}
+            result = []
             for (let i = 0; i < numOfMonth; i++) {
                 let dateString = startDate.toISOString().slice(0, 7)
-                result[dateString] = 0
+                result.push({ "date": dateString, value: 0 })
                 startDate.setMonth(startDate.getMonth() + 1)
             }
             // tính doanh thu mỗi tháng
-            invoices.forEach(invoice => {
-                let dateString = invoice.createdAt.slice(0, 7)
-                result[dateString] += invoice.paymentPrice
+            result.forEach(item => {
+                invoices.forEach(invoice => {
+                    let dateString = invoice.createdAt.slice(0, 7)
+                    if (item.date == dateString) {
+                        item.value += invoice.paymentPrice
+                    }
+                })
             })
         }
         if (exports.toLowerCase().trim() == 'true') {
@@ -104,6 +112,7 @@ const getDailyRevenue = async (req, res) => {
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-ngay.xlsx').write(buffer);
             return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-doanh-so-theo-ngay.xlsx' })
         }
+
         res.status(200).json({ message: "ok", result })
     } catch (error) {
         console.log(error);
