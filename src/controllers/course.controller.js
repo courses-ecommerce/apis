@@ -44,9 +44,17 @@ const postCourse = async (req, res, next) => {
         // upload image lên cloud
         let thumbnail = await helper.uploadImageToCloudinary(image, name)
         // tạo khoá học
-        await CourseModel.create(
+        const course = await CourseModel.create(
             { name, category, description, currentPrice, originalPrice, saleOff, author, thumbnail, lang, intendedLearners, requirements, targets, level, hashtags }
         )
+        if (course) {
+            const chapter = await ChapterModel.create({ course, name: "Default", number: 1 })
+            await LessonModel.create({
+                chapter,
+                number: 1,
+                title: "Default"
+            })
+        }
         res.status(201).json({ message: "ok" })
         try {
             fs.unlinkSync(image.path);

@@ -254,11 +254,11 @@ const getYearlyRevenue = async (req, res) => {
 // fn: thống kê user mới theo năm
 const getCountUsersByYear = async (req, res, next) => {
     try {
-        var { start, end, exports = 'false' } = req.query
+        var { start = new Date().getFullYear(), end = new Date().getFullYear(), exports = 'false' } = req.query
         start = parseInt(start)
         end = parseInt(end)
 
-        let newUsers = [...Array(end - start + 1).fill(0)]
+        let newUsers = []
 
         for (let i = 0; i <= end - start; i++) {
             let year = start + i
@@ -268,7 +268,7 @@ const getCountUsersByYear = async (req, res, next) => {
                     $lte: new Date(`${year}-12-31`),
                 },
             }).count()
-            newUsers[i] = news
+            newUsers[i] = { 'year': year, 'value': news }
         }
         let raise = (newUsers[end - start] * 100 / newUsers[0]) - 100 || 0
 
@@ -306,7 +306,7 @@ const getCountUsersByYear = async (req, res, next) => {
 // fn: thống kê user mới theo các tháng
 const getCountUsersByMonth = async (req, res, next) => {
     try {
-        var { year, exports = 'false' } = req.query
+        var { year = new Date().getFullYear(), exports = 'false' } = req.query
         year = parseInt(year)
 
         let thisYear = [...Array(12).fill(0)]
@@ -315,47 +315,40 @@ const getCountUsersByMonth = async (req, res, next) => {
         const activating = await AccountModel.find({ isActive: true }).count()
         const notActivating = await AccountModel.find({ isActive: false }).count()
 
-        for (let i = 0; i <= 11; i++) {
-            let users = await UserModel.aggregate([
-                {
-                    $project: {
-                        createdAt: 1,
-                        month: { $month: "$createdAt" },
-                        year: { $year: "$createdAt" },
-                    }
-                },
-                {
-                    $match: {
-                        month: i + 1,
-                        year: year
-                    }
-                },
-                {
-                    $count: 'total'
+        let users = await UserModel.aggregate([
+            {
+                $project: {
+                    createdAt: 1,
+                    month: { $month: "$createdAt" },
+                    year: { $year: "$createdAt" },
                 }
-            ])
-            thisYear[i] = users[0]?.total || 0
+            },
+            {
+                $match: {
+                    year: year, year: year - 1
+                }
+            }
+        ])
 
-            users = await UserModel.aggregate([
-                {
-                    $project: {
-                        createdAt: 1,
-                        month: { $month: "$createdAt" },
-                        year: { $year: "$createdAt" },
-                    }
-                },
-                {
-                    $match: {
-                        month: i + 1,
-                        year: year - 1
-                    }
-                },
-                {
-                    $count: 'total'
+        for (let i = 0; i <= 11; i++) {
+            let count = users.filter(item => {
+                if (item.month == i + 1 && item.year == year) {
+                    return true
                 }
-            ])
-            lastYear[i] = users[0]?.total || 0
+            }).length
+            thisYear[i] = count
+            count = users.filter(item => {
+                if (item.month == i + 1 && item.year == year - 1) {
+                    return true
+                }
+            }).length
+            lastYear[i] = count
         }
+
+        var result = [
+            { year, data: thisYear },
+            { year: year - 1, data: lastYear },
+        ]
 
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
@@ -380,7 +373,7 @@ const getCountUsersByMonth = async (req, res, next) => {
             return
         }
 
-        res.status(200).json({ message: "ok", thisYear, lastYear })
+        res.status(200).json({ message: "ok", result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
