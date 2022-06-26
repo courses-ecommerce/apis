@@ -57,23 +57,31 @@ const getDailyRevenue = async (req, res) => {
 
 
         var result = null
+        var preResult = null
         if (type.toLowerCase().trim() == 'day') {
             let differenceInTime = endDate.getTime() - startDate.getTime();
             let differenceInDays = differenceInTime / (1000 * 3600 * 24);
-            result = []
+            result = {}
+            preResult = []
+            let startDateISO = new Date(startDate)
             for (let i = 0; i < differenceInDays + 1; i++) {
-                let startDateString = startDate.toISOString().split("T")[0]
-                result.push({ "date": startDateString, value: 0 })
-                startDate.setDate(startDate.getDate() + 1)
+                let startDateString = startDateISO.toISOString().split("T")[0]
+                preResult.push({ "date": startDateString, value: 0 })
+                result[startDateString] = 0
+                startDateISO.setDate(startDateISO.getDate() + 1)
             }
             // tính doanh thu mỗi ngày
-            result.forEach(item => {
+            preResult.forEach(item => {
                 invoices.forEach(invoice => {
                     let dateString = invoice.createdAt
                     if (item.date == dateString) {
                         item.value += invoice.paymentPrice
                     }
                 })
+            })
+            invoices.forEach(invoice => {
+                let dateString = invoice.createdAt
+                result[dateString] += invoice.paymentPrice
             })
         } else if (type.toLowerCase().trim() == 'month') {
             startMonth = startDate.getMonth()
@@ -82,20 +90,26 @@ const getDailyRevenue = async (req, res) => {
             endYear = endDate.getFullYear()
 
             let numOfMonth = (endYear - startYear - 1) * 12 + 12 - startMonth + 1 + endMonth
-            result = []
+            result = {}
+            preResult = []
             for (let i = 0; i < numOfMonth; i++) {
                 let dateString = startDate.toISOString().slice(0, 7)
-                result.push({ "date": dateString, value: 0 })
+                preResult.push({ "date": dateString, value: 0 })
+                result[dateString] = 0
                 startDate.setMonth(startDate.getMonth() + 1)
             }
             // tính doanh thu mỗi tháng
-            result.forEach(item => {
+            preResult.forEach(item => {
                 invoices.forEach(invoice => {
                     let dateString = invoice.createdAt.slice(0, 7)
                     if (item.date == dateString) {
                         item.value += invoice.paymentPrice
                     }
                 })
+            })
+            invoices.forEach(invoice => {
+                let dateString = invoice.createdAt.slice(0, 7)
+                result[dateString] += invoice.paymentPrice
             })
         }
         if (exports.toLowerCase().trim() == 'true') {
@@ -169,7 +183,7 @@ const getMonthlyRevenue = async (req, res, next) => {
             result[y - year + number][m] += item.paymentPrice
         })
         let preResult = result.map((item, index) => {
-            item = { year: year - index, data: item }
+            item = { year: year + index - result.length + 1, data: item }
             return item
         })
 
@@ -772,6 +786,7 @@ const getDetailTeachersRevenue = async (req, res, next) => {
                     invoice: 1,
                     courseId: 1,
                     courseSlug: 1,
+                    courseThumbnail: 1,
                     courseName: 1,
                     courseCurrentPrice: 1,
                     courseAuthor: 1,
@@ -796,6 +811,7 @@ const getDetailTeachersRevenue = async (req, res, next) => {
                     invoice: 1,
                     courseId: 1,
                     courseSlug: 1,
+                    courseThumbnail: 1,
                     courseName: 1,
                     courseCurrentPrice: 1,
                     courseAuthor: 1,
