@@ -259,6 +259,7 @@ const getCountUsersByYear = async (req, res, next) => {
         end = parseInt(end)
 
         let newUsers = []
+        let result = []
 
         for (let i = 0; i <= end - start; i++) {
             let year = start + i
@@ -268,7 +269,8 @@ const getCountUsersByYear = async (req, res, next) => {
                     $lte: new Date(`${year}-12-31`),
                 },
             }).count()
-            newUsers[i] = { 'year': year, 'value': news }
+            newUsers[i] = news
+            result[i] = { 'year': year, 'value': news }
         }
         let raise = (newUsers[end - start] * 100 / newUsers[0]) - 100 || 0
 
@@ -279,7 +281,6 @@ const getCountUsersByYear = async (req, res, next) => {
             const data = [
                 [`BẢNG THỐNG KÊ NGƯỜI DÙNG TỪ NĂM ${start} ĐẾN ${end}`],
                 ['Năm'],
-                ['Người dùng mới', ...newUsers, `${raise.toFixed(1)}% so với năm ${start}`],
                 [],
                 [null, 'Số lượng'],
                 ['Tổng người dùng đang hoạt động', activating],
@@ -289,14 +290,19 @@ const getCountUsersByYear = async (req, res, next) => {
             for (let i = 0; i <= end - start; i++) {
                 data[1].push(start + i)
             }
+            if (end > start) {
+                data.splice(2, 0, ['Người dùng mới', ...newUsers, `${raise.toFixed(1)}% so với năm ${start}`])
+            } else {
+                data.splice(2, 0, ['Người dùng mới', ...newUsers])
+            }
             const range = { s: { c: 0, r: 0 }, e: { c: end - start + 1, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê người dùng', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-user.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", raise, newUsers, activating, notActivating, file: '/statistics/thong-ke-user.xlsx' })
+            res.status(200).json({ message: "ok", raise, newUsers: result, activating, notActivating, file: '/statistics/thong-ke-user.xlsx' })
             return
         }
-        res.status(200).json({ message: "ok", raise, newUsers, activating, notActivating })
+        res.status(200).json({ message: "ok", raise, newUsers: result, activating, notActivating })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -325,11 +331,13 @@ const getCountUsersByMonth = async (req, res, next) => {
             },
             {
                 $match: {
-                    year: year, year: year - 1
+                    $or: [
+                        { year: year },
+                        { year: year - 1 },
+                    ]
                 }
             }
         ])
-
         for (let i = 0; i <= 11; i++) {
             let count = users.filter(item => {
                 if (item.month == i + 1 && item.year == year) {
