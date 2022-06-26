@@ -159,7 +159,10 @@ const getMonthlyRevenue = async (req, res, next) => {
             const y = new Date(item.createdAt).getFullYear()
             result[y - year + number][m] += item.paymentPrice
         })
-
+        result = result.map((item, index) => {
+            item = { year: year - index, data: item }
+            return item
+        })
 
 
         if (exports.toLowerCase().trim() == 'true') {
@@ -188,7 +191,7 @@ const getMonthlyRevenue = async (req, res, next) => {
 // fn: doanh thu theo năm
 const getYearlyRevenue = async (req, res) => {
     try {
-        const { start, end, exports = 'false' } = req.query
+        const { start = new Date().getFullYear() - 1, end = new Date().getFullYear(), exports = 'false' } = req.query
 
         var invoices = await InvoiceModel.aggregate([
             {
@@ -227,6 +230,12 @@ const getYearlyRevenue = async (req, res) => {
             const index = new Date(item.createdAt).getFullYear() - parseInt(start)
             result[index] += item.paymentPrice
         })
+
+        result = result.map((item, index) => {
+            item = { year: start + index, data: item }
+            return item
+        })
+
         let raise = (result[parseInt(end) - parseInt(start)] * 100 / result[0]) - 100
 
         if (exports.toLowerCase().trim() == 'true') {
@@ -290,7 +299,7 @@ const getCountUsersByYear = async (req, res, next) => {
             for (let i = 0; i <= end - start; i++) {
                 data[1].push(start + i)
             }
-            if (end > start) {
+            if (end > start && raise != Infinity) {
                 data.splice(2, 0, ['Người dùng mới', ...newUsers, `${raise.toFixed(1)}% so với năm ${start}`])
             } else {
                 data.splice(2, 0, ['Người dùng mới', ...newUsers])
@@ -360,7 +369,7 @@ const getCountUsersByMonth = async (req, res, next) => {
 
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
-                [`BẢNG THỐNG KÊ NGƯỜI DÙNG MỚI THEO THÁNG TRONG NĂM ${year} và ${year - 1}`],
+                [`BẢNG THỐNG KÊ NGƯỜI DÙNG MỚI THEO THÁNG TRONG NĂM ${year} VÀ ${year - 1}`],
                 ['Năm'],
                 [`${year - 1}`, ...lastYear],
                 [`${year}`, ...thisYear],
