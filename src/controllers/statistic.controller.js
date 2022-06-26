@@ -124,10 +124,10 @@ const getDailyRevenue = async (req, res) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-ngay.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-doanh-so-theo-ngay.xlsx' })
+            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-ngay.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: "ok", result: preResult })
     } catch (error) {
         console.log(error);
         res.status(200).json({ message: error.message })
