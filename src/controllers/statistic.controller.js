@@ -232,7 +232,7 @@ const getYearlyRevenue = async (req, res) => {
         })
 
         result = result.map((item, index) => {
-            item = { year: start + index, data: item }
+            item = { year: parseInt(start) + index, data: item }
             return item
         })
 
