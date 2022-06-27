@@ -59,7 +59,7 @@ const postCart = async (req, res, next) => {
         res.status(201).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 

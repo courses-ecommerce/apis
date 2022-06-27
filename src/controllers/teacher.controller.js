@@ -212,6 +212,7 @@ const getMyInfo = async (req, res, next) => {
     try {
         const { id } = req.params
         const user = (await UserModel.aggregate([
+            { $match: { _id: ObjectId(id) } },
             {
                 $lookup: {
                     from: "teachers",
@@ -223,7 +224,6 @@ const getMyInfo = async (req, res, next) => {
             {
                 $unwind: "$teacher"
             },
-            { $match: { 'teacher._id': ObjectId(id) } },
             {
                 $project: {
                     'teacher.payments': 0,
