@@ -284,7 +284,10 @@ const getMyCourse = async (req, res, next) => {
         const myRating = await RateModel.findOne({ author: user, course: myCourse[0].course._id }).select('rate content')
         // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
         const lastView = await LessonModel.findById(myCourse[0].lastView)
-        const chapterOfLastView = await ChapterModel.findById(lastView.chapter)
+        var chapterOfLastView = null
+        if (lastView) {
+            chapterOfLastView = await ChapterModel.findById(lastView.chapter)
+        }
         var result = myCourse.map(item => {
             item.chapterOfLastView = chapterOfLastView
             item.lastView = lastView
