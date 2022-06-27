@@ -479,6 +479,7 @@ const getCourse = async (req, res, next) => {
                     rating: { $first: "$rating" },
                     author: { $first: "$author" },
                     hashtags: { $first: "$hashtags" },
+                    sellNumber: { $first: "$sellNumber" },
                     publish: { $first: "$publish" },
                     status: { $first: "$status" },
                     chapters: { $push: "$chapters" },

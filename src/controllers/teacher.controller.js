@@ -211,11 +211,33 @@ const getDetailMyCourse = async (req, res, next) => {
 const getMyInfo = async (req, res, next) => {
     try {
         const { id } = req.params
-        const teacher = await TeacherModel.findById(id).lean()
-        res.status(200).json({ message: "oke", teacher })
+        const user = (await UserModel.aggregate([
+            {
+                $lookup: {
+                    from: "teachers",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "teacher"
+                }
+            },
+            {
+                $unwind: "$teacher"
+            },
+            { $match: { 'teacher._id': ObjectId(id) } },
+            {
+                $project: {
+                    'teacher.payments': 0,
+                    'teacher.user': 0,
+                }
+            }
+        ]))[0]
+        const userCourse = await CourseModel.find({
+            author: user._id
+        })
+        res.status(200).json({ message: "oke", user, userCourse })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: 'error' })
+        res.status(500).json({ message: error.message })
     }
 }
 

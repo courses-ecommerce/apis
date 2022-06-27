@@ -10,7 +10,9 @@ const helper = require('../../helper/index');
 const CodeModel = require('../../models/code.model');
 const UserModel = require('../../models/users/user.model');
 const mailConfig = require('../../configs/mail.config');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const ConversationModel = require('../../models/chats/conversation.model');
+const MessageModel = require('../../models/chats/message.model');
 const ObjectId = mongoose.Types.ObjectId;
 
 /** Tạo hoá đơn cho người dùng (chưa thanh toán)
@@ -130,9 +132,36 @@ const postPaymentCheckout = async (req, res, next) => {
                 await CodeModel.findOneAndUpdate({ code: couponCode }, { isActive: false })
                 // thêm khoá học vào danh sách đã mua
                 await MyCourseModel.create({ user, course: courseId })
+                const course = (await CourseModel.aggregate([
+                    { $match: { _id: ObjectId(courseId) } },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "author",
+                            foreignField: "_id",
+                            as: "author"
+                        }
+                    },
+                    { $unwind: "$author" }
+                ]))[0]
+                // connect chat
+                var conversation = await ConversationModel.findOne({
+                    members: { $all: [user, course.author._id] }
+                })
+                if (!conversation) {
+                    conversation = await ConversationModel.create({
+                        members: [user, course.author._id]
+                    })
+                }
+                await MessageModel.create({
+                    conversation: conversation._id,
+                    sender: course.author._id,
+                    text: "Cảm ơn bạn đã mua khoá học. Nếu có câu hỏi gì hãy nhắn tin cho tôi."
+                })
             }
+            let ids = detailInvoices.map(item => item.courseId)
             // cập nhật số lượng bán của khoá học
-            await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
+            await CourseModel.updateMany({ _id: { $in: ids } }, { $inc: { sellNumber: 1 } })
             // xoá giỏ hàng
             await CartModel.deleteMany({ user })
             return
@@ -222,9 +251,38 @@ const getPaymentCallback = async (req, res, next) => {
                     await CodeModel.findOneAndUpdate({ code: couponCode }, { isActive: false })
                     // thêm khoá học vào danh sách đã mua
                     await MyCourseModel.create({ user, course: courseId })
+                    const course = (await CourseModel.aggregate([
+                        { $match: { _id: ObjectId(courseId) } },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "author",
+                                foreignField: "_id",
+                                as: "author"
+                            }
+                        },
+                        { $unwind: "$author" }
+                    ]))[0]
+                    // connect chat
+                    var conversation = await ConversationModel.findOne({
+                        members: { $all: [user, course.author._id] }
+                    })
+                    if (!conversation) {
+                        conversation = await ConversationModel.create({
+                            members: [user, course.author._id]
+                        })
+                    }
+                    await MessageModel.create({
+                        conversation: conversation._id,
+                        sender: course.author._id,
+                        text: "Cảm ơn bạn đã mua khoá học. Nếu có câu hỏi gì hãy nhắn tin cho tôi."
+                    })
                 }
+                let ids = detailInvoices.map(item => {
+                    return item.courseId
+                })
                 // cập nhật số lượng bán của khoá học
-                await CourseModel.updateMany({ _id: { $in: detailInvoices } }, { $inc: { sellNumber: 1 } })
+                await CourseModel.updateMany({ _id: { $in: ids } }, { $inc: { sellNumber: 1 } })
                 // xoá giỏ hàng
                 await CartModel.deleteMany({ user })
                 // cập nhật wishlist thành false
@@ -257,6 +315,7 @@ const getPaymentCallback = async (req, res, next) => {
                 };
                 //gửi mail
                 await mailConfig.sendEmail(mail);
+
             } else {
                 res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${data.transactionId}`)
                 return

@@ -12,10 +12,10 @@ teacherApis.get('/courses', passport.jwtAuthentication, teacherController.getMyC
 teacherApis.get('/courses/:id', passport.jwtAuthentication, teacherController.getDetailMyCourse)
 
 // api: lấy thông tin teacher
-teacherApis.get('/info', passport.jwtAuthentication, teacherController.getMyCourses)
+teacherApis.get('/info/:id', teacherController.getMyInfo)
 
 // api: cập nhật thông tin teacher
-teacherApis.put('/info', passport.jwtAuthentication, teacherController.putMyInfo)
+teacherApis.put('/info/:id', passport.jwtAuthentication, teacherController.putMyInfo)
 
 // api: lấy thông tin doanh thu theo tháng
 teacherApis.get('/my-revenue', passport.jwtAuthentication, teacherController.getMyRevenue)
