@@ -13,7 +13,252 @@ const MyCourseModel = require('../models/users/myCourse.model');
 var fs = require('fs');
 
 
+const setData = async (req, res) => {
+    try {
+        const name = [
+            {
+                name: "IELTS General Writing - The Complete Guide",
+                category: "62ac7383710ee00b2af53e92",
+                author: "62ac752f6cb5fd8fb627a976",
 
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397240/thumbnail/1656397204917.jpg"
+            },
+            {
+                name: "IELTS Advanced Speaking (Band 8-9)",
+                category: "62ac7383710ee00b2af53e92",
+                author: "62ac752f6cb5fd8fb627a976",
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397300/thumbnail/1656397265221.jpg"
+
+            },
+            {
+                name: "IELTS Step-by-step | Mastering Reading",
+                category: "62ac7383710ee00b2af53e92",
+                author: "62ac75366cb5fd8fb627aa1a",
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397316/thumbnail/1656397281304.jpg"
+
+            },
+            {
+                name: "IELTS Complete Preparation for (Academic & General)",
+                category: "62ac7383710ee00b2af53e92",
+                author: "62ac75366cb5fd8fb627aa1a",
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397328/thumbnail/1656397293992.jpg"
+
+            },
+            {
+                name: "IELTS Daily - Speaking Starter Course",
+                author: "62ac75366cb5fd8fb627aa22",
+                category: "62ac7383710ee00b2af53e92",
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397340/thumbnail/1656397305688.jpg"
+
+            },
+            {
+                name: "Complete English Common Errors Practice Test for all Exams",
+                category: "62ac7374710ee00b2af53e8d",
+                author: "62ac75366cb5fd8fb627aa22",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397350/thumbnail/1656397315387.jpg"
+
+            },
+            {
+                name: "English Placement Practice Test (EPT)- MCQs",
+                category: "62ac7374710ee00b2af53e8d",
+                author: "62ac75366cb5fd8fb627aa22",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397361/thumbnail/1656397326700.jpg"
+
+            },
+            {
+                name: "TOEFL Master Class with Andrea",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62ac75366cb5fd8fb627aa2a",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397370/thumbnail/1656397336176.jpg"
+
+            },
+            {
+                name: "TOEFL iBT (The Complete Course)",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62ac75366cb5fd8fb627aa2a",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397388/thumbnail/1656397353430.jpg"
+
+            },
+            {
+                name: "TOEFL iBT® – Test Of English as Foreign Language 2022",
+                author: "62ac75366cb5fd8fb627aa2a",
+
+                category: "62ac73ae710ee00b2af53e97", thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397183/thumbnail/1656397148757.jpg"
+
+            },
+            {
+                name: "TOEFL Strategies: A Complete Guide to the iBT",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397240/thumbnail/1656397204917.jpg"
+
+
+            },
+            {
+                name: "TOEFL English Vocabulary",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397300/thumbnail/1656397265221.jpg"
+
+            },
+            {
+                name: "English Academic Writing Skills for TOEFL & IELTS",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397316/thumbnail/1656397281304.jpg"
+
+            },
+            {
+                name: "English Made Simple: Vocabulary For TOEFL",
+                category: "62ac73ae710ee00b2af53e97",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397328/thumbnail/1656397293992.jpg"
+
+            },
+            {
+                name: "English Grammar Complete | All English Sentence Patterns",
+                category: "62ac7361710ee00b2af53e83",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397340/thumbnail/1656397305688.jpg"
+
+            },
+            {
+                name: "English Grammar| 50 English Grammar Mistakes people make",
+                category: "62ac7361710ee00b2af53e83",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397350/thumbnail/1656397315387.jpg"
+
+            },
+            {
+                name: "The English Conversation Course | Learn to speak English!",
+                category: "62ac7361710ee00b2af53e83",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397361/thumbnail/1656397326700.jpg"
+
+            },
+            {
+                name: "The Complete English Grammar Course - from A1 to C1 level",
+                category: "62ac7361710ee00b2af53e83",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397370/thumbnail/1656397336176.jpg"
+
+            },
+            {
+                name: "Basic English Grammar & Structures | A1-A2 Elementary Level",
+                category: "62ac7361710ee00b2af53e83",
+                author: "62b8631caf468acd479d64e0",
+
+                thumbnail: "https://res.cloudinary.com/uthcmc/image/upload/v1656397388/thumbnail/1656397353430.jpg"
+
+            }
+        ]
+
+        const prices = [
+            {
+                originalPrice: 1600000,
+                currentPrice: 1300000,
+            },
+            {
+                originalPrice: 1200000,
+                currentPrice: 1100000,
+            },
+            {
+                originalPrice: 2000000,
+                currentPrice: 1800000,
+            },
+            {
+                originalPrice: 2600000,
+                currentPrice: 1300000,
+            },
+            {
+                originalPrice: 3000000,
+                currentPrice: 2700000,
+            },
+            {
+                originalPrice: 1200000,
+                currentPrice: 900000,
+            },
+        ]
+
+        const data = {
+            "description": "Challenge - English Proficiency Test Course and App is the best way to improve your English grammar skills. ThisEnglish Proficiency Test helps you to learn the rules of grammar in English language. This can be done moreeasily by practicing the grammar exercises and taking regular grammar lessons in this app.But here’s the fun part, you don’t learn the regular, instead a more engaging, exciting and eccentric gameeducation hybrid. Take up on the challenging exercises, or cool off in our in app Game Arena. Start yourcorporate journey as a fresh internee, and then learn and grow your way up the promotion ladder, where thepossibilities are endless. Ace the app, and you’ll find yourself on top the food chain, the next CEO positionawaits!If you are looking for an offline grammar tests or English grammar offline app, this English Proficiency Test isthe right choice for you. This proficiency app is mainly designed for students, prospective candidates forcompetitive exams, beginning stage of English learners.This English proficiency test app makes your communication skills efficient in written English language through adual module system:Module 1 - Lessons 1 to 36 train you thoroughly in reading and writing, and getting prepped for advanced lessonsaheadModule 2 - Lessons 37 and onwards are an even specialized set of exercises involving listening, writing andreading to take the next step in your English skills.Test and improve your language knowledge and English grammar easily with this “English Proficiency Test",
+            "lang": "en",
+            "intendedLearners": [
+                "Internacional students"
+            ],
+            "requirements": [
+                "Intermediate English, Computer, Headset and Microphone, Internet, App TChallenge"
+            ],
+            "targets": [
+                "+72 lessons including vocabulary, grammar and text interpretation",
+                "Learning enviroment in a game scene, you from Training to CEO",
+                "Complete Course Substitute for In-Person Classes",
+                "+4500 exercises in an exclusive gaming app"
+            ],
+            "level": "all",
+        }
+
+        name.forEach(async item => {
+            let i = Math.floor(Math.random() * 6);
+            let originalPrice = prices[i].originalPrice
+            let currentPrice = prices[i].currentPrice
+            let saleOff = (1 - parseInt(currentPrice) / parseInt(originalPrice)) * 100 || 0
+
+            const course = await CourseModel.create({
+                name: item.name,
+                category: item.category,
+                thumbnail: item.thumbnail,
+                author: item.author,
+                description: data.description,
+                lang: data.lang,
+                intendedLearners: data.intendedLearners,
+                requirements: data.requirements,
+                targets: data.targets,
+                level: data.level,
+                originalPrice,
+                currentPrice,
+                saleOff,
+                status: "approved",
+                publish: true
+            })
+            if (course) {
+                let chapter = await ChapterModel.create({ course, name: "Mở đầu", number: 1 })
+                await LessonModel.create(
+                    { chapter, "number": 1, "title": "Làm quen với cách học", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655649599/videos/62af313b1ad5916fca2b4347-1655649572937.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655649599/videos/62af313b1ad5916fca2b4347-1655649572937.mp4"], "text": null, "slide": null, "description": "", "saveIn": "cloudinary", "publish": true, "duration": "22.207", "resource": null }
+                )
+                await LessonModel.create(
+                    { chapter, "number": 2, "title": "Cách luyện nghe", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655655026/videos/62af314e1ad5916fca2b434b-1655655004525.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655655026/videos/62af314e1ad5916fca2b434b-1655655004525.mp4"], "text": null, "slide": null, "description": "", "saveIn": "cloudinary", "publish": true, "duration": "11.26", "resource": null, })
+                await LessonModel.create(
+                    { chapter, "number": 3, "title": "Cách luyện nói", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655655099/videos/62af31541ad5916fca2b434f-1655655076812.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655655099/videos/62af31541ad5916fca2b434f-1655655076812.mp4"], "text": null, "slide": null, "description": "", "saveIn": "cloudinary", "publish": true, "duration": "25.158333", "resource": null, })
+                await LessonModel.create(
+                    { chapter, "number": 4, "title": "Cách luyện đọc", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655655147/videos/62af315a1ad5916fca2b4353-1655655125187.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655655147/videos/62af315a1ad5916fca2b4353-1655655125187.mp4"], "text": null, "slide": null, "description": "", "saveIn": "cloudinary", "publish": true, "duration": "18.541667", "resource": null, })
+                chapter = await ChapterModel.create({ course, name: "Chương 2", number: 2 })
+
+                await LessonModel.create(
+                    { chapter, "number": 1, "title": "Cách làm bài thi", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655655427/videos/62af4b4435f5d31c45f8f20d-1655655398076.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655655427/videos/62af4b4435f5d31c45f8f20d-1655655398076.mp4"], "text": null, "slide": null, "description": null, "saveIn": "cloudinary", "publish": true, "duration": "59.258333", "resource": null, "__v": 0 }
+                )
+                await LessonModel.create(
+                    { chapter, "number": 2, "title": "Thực hành", "type": "video", "video": ["https://res.cloudinary.com/uthcmc/video/upload/sp_hd/v1655655435/videos/62af4b5635f5d31c45f8f211-1655655411896.m3u8", "https://res.cloudinary.com/uthcmc/video/upload/v1655655435/videos/62af4b5635f5d31c45f8f211-1655655411896.mp4"], "text": null, "slide": null, "description": null, "saveIn": "cloudinary", "publish": true, "duration": "25.058333", "resource": null, }
+                )
+            }
+        })
+        res.send("ok")
+    } catch (error) {
+
+    }
+}
 
 //#region  courses
 
@@ -793,7 +1038,8 @@ const getSuggestCourses = async (req, res, next) => {
                 let historyViews = await HistoryViewModel.findOne({ user }).lean()
                 let courseId = historyViews?.historyViews[0]
                 if (courseId) {
-                    req.params.id = courseId
+                    let data = await CourseModel.findOne({ _id: courseId }).lean()
+                    req.params.slug = data.slug
                     courses = await getRelatedCourses(req, res, next)
                     return
                 } else {
@@ -1196,5 +1442,6 @@ module.exports = {
     getRates,
     getSuggestCourses,
     deleteCourse,
-    getDetailPendingCourse
+    getDetailPendingCourse,
+    setData
 }
