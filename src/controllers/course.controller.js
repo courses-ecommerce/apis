@@ -626,6 +626,12 @@ const getRelatedCourses = async (req, res, next) => {
                 }
             },
             {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $sort: { rating: -1 }
             },
             {
@@ -878,6 +884,12 @@ const getHotCourses = async (req, res, next) => {
                         }
                     ],
                     as: 'rating'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
                 }
             },
             {
