@@ -379,7 +379,7 @@ const putCourse = async (req, res, next) => {
 const getCourses = async (req, res, next) => {
     try {
         const { user } = req
-        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true', status, author } = req.query
+        var { page = 1, limit = 10, sort, name, category, min, max, hashtags, rating, level, publish = 'true', status, author } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
@@ -631,7 +631,7 @@ const getCourses = async (req, res, next) => {
             })
         }
         // tìm theo category slug
-        if (category) {
+        if (category && category !== 'all') {
             aQuery.push(
                 { $match: { 'category.slug': category } }
             )
@@ -658,19 +658,26 @@ const getCourses = async (req, res, next) => {
             )
         }
         // tìm theo giá từ min-max
-        if (price) {
-            let [min, max] = price.split('-')
+        if (min) {
             min = parseInt(min)
-            max = parseInt(max)
             aQuery.push(
-                { $match: { $and: [{ currentPrice: { $gt: min } }, { currentPrice: { $lt: max } }] } }
+                { $match: { currentPrice: { $gte: min } } }
             )
             aCountQuery.push(
-                { $match: { $and: [{ currentPrice: { $gt: min } }, { currentPrice: { $lt: max } }] } }
+                { $match: { currentPrice: { $gte: min } } }
+            )
+        }
+        if (max) {
+            max = parseInt(max)
+            aQuery.push(
+                { $match: { currentPrice: { $lte: max } } }
+            )
+            aCountQuery.push(
+                { $match: { currentPrice: { $lte: max } } }
             )
         }
         // sắp xếp và thống kê
-        if (sort) {
+        if (sort && sort !== "default") {
             let [f, v] = sort.split('-')
             let sortBy = {}
             if (f == 'score') {

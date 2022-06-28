@@ -1924,9 +1924,12 @@ paths:
           description: "ex: nodejs-mongodb"
           schema:
             type: string
-        - name: price
+        - name: min
           in: query
-          description: "min-max, ex: 10-50"
+          schema:
+            type: string
+        - name: max
+          in: query
           schema:
             type: string
         - name: author
