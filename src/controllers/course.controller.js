@@ -379,19 +379,11 @@ const putCourse = async (req, res, next) => {
 const getCourses = async (req, res, next) => {
     try {
         const { user } = req
-        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true', status } = req.query
+        var { page = 1, limit = 10, sort, name, category, price, hashtags, rating, level, publish = 'true', status, author } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
             { $match: { publish: publish == 'true' } },
-            {
-                $lookup: {
-                    from: 'categorys',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            },
             {
                 // tính rate trung bình
                 $lookup: {
@@ -408,6 +400,79 @@ const getCourses = async (req, res, next) => {
                         }
                     ],
                     as: 'rating'
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$rating",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: "$author"
+            },
+            {
+                $unwind: {
+                    "path": "$category",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $project: {
+                    'slug': 1,
+                    'name': 1,
+                    'category._id': 1,
+                    'category.name': 1,
+                    'category.slug': 1,
+                    'thumbnail': 1,
+                    'description': 1,
+                    'language': 1,
+                    'intendedLearners': 1,
+                    'requirements': 1,
+                    'targets': 1,
+                    'level': 1,
+                    'currentPrice': 1,
+                    'originalPrice': 1,
+                    'saleOff': 1,
+                    'author._id': 1,
+                    'author.fullName': 1,
+                    'sellNumber': 1,
+                    'hashtags': 1,
+                    'type': 1,
+                    'rating.rate': 1,
+                    'rating.numOfRate': 1,
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'updatedAt': {
+                        $dateToString: {
+                            date: "$updatedAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                    'status': 1,
+                    //'score': { $meta: "textScore" },
                 }
             },
         ]
@@ -505,8 +570,7 @@ const getCourses = async (req, res, next) => {
                     //'score': { $meta: "textScore" },
                 }
             },
-            { $skip: nSkip },
-            { $limit: parseInt(limit) }
+
         ]
         // tìm theo tên
         if (name) {
@@ -553,6 +617,17 @@ const getCourses = async (req, res, next) => {
             })
             aCountQuery.push({
                 $match: { hashtags: { $all: hashtags.split("-") } }
+            })
+        }
+        // tìm theo tác giả
+        if (author) {
+            aQuery.push(
+                {
+                    $match: { "author._id": ObjectId(author) }
+                }
+            )
+            aCountQuery.push({
+                $match: { "author._id": ObjectId(author) }
             })
         }
         // tìm theo category slug
@@ -613,9 +688,18 @@ const getCourses = async (req, res, next) => {
         if (user) {
             let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
             let exceptIds = khoaHocDaMuas.map(item => item.course)
-            aQuery.push({ $match: { _id: { $nin: exceptIds } } })
-            aCountQuery.push({ $match: { _id: { $nin: exceptIds } } })
+            aQuery.splice(1, 0, { $match: { _id: { $nin: exceptIds } } })
+            aCountQuery.splice(1, 0, { $match: { _id: { $nin: exceptIds } } })
         }
+
+        if (page && limit) {
+            aQuery.push(
+                { $skip: nSkip },
+                { $limit: parseInt(limit) }
+            )
+        }
+
+        console.log((aQuery));
 
         const courses = await CourseModel.aggregate(aQuery)
         aCountQuery.push({ $count: "total" })

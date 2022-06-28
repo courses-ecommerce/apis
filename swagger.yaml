@@ -1929,6 +1929,10 @@ paths:
           description: "min-max, ex: 10-50"
           schema:
             type: string
+        - name: author
+          in: query
+          schema:
+            type: string
         - name: status
           in: query
           schema:
