@@ -629,22 +629,23 @@ const getRelatedCourses = async (req, res, next) => {
                 $sort: { rating: -1 }
             },
             {
-                $limit: parseInt(limit)
+                $skip: (parseInt(page) - 1) * parseInt(limit)
             },
             {
-                $skip: (parseInt(page) - 1) * parseInt(limit)
+                $limit: parseInt(limit)
             }
         ])
         const totalCount = await CourseModel.aggregate([
             {
                 $match: {
                     $and: [
-                        { hashtags: { $in: course.hashtags } },
+                        { category: course.category },
                         { _id: { $ne: ObjectId(course._id) } },
                         { publish: true },
                     ]
                 }
-            }, {
+            },
+            {
                 $count: 'total'
             }
         ])
@@ -807,13 +808,59 @@ const getSuggestCourses = async (req, res, next) => {
 const getHotCourses = async (req, res, next) => {
     try {
         const { user } = req
-        const { limit = 12, category } = req.query
+        const { page, limit, category } = req.query
         let aQuery = []
+        let countQuery = []
         if (category) {
             aQuery.unshift({
                 $match: { "category.slug": category }
             })
+            countQuery.unshift({
+                $match: { "category.slug": category }
+            })
         }
+        countQuery.push(
+            { $match: { publish: true, type: { $in: ["Hot", 'Bestseller'] } } },
+            {
+                $lookup: {
+                    from: 'rates',
+                    localField: '_id',
+                    foreignField: 'course',
+                    pipeline: [
+                        {
+                            $group: {
+                                _id: '$course',
+                                rate: { $avg: '$rate' },
+                                numOfRate: { $count: {} }
+                            }
+                        }
+                    ],
+                    as: 'rating'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categorys',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $unwind: '$author' },
+            { $unwind: '$category' },
+            {
+                $sort: { sellNumber: -1, rating: -1 }
+            },
+            { $count: "total" }
+        )
         aQuery.push(
             { $match: { publish: true, type: { $in: ["Hot", 'Bestseller'] } } },
             {
@@ -854,10 +901,18 @@ const getHotCourses = async (req, res, next) => {
             {
                 $sort: { sellNumber: -1, rating: -1 }
             },
-            {
-                $limit: parseInt(limit)
-            })
 
+        )
+        if (page && limit) {
+            aQuery.push(
+                {
+                    $skip: (parseInt(page) - 1) * parseInt(limit)
+                },
+                {
+                    $limit: parseInt(limit)
+                },
+            )
+        }
         // nếu user đã login => loại những khoá học đã mua
         if (user) {
             let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
@@ -865,7 +920,8 @@ const getHotCourses = async (req, res, next) => {
             aQuery.unshift({ $match: { _id: { $nin: exceptIds } } })
         }
         const courses = await CourseModel.aggregate(aQuery)
-        return res.status(200).json({ message: "ok", courses })
+        const count = (await CourseModel.aggregate(countQuery))[0]?.total || 0
+        return res.status(200).json({ message: "ok", total: count, courses })
 
     } catch (error) {
         console.log(error);

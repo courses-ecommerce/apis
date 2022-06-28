@@ -12,7 +12,11 @@ var jobSetTagCoursesMonthly = new CronJob(
             const { numOfTopCourses, numOfSalesOfBestSellerCourses } = await WebConfigModel.findOne({})
             // console.log('Xếp nhãn khoá học vào 00:00:00 ngày 1 mỗi tháng');
             let year = new Date().getFullYear()
-            let month = new Date().getMonth() + 1 // 0 - 11
+            let month = new Date().getMonth()  // 0 - 11
+            if (month == 0) {
+                month = 12
+                year = year - 1
+            }
             // lấy các khoá học có số lượng bán cao hơn n mỗi tháng => bestseller
             const bestsellerCourses = await DetailInvoiceModel.aggregate([
                 {
