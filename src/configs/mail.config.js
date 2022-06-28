@@ -22,7 +22,7 @@ const sendEmail = async ({ to, subject, text, html, ...rest }) => {
       //config mail
       const mail = {
         //sender access
-        from: '"Hoàng Toeic" <no-reply@accounts.ht.com>',
+        from: '"E-Learning website" <no-reply@accounts.ht.com>',
         //receiver access
         to,
         //subject
@@ -224,10 +224,111 @@ const htmlInvoices = (invoice) => {
   return html
 };
 
+// gửi thông báo không phê duyệt khoá học
+const htmlDenyCourse = (user, course, content) => {
+  let html = `
+  <div marginwidth="0" marginheight="0">
+  <center>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%">
+      <tbody>
+        <tr>
+          <td align="center" valign="top">
+            <table border="0" cellpadding="0" cellspacing="0">
+              <tbody>
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td valign="top">
+                            <a href="https://hnam.works" target="_blank"
+                              data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
+                              <img src="" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
+                                alt="Hnam.works" class="CToWUd">
+                            </a>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td valign="top">
+                            <p>Kính gửi <b>${user.fullName}</b></p>
+                            <p>
+                              Đây là thông
+                              báo của hệ
+                              thống về việc <b>từ chối duyệt khoá học</b>
+                            </p>
+                            <p>
+                            <a href="https://www.course-ecommerce.tk/courses/${course.slug}">${course.name}</a>
+                            </p>
+                            <p>
+                              <b>Lý do</b>:
+                              ${content}
+                            </p>
+                            <tr>
+                    <td align="center" valign="top">
+                      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <tbody>
+                          <tr>
+                            <td valign="top">
+                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://manage.maxserver.com&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">visit
+                                our
+                                website</a>
+                              <span>
+                                | </span>
+                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
+                                in to your
+                                account</a>
+                              <span>
+                                | </span>
+                              <a href="https://www.course-ecommerce.tk/submitticket.php" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
+                                support</a>
+                              <br>
+                              Copyright ©
+                              hnam.works,
+                              All rights
+                              reserved.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+  </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</center>
+<div class="yj6qo"></div>
+<div class="adL">
+</div>
+</div>`
+
+  return html
+}
+
 module.exports = {
   sendEmail,
   htmlSignupAccount,
   htmlResetPassword,
   htmlWarningLogin,
   htmlInvoices,
+  htmlDenyCourse,
 };

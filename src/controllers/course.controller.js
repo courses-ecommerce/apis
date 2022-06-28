@@ -11,7 +11,8 @@ const didYouMean = require('google-did-you-mean')
 const helper = require('../helper');
 const MyCourseModel = require('../models/users/myCourse.model');
 var fs = require('fs');
-
+const UserModel = require('../models/users/user.model');
+const mailConfig = require('../configs/mail.config');
 
 const setData = async (req, res) => {
     try {
@@ -361,8 +362,21 @@ const putCourse = async (req, res, next) => {
         // gửi mail thông báo lý do nếu k cho phép
 
         if (account.role == "admin" && newCourse.publish == false) {
-            content
+            let author = await UserModel.findById({ _id: course.author }).populate('account')
+            let email = author.account.email
+            const mail = {
+                to: email,
+                subject: 'Từ chối phê duyệt khoá học',
+                html: mailConfig.htmlDenyCourse(author, course, content),
+            };
+
+            const result = await mailConfig.sendEmail(mail);
+            //if success
+            if (result) {
+                console.log("gửi mail oke");
+            }
         }
+
         try {
             fs.unlinkSync(image.path);
         } catch (error) {
@@ -379,11 +393,10 @@ const putCourse = async (req, res, next) => {
 const getCourses = async (req, res, next) => {
     try {
         const { user } = req
-        var { page = 1, limit = 10, sort, name, category, min, max, hashtags, rating, level, publish = 'true', status, author } = req.query
+        var { page = 1, limit = 10, sort, name, category, min, max, hashtags, rating, level, publish, status, author } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
-            { $match: { publish: publish == 'true' } },
             {
                 // tính rate trung bình
                 $lookup: {
@@ -478,7 +491,6 @@ const getCourses = async (req, res, next) => {
         ]
         // aggrate query
         let aQuery = [
-            { $match: { publish: publish == 'true' } },
             {
                 // tính rate trung bình
                 $lookup: {
@@ -610,6 +622,14 @@ const getCourses = async (req, res, next) => {
                 $match: { "rating.rate": { $gte: parseFloat(rating) } }
             })
         }
+        if (publish) {
+            aQuery.push(
+                { $match: { publish: publish == 'true' } },
+            )
+            aCountQuery.push(
+                { $match: { publish: publish == 'true' } },
+            )
+        }
         // tìm theo keyword
         if (hashtags) {
             aQuery.push({
@@ -705,8 +725,6 @@ const getCourses = async (req, res, next) => {
                 { $limit: parseInt(limit) }
             )
         }
-
-        console.log((aQuery));
 
         const courses = await CourseModel.aggregate(aQuery)
         aCountQuery.push({ $count: "total" })
