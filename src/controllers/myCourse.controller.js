@@ -283,46 +283,57 @@ const getMyCourse = async (req, res, next) => {
         const myCourse = await MyCourseModel.aggregate(query)
         const myRating = await RateModel.findOne({ author: user, course: myCourse[0].course._id }).select('rate content')
         // tính phần trăm hoàn thành khoá học và chèn timeline vào lesson
-        const lastView = await LessonModel.findById(myCourse[0].lastView)
-        var chapterOfLastView = null
-        if (lastView) {
-            chapterOfLastView = await ChapterModel.findById(lastView.chapter)
-        }
         var result = myCourse.map(item => {
-            item.chapterOfLastView = chapterOfLastView
-            item.lastView = lastView
             item.rating = myRating
             let tu = 0
             item.progress.forEach(i => {
                 i.complete ? tu++ : tu += 0
             })
             let mau = 0
-            item.chapters.forEach(chapter => {
-                mau += chapter.lessons.length
-                // điền timeline và complete vào lesson
-                chapter.lessons.map(lesson => {
-                    lesson.complete = false
-                    lesson.timeline = 0
-                    lesson.lastView = false
-                    for (let i = 0; i < item.progress.length; i++) {
-                        const element = item.progress[i];
-                        if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
-                            lesson.complete = element.complete
-                            lesson.timeline = element.timeline
-                            break
+            try {
+                item.chapters.forEach(chapter => {
+                    mau += chapter.lessons.length
+                    // điền timeline và complete vào lesson
+                    chapter.lessons.map(lesson => {
+                        lesson.complete = false
+                        lesson.timeline = 0
+                        lesson.lastView = false
+                        for (let i = 0; i < item.progress.length; i++) {
+                            const element = item.progress[i];
+                            if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
+                                lesson.complete = element.complete
+                                lesson.timeline = element.timeline
+                                break
+                            }
                         }
-                    }
-                    if (JSON.stringify(lesson._id) == JSON.stringify(item.lastView)) {
-                        lesson.lastView = true
-                    }
-                    return lesson
+                        if (JSON.stringify(lesson._id) == JSON.stringify(item.lastView)) {
+                            lesson.lastView = true
+                        }
+                        return lesson
+                    })
                 })
-            })
+            } catch (error) {
+                return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
+            }
+
             item.percentProgress = tu * 100 / mau
             delete item.progress
             return item
         })
+        try {
+            var lastView = null
+            if (myCourse[0].lastView) {
+                lastView = await LessonModel.findById(myCourse[0].lastView)
+            } else {
+                lastView = result[0].chapters[0].lessons[0]
+            }
+            const chapterOfLastView = await ChapterModel.findById(lastView.chapter)
 
+            result[0].lastView = lastView
+            result[0].chapterOfLastView = chapterOfLastView
+        } catch (error) {
+            return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
+        }
 
         res.status(200).json({ message: "ok", myCourse: result[0] })
 

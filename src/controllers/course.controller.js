@@ -76,7 +76,8 @@ const putCourse = async (req, res, next) => {
         const account = req.account
         const { slug } = req.params
         var newCourse = req.body
-
+        let content = newCourse.content
+        delete newCourse.content
         // lấy thông tin hiện tại
         const course = await CourseModel.findOne({ slug }).lean()
         if (!course) return res.status(404).json({ message: "Course not found!" })
@@ -112,6 +113,11 @@ const putCourse = async (req, res, next) => {
         // cập nhật theo id
         await CourseModel.updateOne({ _id: course._id }, newCourse)
         res.status(200).json({ message: 'ok' })
+        // gửi mail thông báo lý do nếu k cho phép
+
+        if (account.role == "admin" && newCourse.publish == false) {
+            content
+        }
         try {
             fs.unlinkSync(image.path);
         } catch (error) {
@@ -570,6 +576,9 @@ const getRelatedCourses = async (req, res, next) => {
         const { page = 1, limit = 12 } = req.query
         // course
         const course = await CourseModel.findOne({ slug: slug }).lean()
+        if (!course) {
+            return res.status(404).json({ message: "Not found" })
+        }
         // tìm khoá học liên quan theo hasgtag
         const courses = await CourseModel.aggregate([
             {
@@ -780,6 +789,8 @@ const getSuggestCourses = async (req, res, next) => {
                     req.params.id = courseId
                     courses = await getRelatedCourses(req, res, next)
                     return
+                } else {
+                    return res.status(200).json({ message: "ok", courses: [] })
                 }
             }
         }
