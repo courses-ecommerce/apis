@@ -101,7 +101,7 @@ const getCoupons = async (req, res, next) => {
         }
 
         if (account.role == 'teacher') {
-            aQuery.push({ $match: { "author._id": user._id } })
+            aQuery.splice(2, 0, { $match: { "author._id": user._id } })
         }
         const coupons = await CouponModel.aggregate(aQuery)
 
