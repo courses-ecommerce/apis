@@ -227,7 +227,6 @@ const getMyInfo = async (req, res, next) => {
             },
             {
                 $project: {
-                    'teacher.payments': 0,
                     'teacher.user': 0,
                 }
             }
