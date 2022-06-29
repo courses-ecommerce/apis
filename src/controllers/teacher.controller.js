@@ -231,6 +231,9 @@ const getMyInfo = async (req, res, next) => {
                 }
             }
         ]))[0]
+        if (!user) {
+            return res.status(404).json({ message: "Not found" })
+        }
         res.status(200).json({ message: "oke", user })
     } catch (error) {
         console.log(error);

@@ -340,6 +340,7 @@ const putCourse = async (req, res, next) => {
         if (newCourse.publish) {
             if (account.role == "admin") {
                 newCourse.publish = JSON.stringify(newCourse.publish) == "true"
+                newCourse.status = newCourse.publish ? 'approved' : 'denied'
             } else {
                 delete newCourse.publish
             }
