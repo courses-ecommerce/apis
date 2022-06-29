@@ -51,7 +51,8 @@ const getDailyRevenue = async (req, res) => {
         ])
         // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
         invoices = invoices.map(i => {
-            i.paymentPrice = i.paymentPrice * 0.2
+            i.paymentPrice = i.paymentPrice
+            // i.paymentPrice = i.paymentPrice * 0.2
             return i
         })
 
@@ -168,7 +169,8 @@ const getMonthlyRevenue = async (req, res, next) => {
         ])
         // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
         invoices = invoices.map(i => {
-            i.paymentPrice = i.paymentPrice * 0.2
+            i.paymentPrice = i.paymentPrice
+            // i.paymentPrice = i.paymentPrice * 0.2
             return i
         })
 
@@ -242,7 +244,8 @@ const getYearlyRevenue = async (req, res) => {
 
         // hệ thống chỉ lấy 20% giá trị của hoá đơn. 80% là của teacher
         invoices = invoices.map(i => {
-            i.paymentPrice = i.paymentPrice * 0.2
+            i.paymentPrice = i.paymentPrice
+            // i.paymentPrice = i.paymentPrice * 0.2
             return i
         })
 
