@@ -5,8 +5,10 @@ const passport = require('../middlewares/passport.middleware');
 const { dontStorageUpload } = require('../configs/storage.config');
 
 
-// api: lấy danh sách tài khoản use
+// api: lấy danh sách tài khoản user
 // adminUserApis.get('/', adminUserController.getAccountAndUsers)
+adminUserApis.get('/teachers', passport.jwtAuthentication, passport.isAdmin, adminUserController.getTeachers)
+adminUserApis.get('/teachers/:id', passport.jwtAuthentication, passport.isAdmin, adminUserController.getDetailTeacher)
 adminUserApis.get('/', passport.jwtAuthentication, passport.isAdmin, adminUserController.getAccountAndUsers)
 
 // api: lấy chi tiết 1 tài khoản bằng id

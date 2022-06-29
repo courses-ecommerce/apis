@@ -72,7 +72,6 @@ const getAccountAndUsers = async (req, res, next) => {
                 'account.accessToken': 0,
                 'account.__v': 0,
                 '__v': 0,
-
             }
         })
 
@@ -97,6 +96,156 @@ const getAccountAndUsers = async (req, res, next) => {
     } catch (error) {
         console.error('> error :: ', error);
         return res.status(500).json({ message: 'error' })
+    }
+}
+
+const getTeachers = async (req, res, next) => {
+    try {
+        const { page, limit, sort, email, active } = req.query
+        let aCountQuery = [
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: "$account"
+            },
+            { $match: { "account.role": "teacher" } },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacher'
+                }
+            },
+            {
+                $unwind: "$teacher"
+            },
+        ]
+        let aQuery = [
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: "$account"
+            },
+            { $match: { "account.role": "teacher" } },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacher'
+                }
+            },
+            {
+                $unwind: "$teacher"
+            },
+        ]
+        if (email) {
+            aQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
+            aCountQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
+        }
+        if (active) {
+            aQuery.push({ $match: { 'account.isActive': active == 'true' } })
+            aCountQuery.push({ $match: { 'account.isActive': active == 'true' } })
+        }
+        if (sort) {
+            let sortBy = {}
+            let [f, v] = sort.split('-')
+            sortBy[f] = v == "asc" || v == 1 ? 1 : -1
+            aQuery.push({ $sort: sortBy })
+        }
+
+        if (page && limit) {
+            aQuery.push(
+                {
+                    $skip: (parseInt(page) - 1) * parseInt(limit)
+                },
+                {
+                    $limit: parseInt(limit)
+                }
+            )
+        }
+        aQuery.push({
+            $project: {
+                'account.password': 0,
+                'account.refreshToken': 0,
+                'account.accessToken': 0,
+                'account.__v': 0,
+                '__v': 0,
+            }
+        })
+        aCountQuery.push({
+            $count: 'total'
+        })
+        const totalUsers = await UserModel.aggregate(aCountQuery)
+        let total = totalUsers[0]?.total || 0
+        const teachers = await UserModel.aggregate(aQuery)
+        res.status(200).json({ message: "ok", total, teachers })
+
+    } catch (error) {
+        console.error('> error :: ', error);
+        return res.status(500).json({ message: error.message })
+    }
+}
+
+const getDetailTeacher = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        let aQuery = [
+            { $match: { _id: ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'accounts',
+                    localField: 'account',
+                    foreignField: '_id',
+                    as: 'account'
+                }
+            },
+            {
+                $unwind: "$account"
+            },
+            { $match: { "account.role": "teacher" } },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacher'
+                }
+            },
+            {
+                $unwind: "$teacher"
+            },
+            {
+                $project: {
+                    'account.password': 0,
+                    'account.refreshToken': 0,
+                    'account.accessToken': 0,
+                    'account.__v': 0,
+                    '__v': 0,
+                }
+            }
+        ]
+        const teacher = (await UserModel.aggregate(aQuery))[0]
+        if (!teacher) {
+            return res.status(404).json({ message: "Not found" })
+        }
+        res.status(200).json({ message: "ok", teacher })
+
+    } catch (error) {
+
     }
 }
 
@@ -126,6 +275,9 @@ const postAccountAndUser = async (req, res, next) => {
                 const newUser = await UserModel.create({ fullName, account: newAcc._id, birthday, gender: gender == 'true', phone })
                 if (newUser) {
                     await HistorySearchModel.create({ user: newUser._id })
+                }
+                if (newUser && role == "teacher") {
+                    await TeacherModel.create({ user: newUser._id, isVerified: true })
                 }
             }
             return res.status(201).json({ message: "ok" })
@@ -332,5 +484,7 @@ module.exports = {
     putAccountAndUser,
     deleteAccountAndUser,
     deleteMultiAccountAndUser,
-    getStudentsOfTeacher
+    getStudentsOfTeacher,
+    getTeachers,
+    getDetailTeacher
 }

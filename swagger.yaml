@@ -2932,6 +2932,84 @@ paths:
           description: "SERVER ERROR"
 
   # admin region
+  /admin/users/teachers:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: lấy danh sách tài khoản người dùng
+      description: ""
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: email
+          in: query
+          description: ""
+          schema:
+            type: string
+        - name: active
+          in: query
+          description: ""
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: "example: ?sort=email-asc"
+          schema:
+            type: string
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  teachers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /admin/users/teachers/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - admin user
+      summary: lấy danh sách tài khoản người dùng
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          description: ""
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+
   /admin/users:
     get:
       security:

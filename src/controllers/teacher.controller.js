@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 const DetailInvoiceModel = require('../models/detailInvoice.model');
 const ChapterModel = require('../models/courses/chapter.model');
 const ObjectId = mongoose.Types.ObjectId;
-
+var xlsx = require('node-xlsx').default
+var fs = require('fs');
 
 // fn: lấy list khoá học đã tạo
 const getMyCourses = async (req, res, next) => {
@@ -260,7 +261,9 @@ const putMyInfo = async (req, res, next) => {
 //fn: lấy thống kê doanh thu theo tháng
 const getMyRevenue = async (req, res, next) => {
     try {
-        const { year = new Date().getFullYear(), month = new Date().getMonth() + 1 } = req.query
+        const { start, end, exports = 'false' } = req.query
+        let startDate = new Date(parseInt(start))
+        let endDate = new Date(new Date().setDate(new Date(parseInt(end)).getDate() + 1))
         const { _id } = req.user
         let query = [
             {
@@ -291,37 +294,68 @@ const getMyRevenue = async (req, res, next) => {
         ]
         // lấy data teacher
         const teacher = (await UserModel.aggregate(query))[0]
+        if (!teacher) { return res.status(404).json({ message: "Not found" }) }
         // lấy hoá đơn có tác giả in users id
         const invoices = await DetailInvoiceModel.aggregate([
             {
                 $match: {
-                    courseAuthor: teacher._id
+                    courseAuthor: teacher._id,
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
                 }
             },
             {
                 $project: {
+                    courseId: 1,
+                    courseSlug: 1,
+                    courseName: 1,
+                    courseThumbnail: 1,
+                    courseCurrentPrice: 1,
                     amount: 1,
+                    discount: 1,
                     courseAuthor: 1,
-                    createdAt: 1,
-                    month: { $month: '$createdAt' },
-                    year: { $year: '$createdAt' },
+                    createdAt: {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%d-%m-%Y',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
                 }
             },
-            {
-                $match: {
-                    year: parseInt(year),
-                    month: parseInt(month),
-                }
-            }
         ])
         teacher.revenue = 0
-        teacher.numOfDetailInvoice = 0
-        for (let i = 0; i < invoices.length; i++) {
-            const element = invoices[i];
-            if (JSON.stringify(teacher._id) == JSON.stringify(element.courseAuthor)) {
-                teacher.revenue += element.amount
-                teacher.numOfDetailInvoice++
-            }
+        teacher.discount = 0
+        teacher.numOfDetailInvoice = invoices.length
+        invoices.forEach(item => {
+            teacher.revenue += item.amount * 0.8
+            teacher.discount += item.discount
+        })
+
+        if (exports == 'true') {
+            const data = [
+                [`BẢNG THỐNG KÊ DOANH THU TỪ NGÀY ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`],
+                ["ID", "Tên", "Giá", "Giảm giá", "Tổng"],
+            ];
+            invoices.forEach(item => {
+                let slug = item.courseSlug
+                let name = item.courseName
+                let price = item.courseCurrentPrice
+                let discount = item.discount
+                let amount = item.amount
+                data.push([slug, name, price, discount, amount])
+            })
+            data.push([null, null, null, "Tổng", teacher.revenue * 10 / 8])
+            data.push([null, null, null, "Khấu hao", 0.2])
+            data.push([null, null, null, "Tổng nhận thực tế", teacher.revenue])
+
+            const range = { s: { c: 0, r: 0 }, e: { c: 8, r: 0 } }; // A1:A4
+            const sheetOptions = { '!merges': [range] };
+            var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
+            fs.createWriteStream('./src/public/statistics/thong-ke-doanh-thu-giang-vien.xlsx').write(buffer);
+            return res.status(200).json({ message: "ok", teacher, file: '/statistics/thong-ke-doanh-thu-giang-vien.xlsx' })
         }
 
         res.status(200).json({ message: "ok", teacher })
