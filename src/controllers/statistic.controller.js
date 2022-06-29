@@ -392,7 +392,7 @@ const getCountUsersByMonth = async (req, res, next) => {
 
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
-                [`BẢNG THỐNG KÊ NGƯỜI DÙNG MỚI THEO THÁNG TRONG NĂM ${year} VÀ ${year - 1}`],
+                [`BẢNG THỐNG KÊ NGƯỜI DÙNG MỚI THEO THÁNG TRONG NĂM ${year - 1} VÀ ${year}`],
                 ['Năm'],
                 [`${year - 1}`, ...lastYear],
                 [`${year}`, ...thisYear],
@@ -405,6 +405,7 @@ const getCountUsersByMonth = async (req, res, next) => {
             for (let i = 1; i <= 12; i++) {
                 data[1].push(`Tháng ${i}`)
             }
+            console.log(data);
             const range = { s: { c: 0, r: 0 }, e: { c: 13, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê người dùng', data: data }], { sheetOptions }); // Returns a buffer

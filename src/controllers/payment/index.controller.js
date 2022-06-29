@@ -63,7 +63,6 @@ const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
             paymentPrice: data.estimatedPrice,
             status: status
         })
-        console.log(invoice);
         // tạo chi tiết hoá đơn
         for (let i = 0; i < data.carts.length; i++) {
             const { course, coupon } = data.carts[i];
@@ -163,7 +162,8 @@ const postPaymentCheckout = async (req, res, next) => {
             // cập nhật số lượng bán của khoá học
             await CourseModel.updateMany({ _id: { $in: ids } }, { $inc: { sellNumber: 1 } })
             // xoá giỏ hàng
-            await CartModel.deleteMany({ user })
+            await CartModel.deleteMany({ user, wishlist: false })
+            await CartModel.updateMany({ user }, { wishlist: false })
             return
         }
 
@@ -235,13 +235,13 @@ const getPaymentCallback = async (req, res, next) => {
             let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo, status: { $ne: "Unpaid" } })
                 .populate('user').lean()
             if (invoice) {
-                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
+                res.redirect(`https://www.course-ecommerce.tk/invoice/${invoice._id}`)
                 return
             }
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${invoice._id}`)
+                res.redirect(`https://www.course-ecommerce.tk/invoice/${invoice._id}`)
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
@@ -284,9 +284,9 @@ const getPaymentCallback = async (req, res, next) => {
                 // cập nhật số lượng bán của khoá học
                 await CourseModel.updateMany({ _id: { $in: ids } }, { $inc: { sellNumber: 1 } })
                 // xoá giỏ hàng
-                await CartModel.deleteMany({ user })
+                await CartModel.deleteMany({ user, wishlist: false })
                 // cập nhật wishlist thành false
-                await CartModel.updateMany({ user }, { wishlist: true })
+                await CartModel.updateMany({ user }, { wishlist: false })
                 invoice = (await InvoiceModel.aggregate([
                     { $match: { _id: data.transactionId } },
                     {
@@ -317,7 +317,7 @@ const getPaymentCallback = async (req, res, next) => {
                 await mailConfig.sendEmail(mail);
 
             } else {
-                res.redirect(`https://www.course-ecommerce.tk/student/history-payment/${data.transactionId}`)
+                res.redirect(`https://www.course-ecommerce.tk/invoice/${data.transactionId}`)
                 return
             }
         } else {
