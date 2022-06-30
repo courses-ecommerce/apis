@@ -110,13 +110,24 @@ const putLesson = async (req, res, next) => {
             if (type == "video") {
                 const duration = await helper.getVideoDuration(file.path)
                 req.body.duration = duration
-
-                res.status(200).json({ message: "updating" })
+                let videoInfo = {
+                    name: file.originalname,
+                    size: (file.size / 1000000).toFixed(2) + " mb",
+                    createdAt: new Date(),
+                    status: "pending",
+                    type: file.mimetype
+                }
+                const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo }, { new: true })
+                res.status(200).json({ message: "oke", info })
                 const result = await helper.uploadVideoToCloudinary(file, id)
                 if (result.error) {
-                    return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
+                    videoInfo.status = "failure"
+                    await LessonModel.updateOne({ _id: id }, { videoInfo })
+                    return
+                    // return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
                 }
-                console.log('result', result);
+                videoInfo.status = "success"
+                req.body.videoInfo = videoInfo
                 req.body.video = [result.eager[0].secure_url, result.secure_url]
                 await LessonModel.updateOne({ _id: id }, req.body)
                 try {

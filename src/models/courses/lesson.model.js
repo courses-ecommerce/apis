@@ -59,6 +59,9 @@ const lessonSchema = new Schema({
     resource: {
         type: String,
         default: null
+    },
+    videoInfo: {
+        type: Object,
     }
 });
 

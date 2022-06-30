@@ -34,6 +34,14 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
 // fn: upload video to cloudinary
 const uploadVideoToCloudinary = async (video, id) => {
     try {
+        // const result = await cloudinary.uploader.upload_large(video.path, {
+        //     resource_type: 'video',
+        //     public_id: `videos/${id}-${Date.now()}`,
+        //     chunk_size: 6000000,
+        //     eager: [
+        //         { streaming_profile: "hd", format: "m3u8" },
+        //     ]
+        // })
         const result = await cloudinary.uploader.upload(video.path, {
             resource_type: 'video',
             public_id: `videos/${id}-${Date.now()}`,
