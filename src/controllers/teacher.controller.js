@@ -332,6 +332,10 @@ const getMyRevenue = async (req, res, next) => {
             teacher.revenue += item.amount * 0.8
             teacher.discount += item.discount
         })
+        const detailInvoices = invoices.map(item => {
+            item.revenue = item.revenue * 0.8
+            return item
+        })
 
         if (exports == 'true') {
             const data = [
@@ -354,10 +358,10 @@ const getMyRevenue = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-thu-giang-vien.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", teacher, file: '/statistics/thong-ke-doanh-thu-giang-vien.xlsx' })
+            return res.status(200).json({ message: "ok", teacher, detailInvoices, file: '/statistics/thong-ke-doanh-thu-giang-vien.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", teacher })
+        res.status(200).json({ message: "ok", teacher, detailInvoices })
 
     } catch (error) {
         console.log(error);
