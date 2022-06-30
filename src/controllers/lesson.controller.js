@@ -129,7 +129,7 @@ const putLesson = async (req, res, next) => {
                 videoInfo.status = "success"
                 req.body.videoInfo = videoInfo
                 req.body.video = [result.eager[0].secure_url, result.secure_url]
-                await LessonModel.updateOne({ _id: id }, req.body)
+                await LessonModel.updateOne({ _id: id }, data)
                 try {
                     fs.unlinkSync(resource.path);
                 } catch (error) { }
