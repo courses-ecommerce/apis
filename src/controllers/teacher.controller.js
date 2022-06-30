@@ -334,7 +334,7 @@ const getMyRevenue = async (req, res, next) => {
             teacher.discount += item.discount
         })
         const detailInvoices = invoices.map(item => {
-            item.revenue = item.revenue * 0.8
+            item.amount = item.amount * 0.8
             return item
         })
 
