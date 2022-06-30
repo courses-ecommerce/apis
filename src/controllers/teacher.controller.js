@@ -307,6 +307,7 @@ const getMyRevenue = async (req, res, next) => {
             },
             {
                 $project: {
+                    invoice: 1,
                     courseId: 1,
                     courseSlug: 1,
                     courseName: 1,
