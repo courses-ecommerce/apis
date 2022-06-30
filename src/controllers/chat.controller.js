@@ -14,10 +14,35 @@ const getConversations = async (req, res, next) => {
             // lấy danh sách hội thoại đang chờ kết nối
             conversations = await ConversationModel.aggregate([
                 { $match: { pending: user._id } },
+                { $unwind: "$members" },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "members",
+                        foreignField: "_id",
+                        as: "memberObj"
+                    }
+                },
+                { $unwind: "$memberObj" },
+                {
+                    $group: {
+                        "_id": "$_id",
+                        "member": { "$push": "$memberObj" },
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "pending",
+                        foreignField: "_id",
+                        as: "pending"
+                    }
+                },
+                { $unwind: "$pending" },
                 {
                     $lookup: {
                         from: 'messages',
-                        as: "messages",
+                        as: "message",
                         let: { localId: '$_id' },
                         pipeline: [
                             { $match: { $expr: { $eq: ['$$localId', '$conversation'] } } },
@@ -26,6 +51,7 @@ const getConversations = async (req, res, next) => {
                         ]
                     }
                 },
+                { $unwind: "$message" },
                 { $sort: { recentAt: -1 } },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
                 { $limit: parseInt(limit) }
@@ -34,10 +60,26 @@ const getConversations = async (req, res, next) => {
             // lấy danh sách hội đã kết nối thoại kèm 1 tin nhắn gần nhất
             conversations = await ConversationModel.aggregate([
                 { $match: { members: { $in: [user._id] } } },
+                { $unwind: "$members" },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "members",
+                        foreignField: "_id",
+                        as: "memberObj"
+                    }
+                },
+                { $unwind: "$memberObj" },
+                {
+                    $group: {
+                        "_id": "$_id",
+                        "member": { "$push": "$memberObj" },
+                    }
+                },
                 {
                     $lookup: {
                         from: 'messages',
-                        as: "messages",
+                        as: "message",
                         let: { localId: '$_id' },
                         pipeline: [
                             { $match: { $expr: { $eq: ['$$localId', '$conversation'] } } },
@@ -46,11 +88,18 @@ const getConversations = async (req, res, next) => {
                         ]
                     }
                 },
+                { $unwind: "$message" },
                 { $sort: { recentAt: -1 } },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
                 { $limit: parseInt(limit) }
             ])
         }
+
+        conversations = conversations.map(item => {
+            item.receiver = JSON.stringify(item.member[0]._id) == JSON.stringify(user._id) ? item.member[1] : item.member[0]
+            return item
+        })
+
         res.status(200).json({ message: "ok", conversations })
     } catch (error) {
         console.log(error);

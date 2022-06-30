@@ -614,6 +614,14 @@ const getCourses = async (req, res, next) => {
                 $match: { $text: { $search: name } }
             })
         }
+        if (publish) {
+            aQuery.splice(1, 0,
+                { $match: { publish: publish == 'true' } },
+            )
+            aCountQuery.splice(1, 0,
+                { $match: { publish: publish == 'true' } },
+            )
+        }
         // tìm theo số đánh giá
         if (rating) {
             aQuery.push({
@@ -622,14 +630,6 @@ const getCourses = async (req, res, next) => {
             aCountQuery.push({
                 $match: { "rating.rate": { $gte: parseFloat(rating) } }
             })
-        }
-        if (publish) {
-            aQuery.push(
-                { $match: { publish: publish == 'true' } },
-            )
-            aCountQuery.push(
-                { $match: { publish: publish == 'true' } },
-            )
         }
         // tìm theo keyword
         if (hashtags) {
@@ -934,16 +934,14 @@ const getRelatedCourses = async (req, res, next) => {
         if (!course) {
             return res.status(404).json({ message: "Not found" })
         }
-        // tìm khoá học liên quan theo hasgtag
+        // tìm khoá học liên quan theo category
         const courses = await CourseModel.aggregate([
             {
                 $match: {
-                    $and: [
-                        { category: course.category },
-                        { _id: { $ne: ObjectId(course._id) } },
-                        { publish: true },
-                    ]
-                }
+                    category: course.category,
+                    _id: { $ne: ObjectId(course._id) },
+                    publish: true
+                },
             },
             {
                 $lookup: {
@@ -1024,10 +1022,11 @@ const getSuggestCourses = async (req, res, next) => {
     try {
         // lấy lịch sử tìm kiếm
         // xem tag nào nhiều nhất => course có tag đó
-        const { limit = 10 } = req.query
+        const { page, limit } = req.query
         const user = req.user
         let searchKey = {}
         var courses = []
+        var total = 0
         var keyword = ''
         var query = [
             {
@@ -1121,8 +1120,15 @@ const getSuggestCourses = async (req, res, next) => {
                     //'score': { $meta: "textScore" },
                 }
             },
-            { $limit: parseInt(limit) }
         ]
+        var countQuery = JSON.parse(JSON.stringify(query))
+        countQuery.push({ $count: "total" })
+        if (page && limit) {
+            query.push(
+                { $skip: (parseInt(page) - 1) * parseInt(limit) },
+                { $limit: parseInt(limit) }
+            )
+        }
         if (user) {
             // nếu có user
             if (user) {
@@ -1142,8 +1148,12 @@ const getSuggestCourses = async (req, res, next) => {
                 query.unshift({
                     $match: { $text: { $search: keyword }, publish: true }
                 })
+                countQuery.unshift({
+                    $match: { $text: { $search: keyword }, publish: true }
+                })
                 // tìm khoá học liên quan lịch sử tìm kiếm
                 courses = await CourseModel.aggregate(query)
+                total = await CourseModel.aggregate(countQuery)[0]?.total || 0
             } else {
                 let historyViews = await HistoryViewModel.findOne({ user }).lean()
                 let courseId = historyViews?.historyViews[0]
@@ -1157,7 +1167,7 @@ const getSuggestCourses = async (req, res, next) => {
                 }
             }
         }
-        return res.status(200).json({ message: "ok", keyword, courses })
+        return res.status(200).json({ message: "ok", total, keyword, courses })
 
     } catch (error) {
         console.log(error);
