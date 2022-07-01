@@ -21,7 +21,7 @@ chatApis.post('/message', passport.jwtAuthentication, dontStorageUpload.fields([
 chatApis.get('/conversation/:conversation', passport.jwtAuthentication, chatController.getMessages)
 
 // api: cập nhật - đã xem tin nhắn
-chatApis.put('conversation/:conversation', passport.jwtAuthentication, chatController.updateSeenMessage)
+chatApis.put('/conversation/:conversation', passport.jwtAuthentication, chatController.updateSeenMessage)
 
 
 module.exports = chatApis
