@@ -244,7 +244,9 @@ const postMessage = async (req, res, next) => {
                 const result = await helper.uploadFileToCloudinary(image, Date.now())
 
                 // tạo tin nhắn
-                let tinNhan = await MessageModel.create({ conversation, text: result.secure_url, type: "image", sender: user._id })
+                let newMessage = await MessageModel.create({ conversation, text: result.secure_url, type: "image", sender: user._id })
+                let tinNhan = await MessageModel.findById(newMessage._id).populate("sender", "_id fullName avatar")
+
                 // lấy mảng socket id thành viên
                 let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
                 let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
