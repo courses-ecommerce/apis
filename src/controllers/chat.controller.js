@@ -311,7 +311,7 @@ const updateSeenMessage = async (req, res, next) => {
         // lấy hội thoại
         const cvst = await ConversationModel.findById(conversation).lean()
         if (!cvst) return res.status(400).json({ message: "Mã hội thoại không hợp lệ" })
-        let sender = cvst.members[0] === user._id ? cvst.members[1] : cvst.members[0]
+        let sender = JSON.stringify(cvst.members[0]) === JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
         // cập nhật tin nhắn thành đã xem
         await MessageModel.updateMany({ conversation: cvst._id, sender, seen: false }, { seen: true, seenAt })
         res.status(200).json({ message: "update ok" })
