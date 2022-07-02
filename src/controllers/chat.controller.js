@@ -318,6 +318,11 @@ const updateSeenMessage = async (req, res, next) => {
         let sender = JSON.stringify(cvst.members[0]) === JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
         // cập nhật tin nhắn thành đã xem
         await MessageModel.updateMany({ conversation: cvst._id, sender, seen: false }, { seen: true, seenAt })
+        let socketIdSender = await _redis.SMEMBERS(sender)
+        // gửi tới từng socket id
+        socketIdSender.forEach(id => {
+            _io.to(id).emit('seen-message', { conversation, seenAt })
+        });
         res.status(200).json({ message: "update ok" })
     } catch (error) {
         console.log(error);
