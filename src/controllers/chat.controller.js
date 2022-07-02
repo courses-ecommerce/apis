@@ -295,9 +295,9 @@ const getMessages = async (req, res, next) => {
         const { conversation } = req.params
 
         const messages = await MessageModel.find({ conversation }).populate('sender', '_id avatar fullName')
+            .sort({ createdAt: -1 })
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
-            .sort({ createdAt: 1 })
         res.status(200).json({ message: "ok", messages })
     } catch (error) {
         console.log(error);
