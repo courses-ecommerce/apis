@@ -97,7 +97,6 @@ const putLesson = async (req, res, next) => {
             }, { $inc: { number: step } })
         }
 
-
         if (resource) {
             const result = await helper.uploadFileToCloudinary(resource, id)
             if (result.error) {
@@ -107,43 +106,42 @@ const putLesson = async (req, res, next) => {
         }
         // nếu type là video thì tính thời lượng video
         if (file) {
-            if (type == "video") {
-                const duration = await helper.getVideoDuration(file.path)
-                req.body.duration = duration
-                let videoInfo = {
-                    name: file.originalname,
-                    size: (file.size / 1000000).toFixed(2) + " mb",
-                    createdAt: new Date(),
-                    status: "pending",
-                    type: file.mimetype
-                }
-                const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo }, { new: true })
-                res.status(200).json({ message: "oke", info })
-                const result = await helper.uploadVideoToCloudinary(file, id)
-                if (result.error) {
-                    videoInfo.status = "failure"
-                    await LessonModel.updateOne({ _id: id }, { videoInfo })
-                    return
-                    // return res.status(500).json({ message: "Lỗi tải lên video (cloudinary)" })
-                }
-                videoInfo.status = "success"
-                req.body.videoInfo = videoInfo
-                req.body.video = [result.eager[0].secure_url, result.secure_url]
-                await LessonModel.updateOne({ _id: id }, data)
-                try {
-                    fs.unlinkSync(resource.path);
-                } catch (error) { }
-                try {
-                    fs.unlinkSync(file.path);
-                } catch (error) { }
-                return
-            } else if (file && type == "slide") {
-                const result = await helper.uploadFileToCloudinary(file, id)
-                if (result.error) {
-                    return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
-                }
-                req.body.slide = result.secure_url
+            // if (type == "video") {
+            const duration = await helper.getVideoDuration(file.path)
+            req.body.duration = duration
+            let videoInfo = {
+                name: file.originalname,
+                size: (file.size / 1000000).toFixed(2) + " mb",
+                createdAt: new Date(),
+                status: "pending",
+                type: file.mimetype
             }
+            const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo, ...data }, { new: true })
+            res.status(200).json({ message: "oke", info })
+            const result = await helper.uploadVideoToCloudinary(file, id)
+            if (result.error) {
+                console.log(result);
+                videoInfo.status = "failure"
+                await LessonModel.updateOne({ _id: id }, { videoInfo })
+                return
+            }
+            videoInfo.status = "success"
+            let video = [result.eager[0].secure_url, result.secure_url]
+            await LessonModel.updateOne({ _id: id }, { videoInfo, video })
+            try {
+                fs.unlinkSync(resource.path);
+            } catch (error) { }
+            try {
+                fs.unlinkSync(file.path);
+            } catch (error) { }
+            return
+            // } else if (file && type == "slide") {
+            //     const result = await helper.uploadFileToCloudinary(file, id)
+            //     if (result.error) {
+            //         return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
+            //     }
+            //     req.body.slide = result.secure_url
+            // }
 
         }
 
