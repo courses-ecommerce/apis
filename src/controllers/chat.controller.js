@@ -74,6 +74,7 @@ const getConversations = async (req, res, next) => {
                     $group: {
                         "_id": "$_id",
                         "member": { "$push": "$memberObj" },
+                        "recentAt": { "$first": "$recentAt" },
                     }
                 },
                 {

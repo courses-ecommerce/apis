@@ -64,6 +64,7 @@ const getMyCourses = async (req, res, next) => {
                     course: { $first: "$course" },
                     chapters: { $push: "$chapters" },
                     progress: { $first: "$progress" },
+                    createdAt: { $first: "$createdAt" },
                 }
             },
             {
@@ -72,6 +73,7 @@ const getMyCourses = async (req, res, next) => {
                     "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
                     "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
                     "progress": 1,
+                    "createdAt": 1,
                 }
             }
         ]
@@ -183,7 +185,7 @@ const getMyCourses = async (req, res, next) => {
             })
             delete item.progress
             delete item.chapters
-            item.percentProgress = tu * 100 / mau
+            item.percentProgress = tu * 100 / mau || 0
             return item
         })
         // sort theo phần trăm tiến trình

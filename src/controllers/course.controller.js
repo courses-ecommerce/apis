@@ -583,7 +583,6 @@ const getCourses = async (req, res, next) => {
                     //'score': { $meta: "textScore" },
                 }
             },
-
         ]
         // tìm theo tên
         if (name) {
@@ -1153,7 +1152,7 @@ const getSuggestCourses = async (req, res, next) => {
                 })
                 // tìm khoá học liên quan lịch sử tìm kiếm
                 courses = await CourseModel.aggregate(query)
-                total = await CourseModel.aggregate(countQuery)[0]?.total || 0
+                total = (await CourseModel.aggregate(countQuery))[0]?.total || 0
             } else {
                 let historyViews = await HistoryViewModel.findOne({ user }).lean()
                 let courseId = historyViews?.historyViews[0]
