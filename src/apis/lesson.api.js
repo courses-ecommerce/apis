@@ -9,7 +9,6 @@ const { dontStorageUpload } = require('../configs/storage.config');
 // api: thêm khoá học
 lessonApis.post('/', passport.jwtAuthentication, lessonController.postLesson)
 
-
 // api: lấy lesson
 lessonApis.get('/:id', passport.jwtAuthentication, lessonController.getLesson)
 

@@ -275,7 +275,7 @@ const getPaymentCallback = async (req, res, next) => {
                     await MessageModel.create({
                         conversation: conversation._id,
                         sender: course.author._id,
-                        text: "Cảm ơn bạn đã mua khoá học. Nếu có câu hỏi gì hãy nhắn tin cho tôi."
+                        text: `Cảm ơn bạn đã mua khoá học ${course.name}. Nếu có câu hỏi gì hãy nhắn tin cho tôi.`
                     })
                 }
                 let ids = detailInvoices.map(item => {

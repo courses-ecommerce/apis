@@ -154,6 +154,11 @@ const hanlderApplyDiscountCode = (course, code) => {
     try {
         var message = "Không đủ điều kiện"
         var statusCode = 400
+        // kiểm tra khoá học miễn phí
+        if (course.currentPrice == 0) {
+            return { isApply: false, statusCode, discountAmount: 0, message: "Không thể áp dụng cho khoá học miễn phí." }
+        }
+
         // kiểm tra mã đã dùng chưa
         if (code.isActive == false) {
             return { isApply: false, statusCode, discountAmount: 0, message: "Mã giảm giá đã dùng" }

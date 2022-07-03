@@ -150,6 +150,7 @@ const getMyCourses = async (req, res, next) => {
             let sortBy = {}
             let [f, v] = sort.split('-')
             sortBy[f] = v == "asc" || v == '1' ? 1 : -1
+            sortBy = { ...sortBy, _id: -1 }
             query.push({ $sort: sortBy })
         }
         if (page && limit) {
@@ -252,7 +253,7 @@ const getMyCourse = async (req, res, next) => {
                         {
                             $match: {
                                 $expr: {
-                                    $eq: ["$publish", true]
+                                    $eq: ["$publish", false]
                                 }
                             }
 
@@ -274,13 +275,12 @@ const getMyCourse = async (req, res, next) => {
                 $project: {
                     _id: 1,
                     "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
-                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, chapter: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
                     "progress": 1,
                     "lastView": 1,
                 }
             }
         ]
-
 
         const myCourse = await MyCourseModel.aggregate(query)
         const myRating = await RateModel.findOne({ author: user, course: myCourse[0].course._id }).select('rate content')
@@ -299,7 +299,6 @@ const getMyCourse = async (req, res, next) => {
                     chapter.lessons.map(lesson => {
                         lesson.complete = false
                         lesson.timeline = 0
-                        lesson.lastView = false
                         for (let i = 0; i < item.progress.length; i++) {
                             const element = item.progress[i];
                             if (JSON.stringify(element.lessonId) == JSON.stringify(lesson._id)) {
@@ -308,9 +307,6 @@ const getMyCourse = async (req, res, next) => {
                                 break
                             }
                         }
-                        if (JSON.stringify(lesson._id) == JSON.stringify(item.lastView)) {
-                            lesson.lastView = true
-                        }
                         return lesson
                     })
                 })
@@ -318,7 +314,7 @@ const getMyCourse = async (req, res, next) => {
                 return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
             }
 
-            item.percentProgress = tu * 100 / mau
+            item.percentProgress = tu * 100 / mau || 0
             delete item.progress
             return item
         })
@@ -329,7 +325,7 @@ const getMyCourse = async (req, res, next) => {
             } else {
                 lastView = result[0].chapters[0].lessons[0]
             }
-            const chapterOfLastView = await ChapterModel.findById(lastView.chapter)
+            const chapterOfLastView = await ChapterModel.findById(lastView.chapter).lean()
 
             result[0].lastView = lastView
             result[0].chapterOfLastView = chapterOfLastView

@@ -3,6 +3,8 @@ const LessonModel = require('../models/courses/lesson.model');
 const CourseModel = require('../models/courses/course.model');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
+
+
 // fn: xác thực
 const isPermitted = async (req, res, next) => {
     try {
@@ -26,17 +28,15 @@ const isPermitted = async (req, res, next) => {
     }
 }
 
-
-
 // fn: tạo chapter mới
 const postChapter = async (req, res, next) => {
     try {
         var { course, name, number } = req.body
         const { user } = req
         const c = await CourseModel.findById(course).lean()
-        if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
-            return res.status(403).json({ message: "Not permitted" })
-        }
+        // if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
+        //     return res.status(403).json({ message: "Not permitted" })
+        // }
         number = parseInt(number)
         // check chapter nào có number = number hay không? dời toàn bộ chapter có number > number
         const currentChapter = await ChapterModel.findOne({ course, number })
@@ -71,8 +71,17 @@ const getChapters = async (req, res, next) => {
             query.push({
                 $lookup: {
                     from: "lessons",
-                    localField: "_id",
-                    foreignField: "chapter",
+                    let: { chapterId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$chapter", "$$chapterId"]
+                                }
+                            }
+                        },
+                        { $sort: { number: 1 } }
+                    ],
                     as: "lessons"
                 }
             })
