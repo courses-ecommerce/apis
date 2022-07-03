@@ -276,7 +276,7 @@ const getMyCourse = async (req, res, next) => {
                 $project: {
                     _id: 1,
                     "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
-                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, chapter: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    "chapters": { _id: 1, name: 1, number: 1, lessons: { _id: 1, chapter: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
                     "progress": 1,
                     "lastView": 1,
                 }
@@ -319,8 +319,6 @@ const getMyCourse = async (req, res, next) => {
             delete item.progress
             return item
         })
-        console.log(myCourse[0]);
-
         try {
             var lastView = null
             if (myCourse[0].lastView) {
@@ -328,7 +326,6 @@ const getMyCourse = async (req, res, next) => {
             } else {
                 lastView = result[0].chapters[0].lessons[0]
             }
-            console.log(lastView);
             const chapterOfLastView = await ChapterModel.findById(lastView.chapter).lean()
 
             result[0].lastView = lastView

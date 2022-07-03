@@ -2405,13 +2405,6 @@ paths:
           schema:
             type: string
           description: "ex: ?sort=progress-desc || ?sort=createdAt-asc"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/MyCourse"
       responses:
         200:
           description: "ok"
@@ -2431,11 +2424,6 @@ paths:
           schema:
             type: string
           required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MyCourse"
       responses:
         200:
           description: "ok"
