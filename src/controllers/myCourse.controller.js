@@ -253,11 +253,12 @@ const getMyCourse = async (req, res, next) => {
                         {
                             $match: {
                                 $expr: {
-                                    $eq: ["$publish", false]
+                                    $eq: ["$publish", true]
                                 }
                             }
 
-                        }
+                        },
+                        { $sort: { number: 1 } }
                     ],
                     as: 'chapters.lessons'
                 }
@@ -318,6 +319,8 @@ const getMyCourse = async (req, res, next) => {
             delete item.progress
             return item
         })
+        console.log(myCourse[0]);
+
         try {
             var lastView = null
             if (myCourse[0].lastView) {
@@ -325,11 +328,13 @@ const getMyCourse = async (req, res, next) => {
             } else {
                 lastView = result[0].chapters[0].lessons[0]
             }
+            console.log(lastView);
             const chapterOfLastView = await ChapterModel.findById(lastView.chapter).lean()
 
             result[0].lastView = lastView
             result[0].chapterOfLastView = chapterOfLastView
         } catch (error) {
+            console.log(error);
             return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
         }
 
