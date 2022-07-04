@@ -36,6 +36,8 @@ const postLesson = async (req, res, next) => {
     try {
         var { chapter, number, title, description } = req.body
         number = parseInt(number)
+        const objChapter = await ChapterModel.findById(chapter).lean()
+        if (!objChapter) return res.status(400).json({ message: "Chapter not found" })
         // check lesson nào có number = number hay không? dời toàn bộ lesson có number > number
         const currentLesson = await LessonModel.findOne({ chapter, number })
         if (currentLesson) {
@@ -50,6 +52,10 @@ const postLesson = async (req, res, next) => {
 
         await LessonModel.create({ chapter, number, title, description })
         res.status(201).json({ message: "create ok" })
+        const objCourse = await CourseModel.findById(objChapter.course).lean()
+        if (objCourse.status == 'approved') {
+            await CourseModel.updateOne({ _id: objCourse._id }, { status: "updating" })
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message, error: error.message })
@@ -116,7 +122,7 @@ const putLesson = async (req, res, next) => {
                 status: "pending",
                 type: file.mimetype
             }
-            const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo, ...data }, { new: true })
+            const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo, ...data, publish: false }, { new: true })
             res.status(200).json({ message: "oke", info })
             const result = await helper.uploadVideoToCloudinary(file, id)
             if (result.error) {

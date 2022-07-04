@@ -122,11 +122,11 @@ const htmlInvoices = (invoice) => {
                       <tbody>
                         <tr>
                           <td valign="top">
-                            <a href="https://hnam.works" target="_blank"
-                              data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
-                              <img src="" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
-                                alt="Hnam.works" class="CToWUd">
-                            </a>
+                          <a href="https://www.course-ecommerce.tk" target="_blank"
+                          data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
+                          <img src="https://i.ytimg.com/vi/D_uTgNVxHoc/maxresdefault.jpg" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
+                            alt="course-ecommerce.tk" class="CToWUd">
+                        </a>
                           </td>
                         </tr>
                       </tbody>
@@ -241,10 +241,10 @@ const htmlDenyCourse = (user, course, content) => {
                       <tbody>
                         <tr>
                           <td valign="top">
-                            <a href="https://hnam.works" target="_blank"
+                            <a href="https://www.course-ecommerce.tk" target="_blank"
                               data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
-                              <img src="" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
-                                alt="Hnam.works" class="CToWUd">
+                              <img src="https://i.ytimg.com/vi/D_uTgNVxHoc/maxresdefault.jpg" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
+                                alt="course-ecommerce.tk" class="CToWUd">
                             </a>
                           </td>
                         </tr>

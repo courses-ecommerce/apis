@@ -356,7 +356,11 @@ const putCourse = async (req, res, next) => {
             let op = newCourse.originalPrice || course.originalPrice
             newCourse.saleOff = (1 - parseInt(cp) / parseInt(op)) * 100 || 0
         }
-
+        if (newCourse.status == 'pending') {
+            if (course.status == 'approved') {
+                newCourse.status == 'updating'
+            }
+        }
         // cập nhật theo id
         await CourseModel.updateOne({ _id: course._id }, newCourse)
         res.status(200).json({ message: 'ok' })
@@ -700,7 +704,7 @@ const getCourses = async (req, res, next) => {
         if (sort && sort !== "default") {
             let [f, v] = sort.split('-')
             let sortBy = {}
-            if (f == 'score') {
+            if (f == 'score' && name) {
                 aQuery.push({ $sort: { score: { $meta: "textScore" }, rating: -1 } })
             } else if (f == 'rating') {
                 sortBy["rating.rate"] = v == "asc" || v == 1 ? 1 : -1
@@ -928,13 +932,13 @@ const getRelatedCourses = async (req, res, next) => {
     try {
         const { slug } = req.params
         const { page = 1, limit = 12 } = req.query
+        const { user } = req
         // course
         const course = await CourseModel.findOne({ slug: slug }).lean()
         if (!course) {
             return res.status(404).json({ message: "Not found" })
         }
-        // tìm khoá học liên quan theo category
-        const courses = await CourseModel.aggregate([
+        let query = [
             {
                 $match: {
                     category: course.category,
@@ -992,8 +996,8 @@ const getRelatedCourses = async (req, res, next) => {
             {
                 $limit: parseInt(limit)
             }
-        ])
-        const totalCount = await CourseModel.aggregate([
+        ]
+        let countQuery = [
             {
                 $match: {
                     $and: [
@@ -1006,7 +1010,17 @@ const getRelatedCourses = async (req, res, next) => {
             {
                 $count: 'total'
             }
-        ])
+        ]
+        if (user) {
+            var coursesBuyed = await MyCourseModel.find({ user }).lean()
+            var idsCourseBuyed = coursesBuyed.map(item => ObjectId(item.course))
+            query.unshift({ $match: { _id: { $nin: idsCourseBuyed } } })
+            countQuery.unshift({ $match: { _id: { $nin: idsCourseBuyed } } })
+        }
+
+        // tìm khoá học liên quan theo category
+        const courses = await CourseModel.aggregate(query)
+        const totalCount = await CourseModel.aggregate(countQuery)
         let total = totalCount[0]?.total || 0
         return res.status(200).json({ message: 'ok', total, courses })
     } catch (error) {
@@ -1130,11 +1144,10 @@ const getSuggestCourses = async (req, res, next) => {
         }
         if (user) {
             // nếu có user
-            if (user) {
-                let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
-                let exceptIds = khoaHocDaMuas.map(item => item.course)
-                query.unshift({ $match: { _id: { $nin: exceptIds } } })
-            }
+            let khoaHocDaMuas = await MyCourseModel.find({ user }).lean()
+            let exceptIds = khoaHocDaMuas.map(item => item.course)
+            query.unshift({ $match: { _id: { $nin: exceptIds } } })
+
             // lấy first recent search
             const historySearchOfUser = await HistorySearchModel.findOne({ user: user._id }).lean()
             keyword = historySearchOfUser ? historySearchOfUser.historySearchs[0] : null
@@ -1159,6 +1172,7 @@ const getSuggestCourses = async (req, res, next) => {
                 if (courseId) {
                     let data = await CourseModel.findOne({ _id: courseId }).lean()
                     req.params.slug = data.slug
+                    req.user = user
                     courses = await getRelatedCourses(req, res, next)
                     return
                 } else {
