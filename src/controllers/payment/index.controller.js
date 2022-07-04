@@ -122,7 +122,7 @@ const postPaymentCheckout = async (req, res, next) => {
 
             // thông tin hoá đơn
             const invoice = await InvoiceModel.findById(orderId).lean()
-            res.redirect(`https://www.course-ecommerce.tk/invoice/${invoice._id}`)
+            res.status(200).json({ isSuccess: true, message: 'Thanh toán thành công', invoice })
             // thêm khoá học đã mua cho người dùng
             let detailInvoices = await DetailInvoiceModel.find({ invoice: orderId }).select('courseId couponCode').lean()
             for (let i = 0; i < detailInvoices.length; i++) {
