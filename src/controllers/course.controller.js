@@ -361,6 +361,9 @@ const putCourse = async (req, res, next) => {
                 newCourse.status == 'updating'
             }
         }
+        if (newCourse.status == 'approved' && account.role != 'admin') {
+            return res.status(401).json({ message: "Not permited" })
+        }
         // cập nhật theo id
         await CourseModel.updateOne({ _id: course._id }, newCourse)
         res.status(200).json({ message: 'ok' })
@@ -382,6 +385,12 @@ const putCourse = async (req, res, next) => {
             }
         }
 
+        // nếu admin duyệt khoá học => set lessons publish = true
+        if (account.role == "admin" && newCourse.status == 'approved') {
+            const chapters = await ChapterModel.find({ course: course._id }).lean()
+            let objIdsChapters = chapters.map(item => ObjectId(item._id))
+            await LessonModel.updateMany({ chapter: { $in: objIdsChapters }, publish: false }, { publish: true })
+        }
         try {
             fs.unlinkSync(image.path);
         } catch (error) {

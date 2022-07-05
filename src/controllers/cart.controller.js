@@ -43,6 +43,9 @@ const postCart = async (req, res, next) => {
         // kiểm tra khoá học
         const hadCourse = await CourseModel.findById(course).lean()
         if (!hadCourse) return res.status(400).json({ message: "mã khoá học không hợp lệ" })
+        if (hadCourse.publish == false) {
+            return res.status(400).json({ message: "Khoá học đang phát triển" })
+        }
         // kiểm tra đã mua chưa
         const isBuyed = await MyCourseModel.findOne({ user, course }).lean()
         if (isBuyed) return res.status(400).json({ message: "khoá học đã sỡ hữu" })
