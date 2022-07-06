@@ -320,7 +320,6 @@ const getMyCourse = async (req, res, next) => {
             delete item.progress
             return item
         })
-        console.log('lastView', myCourse[0].chapters);
 
         try {
             var lastView = null
@@ -329,7 +328,6 @@ const getMyCourse = async (req, res, next) => {
             } else {
                 lastView = result[0].chapters[0].lessons[0]
             }
-            console.log(lastView);
             const chapterOfLastView = await ChapterModel.findById(lastView.chapter).lean()
 
             result[0].lastView = lastView
@@ -357,9 +355,12 @@ const putProgress = async (req, res, next) => {
 
         const mc = await MyCourseModel.findById(id).lean()
         const lesson = await LessonModel.findById(lessonId).lean()
+        console.log(lesson);
         if (lesson) {
             let isExisted = mc.progress?.some(item => JSON.stringify(item.lessonId) == JSON.stringify(lessonId)) || false
+            console.log(parseInt(lesson.duration) * 0.9, parseInt(timeline));
             if (parseInt(lesson.duration) * 0.9 <= parseInt(timeline)) {
+                console.log("ok");
                 dataUpdate['progress.$.complete'] = true
             }
             if (parseInt(lesson.duration) < parseInt(timeline)) {

@@ -132,14 +132,59 @@ const getMyInvoices = async (req, res, next) => {
             { $limit: parseInt(limit) },
             { $skip: (parseInt(page) - 1) * parseInt(limit) },
         ]
+        let aCountQuery = [
+            {
+                $match: {
+                    user: user._id, status: "Paid"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $lookup: {
+                    from: 'detailInvoices',
+                    localField: '_id',
+                    foreignField: 'invoice',
+                    as: "detailInvoices"
+                }
+            },
+            {
+                $project: {
+                    'transactionId': 1,
+                    'totalPrice': 1,
+                    'totalDiscount': 1,
+                    'paymentPrice': 1,
+                    'paymentMethod': 1,
+                    'status': 1,
+                    // 'user': 1
+                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'createdAt': {
+                        $dateToString: {
+                            date: "$createdAt",
+                            format: '%Y-%m-%dT%H:%M:%S',
+                            timezone: "Asia/Ho_Chi_Minh"
+                        }
+                    },
+                }
+            },
+        ]
 
         if (status) {
             query.push({ $match: { status: status } })
         }
 
         const invoices = await InvoiceModel.aggregate(query)
-        query.push({ $count: "total" })
-        const totalCount = await InvoiceModel.aggregate(query)
+        aCountQuery.push({ $count: "total" })
+        const totalCount = await InvoiceModel.aggregate(aCountQuery)
         const total = totalCount[0]?.total || 0
 
         res.status(200).json({ message: 'ok', total, invoices })

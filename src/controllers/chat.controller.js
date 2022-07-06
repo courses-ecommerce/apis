@@ -71,6 +71,15 @@ const getConversations = async (req, res, next) => {
                 },
                 { $unwind: "$memberObj" },
                 {
+                    $lookup: {
+                        from: "accounts",
+                        localField: "memberObj.account",
+                        foreignField: "_id",
+                        as: "memberObj.account"
+                    }
+                },
+                { $unwind: "$memberObj.account" },
+                {
                     $group: {
                         "_id": "$_id",
                         "member": { "$push": "$memberObj" },
@@ -92,7 +101,14 @@ const getConversations = async (req, res, next) => {
                 { $unwind: "$message" },
                 { $sort: { recentAt: -1 } },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
-                { $limit: parseInt(limit) }
+                { $limit: parseInt(limit) },
+                {
+                    $project: {
+                        member: { _id: 1, account: { email: 1, role: 1 }, fullName: 1, gender: 1, phone: 1, avatar: 1 },
+                        message: 1,
+                        recentAt: 1
+                    }
+                }
             ])
         }
 

@@ -6,8 +6,9 @@ const MyCourseModel = require('../models/users/myCourse.model')
 // fn: tạo mới đánh giá
 const postRate = async (req, res, next) => {
     try {
-        const { slug, rate, content } = req.body
+        var { slug, rate, content } = req.body
         const { user } = req
+        content = content.replace(/href="https?:\/\/.+"/, 'href="#"')
 
         // thông tin khoá học
         const course = await CourseModel.findOne({ slug }).lean()
