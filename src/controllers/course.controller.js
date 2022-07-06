@@ -615,10 +615,10 @@ const getCourses = async (req, res, next) => {
                     { upsert: true }
                 )
             }
+            searchKey.original = name
             if (searchKey.suggestion) {
                 name = searchKey.suggestion
             }
-            searchKey.original = name
             aQuery.unshift({
                 $match: { $text: { $search: name } }
             })
