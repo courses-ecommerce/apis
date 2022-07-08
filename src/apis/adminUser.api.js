@@ -9,6 +9,7 @@ const { dontStorageUpload } = require('../configs/storage.config');
 // adminUserApis.get('/', adminUserController.getAccountAndUsers)
 adminUserApis.get('/teachers', passport.jwtAuthentication, passport.isAdmin, adminUserController.getTeachers)
 adminUserApis.get('/teachers/:id', passport.jwtAuthentication, passport.isAdmin, adminUserController.getDetailTeacher)
+adminUserApis.get('/', adminUserController.getAccountAndUsers)
 adminUserApis.get('/', passport.jwtAuthentication, passport.isAdmin, adminUserController.getAccountAndUsers)
 
 // api: lấy chi tiết 1 tài khoản bằng id

@@ -10,6 +10,9 @@ const getInvoices = async (req, res, next) => {
         const { page, limit, sort, status, transaction, user } = req.query
         let query = [
             {
+                $match: { status: { $ne: 'Unpaid' } }
+            },
+            {
                 $lookup: {
                     from: 'users',
                     localField: 'user',
@@ -42,6 +45,9 @@ const getInvoices = async (req, res, next) => {
 
         ]
         let countQuery = [
+            {
+                $match: { status: { $ne: 'Unpaid' } }
+            },
             {
                 $lookup: {
                     from: 'users',
@@ -88,8 +94,8 @@ const getInvoices = async (req, res, next) => {
         }
         if (limit && page) {
             query.push(
-                { $limit: parseInt(limit) },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
+                { $limit: parseInt(limit) },
             )
         }
         // sắp xếp và thống kê

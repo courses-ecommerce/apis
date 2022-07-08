@@ -21,7 +21,7 @@ function ValidateEmail(mail) {
 // GET /api/admin/users?page=1&limit=10&role=user
 const getAccountAndUsers = async (req, res, next) => {
     try {
-        const { page, limit, sort, email, role, active } = req.query
+        const { page, limit, sort, email, role, active, exports = 'false' } = req.query
         let aCountQuery = [
             {
                 $lookup: {
@@ -92,6 +92,29 @@ const getAccountAndUsers = async (req, res, next) => {
         const totalUsers = await UserModel.aggregate(aCountQuery)
         let total = totalUsers[0]?.total || 0
         const users = await UserModel.aggregate(aQuery)
+
+        if (exports.toLowerCase().trim() == 'true') {
+            if (page && limit) {
+                aQuery.pop()
+                aQuery.pop()
+            }
+            const dataUsers = await UserModel.aggregate(aQuery)
+            const data = [
+                [`DANH SÁCH THÔNG TIN NGƯỜI DÙNG`],
+                ['Email', 'Tên', 'Số điện thoại', 'Ngày sinh', 'Giới tính', 'Role'],
+            ];
+            dataUsers.forEach(item => {
+                data.push([item.account.email, item.fullName, item.phone, item.birthday, item.gender ? "Nam" : "Nữ", item.account.role])
+            })
+
+            let range1 = { s: { c: 0, r: 0 }, e: { c: 7, r: 0 } }; // A1:A13
+            const sheetOptions = { '!merges': [range1] };
+            var buffer = xlsx.build([{ name: 'data', data: data }], { sheetOptions }); // Returns a buffer
+            fs.createWriteStream('./src/public/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx').write(buffer);
+            res.status(200).json({ message: "ok", total, users, file: '/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx' })
+            return
+        }
+
         res.status(200).json({ message: "ok", total, users })
     } catch (error) {
         console.error('> error :: ', error);

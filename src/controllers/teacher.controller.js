@@ -13,7 +13,7 @@ var fs = require('fs');
 const getMyCourses = async (req, res, next) => {
     try {
         const { user } = req
-        const { page = 1, limit = 10, sort, name } = req.query
+        const { page = 1, limit = 10, sort, name, status = 'all' } = req.query
 
         let query = [
             { $match: { author: user._id } },
@@ -24,6 +24,9 @@ const getMyCourses = async (req, res, next) => {
             query.unshift({
                 $match: { $text: { $search: name } }
             })
+        }
+        if (status && status != 'all') {
+            query.splice(1, 0, { $match: { status: status } })
         }
         // sắp xếp và thống kê
         if (sort) {
