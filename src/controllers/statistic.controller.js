@@ -976,7 +976,7 @@ const getTopMonthlyTeachers = async (req, res, next) => {
                 return teacher
             })
             preResult = preResult.filter(item => item.total > 0)
-            result[i] = _.orderBy(JSON.parse(JSON.stringify(preResult)), ['count'], ['desc']).slice(0, parseInt(top))
+            result[i] = _.orderBy(JSON.parse(JSON.stringify(preResult)), ['total'], ['desc']).slice(0, parseInt(top))
         }
         res.status(200).json({ message: "ok", result })
     } catch (error) {
@@ -1074,7 +1074,7 @@ const getTopYearTeachers = async (req, res, next) => {
         })
         result = result.filter(item => item.total > 0)
 
-        result = _.orderBy(JSON.parse(JSON.stringify(result)), ['count'], ['desc']).slice(0, parseInt(top))
+        result = _.orderBy(JSON.parse(JSON.stringify(result)), ['total'], ['desc']).slice(0, parseInt(top))
 
         res.status(200).json({ message: "ok", result })
     } catch (error) {
