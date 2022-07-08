@@ -123,54 +123,14 @@ const getDetailInvoice = async (req, res, next) => {
     try {
         const CLIENT_URL = `https://www.course-ecommerce.tk/invoice/`
         const { id } = req.params
-        const invoice = await InvoiceModel.aggregate([
-            { $match: { _id: id } },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'user',
-                    foreignField: '_id',
-                    as: 'user'
-                }
-            },
-            {
-                $unwind: "$user"
-            },
-            {
-                $lookup: {
-                    from: "detailInvoices",
-                    localField: '_id',
-                    foreignField: 'invoice',
-                    as: 'detailInvoices'
-                }
-            },
-            {
-                $project: {
-                    'transactionId': 1,
-                    'totalPrice': 1,
-                    'totalDiscount': 1,
-                    'paymentPrice': 1,
-                    'paymentMethod': 1,
-                    'status': 1,
-                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
-                    'createdAt': {
-                        $dateToString: {
-                            date: "$createdAt",
-                            format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
-                        }
-                    },
-                    'detailInvoices': 1
-                }
-            }
-        ])
-        if (invoice[0]) {
-            invoice[0].qrcode = await helper.generateQR(CLIENT_URL + id)
-
-        } else {
+        const invoice = await InvoiceModel.findOne({ _id: id }).populate('user', "_id fullName").lean()
+        if (!invoice) {
             return res.status(404).json({ message: "Not found" })
         }
-        res.status(200).json({ message: 'ok', invoice: invoice[0] })
+        const detailInvoices = await DetailInvoiceModel.find({ invoice: id }).populate('courseAuthor', '_id fullName').lean()
+        invoice.detailInvoices = detailInvoices
+        invoice.qrcode = await helper.generateQR(CLIENT_URL + id)
+        res.status(200).json({ message: 'ok', invoice })
 
     } catch (error) {
         console.log(error);

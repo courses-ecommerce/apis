@@ -6,7 +6,8 @@ const HistoryViewModel = require('../models/users/historyView.model');
 const InvoiceModel = require('../models/invoice.model');
 const helper = require('../helper');
 const uniqid = require('uniqid');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const DetailInvoiceModel = require('../models/detailInvoice.model');
 const ObjectId = mongoose.Types.ObjectId;
 // fn: lấy thông tin user hiện tại
 const getUser = async (req, res, next) => {
@@ -200,54 +201,14 @@ const getDetailMyInvoices = async (req, res, next) => {
     try {
         const { id } = req.params
         const { user } = req
-        const invoice = await InvoiceModel.aggregate([
-            { $match: { _id: id, user: user._id } },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'user',
-                    foreignField: '_id',
-                    as: 'user'
-                }
-            },
-            {
-                $unwind: "$user"
-            },
-            {
-                $lookup: {
-                    from: "detailInvoices",
-                    localField: '_id',
-                    foreignField: 'invoice',
-                    as: 'detailInvoices'
-                }
-            },
-            {
-                $project: {
-                    'transactionId': 1,
-                    'totalPrice': 1,
-                    'totalDiscount': 1,
-                    'paymentPrice': 1,
-                    'paymentMethod': 1,
-                    'status': 1,
-                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
-                    'createdAt': {
-                        $dateToString: {
-                            date: "$createdAt",
-                            format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
-                        }
-                    },
-                    'detailInvoices': 1
-                }
-            }
-        ])
-        if (invoice[0]) {
-            invoice[0].qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/student/history-payment/${id}`)
-
-        } else {
+        const invoice = await InvoiceModel.findOne({ _id: id, user: user._id }).populate('user', "_id fullName").lean()
+        if (!invoice) {
             return res.status(404).json({ message: "Not found" })
         }
-        res.status(200).json({ message: 'ok', invoice: invoice[0] })
+        const detailInvoices = await DetailInvoiceModel.find({ invoice: id }).populate('courseAuthor', '_id fullName').lean()
+        invoice.detailInvoices = detailInvoices
+        invoice.qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/invoice/${id}`)
+        res.status(200).json({ message: 'ok', invoice: invoice })
 
     } catch (error) {
         console.log(error);
