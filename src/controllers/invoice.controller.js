@@ -89,8 +89,8 @@ const getInvoices = async (req, res, next) => {
             countQuery.unshift({ $match: { transactionId: transaction } })
         }
         if (user) {
-            query.unshift({ $match: { user: user } })
-            countQuery.unshift({ $match: { user: user } })
+            query.unshift({ $match: { user: ObjectId(user) } })
+            countQuery.unshift({ $match: { user: ObjectId(user) } })
         }
         if (limit && page) {
             query.push(
