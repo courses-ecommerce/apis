@@ -130,8 +130,8 @@ const getMyInvoices = async (req, res, next) => {
                     },
                 }
             },
-            { $limit: parseInt(limit) },
             { $skip: (parseInt(page) - 1) * parseInt(limit) },
+            { $limit: parseInt(limit) },
         ]
         let aCountQuery = [
             {
@@ -192,7 +192,7 @@ const getMyInvoices = async (req, res, next) => {
 
     } catch (error) {
         console.log(error);
-        res.status(200).json({ message: "error" })
+        res.status(500).json({ message: error.message })
     }
 }
 

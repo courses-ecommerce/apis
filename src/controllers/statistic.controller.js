@@ -131,7 +131,7 @@ const getDailyRevenue = async (req, res) => {
         res.status(200).json({ message: "ok", result: preResult })
     } catch (error) {
         console.log(error);
-        res.status(200).json({ message: error.message })
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -408,7 +408,6 @@ const getCountUsersByMonth = async (req, res, next) => {
             for (let i = 1; i <= 12; i++) {
                 data[1].push(`Tháng ${i}`)
             }
-            console.log(data);
             const range = { s: { c: 0, r: 0 }, e: { c: 13, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê người dùng', data: data }], { sheetOptions }); // Returns a buffer

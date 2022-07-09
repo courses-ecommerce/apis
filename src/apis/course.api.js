@@ -6,7 +6,6 @@ const passport = require('../middlewares/passport.middleware');
 const accessControl = require('../middlewares/access_control.middleware')
 
 // api tạo mới khoá học 
-courseApis.post('/set-data', courseController.setData)
 courseApis.post('/', passport.jwtAuthentication, dontStorageUpload.single('thumbnail'), courseController.postCourse)
 
 // api lấy danh sách khoá học
