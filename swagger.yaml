@@ -3029,6 +3029,11 @@ paths:
           description: ""
           schema:
             type: boolean
+        - name: exports
+          in: query
+          description: ""
+          schema:
+            type: boolean
         - name: sort
           in: query
           description: "example: ?sort=email-asc"

@@ -80,6 +80,36 @@ const putCourse = async (req, res, next) => {
         // lấy thông tin hiện tại
         const course = await CourseModel.findOne({ slug }).lean()
         if (!course) return res.status(404).json({ message: "Course not found!" })
+
+        // kiểm tra quyền
+        if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
+            return res.status(401).json({ message: "Not permited" })
+        }
+
+        if (newCourse.status) {
+            if (newCourse.status == "approved") {
+                if (account.role != "admin") {
+                    return res.status(401).json({ message: "Not permited" })
+                }
+                newCourse.publish = true
+            }
+            else if (newCourse.status == "denied") {
+                if (account.role == "admin") {
+                    // từ chối duyệt cập nhật
+                    if (course.status == 'updating') {
+                        newCourse.status = 'update denied'
+                    } else {
+                        newCourse.publish = false
+                    }
+                }
+            }
+            else if (newCourse.status == 'pending') {
+                if (course.status == 'approved') {
+                    newCourse.status == 'updating'
+                }
+            }
+        }
+
         if (image) {
             // upload image lên cloud
             let thumbnail = await helper.uploadImageToCloudinary(image, slug)
@@ -89,19 +119,8 @@ const putCourse = async (req, res, next) => {
         if (newCourse.sellNumber) {
             delete newCourse.sellNumber
         }
-        // chỉ cho phép admin cập nhật publish
-        if (newCourse.publish) {
-            if (account.role == "admin") {
-                newCourse.publish = JSON.stringify(newCourse.publish) == "true"
-                newCourse.status = newCourse.publish ? 'approved' : 'denied'
-            } else {
-                delete newCourse.publish
-            }
-        }
-
-        // check permit 
-        if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
-            return res.status(401).json({ message: "not permited" })
+        if (account.role != "admin") {
+            delete newCourse.publish
         }
 
         if (newCourse.currentPrice || newCourse.originalPrice) {
@@ -109,20 +128,13 @@ const putCourse = async (req, res, next) => {
             let op = newCourse.originalPrice || course.originalPrice
             newCourse.saleOff = (1 - parseInt(cp) / parseInt(op)) * 100 || 0
         }
-        if (newCourse.status == 'pending') {
-            if (course.status == 'approved') {
-                newCourse.status == 'updating'
-            }
-        }
-        if (newCourse.status == 'approved' && account.role != 'admin') {
-            return res.status(401).json({ message: "Not permited" })
-        }
+
         // cập nhật theo id
         await CourseModel.updateOne({ _id: course._id }, newCourse)
         res.status(200).json({ message: 'ok' })
         // gửi mail thông báo lý do nếu k cho phép
 
-        if (account.role == "admin" && newCourse.publish == false) {
+        if (account.role == "admin" && (newCourse.status == "denied" || newCourse.status == 'update denied')) {
             let author = await UserModel.findById({ _id: course.author }).populate('account')
             let email = author.account.email
             const mail = {
@@ -427,11 +439,11 @@ const getCourses = async (req, res, next) => {
         }
         // tìm status
         if (status) {
-            aQuery.push(
-                { $match: { status } }
+            aQuery.splice(1, 0,
+                { $match: { status: status } }
             )
-            aCountQuery.push(
-                { $match: { status } }
+            aCountQuery.splice(1, 0,
+                { $match: { status: status } }
             )
         }
         // tìm theo level
