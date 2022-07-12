@@ -87,7 +87,7 @@ const putCourse = async (req, res, next) => {
         }
         if (newCourse.status == 'pending') {
             if (course.status == 'approved') {
-                newCourse.status == 'updating'
+                newCourse.status = 'updating'
             }
         }
         if (newCourse.publish && account.role == "admin") {
