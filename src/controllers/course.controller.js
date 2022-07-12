@@ -85,27 +85,19 @@ const putCourse = async (req, res, next) => {
         if (account.role !== "admin" && JSON.stringify(user._id) !== JSON.stringify(course.author)) {
             return res.status(401).json({ message: "Not permited" })
         }
-
-        if (newCourse.status) {
-            if (newCourse.status == "approved") {
-                if (account.role != "admin") {
-                    return res.status(401).json({ message: "Not permited" })
-                }
-                newCourse.publish = true
+        if (newCourse.status == 'pending') {
+            if (course.status == 'approved') {
+                newCourse.status == 'updating'
             }
-            else if (newCourse.status == "denied") {
-                if (account.role == "admin") {
-                    // từ chối duyệt cập nhật
-                    if (course.status == 'updating') {
-                        newCourse.status = 'update denied'
-                    } else {
-                        newCourse.publish = false
-                    }
-                }
-            }
-            else if (newCourse.status == 'pending') {
-                if (course.status == 'approved') {
-                    newCourse.status == 'updating'
+        }
+        if (newCourse.publish && account.role == "admin") {
+            if (newCourse.publish == true) {
+                newCourse.status = "approved"
+            } else {
+                if (course.status == "pending") {
+                    newCourse.status = "denied"
+                } else if (course.status == "updating") {
+                    newCourse.status = "update denied"
                 }
             }
         }
