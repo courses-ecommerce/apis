@@ -11,7 +11,7 @@ const lessonSchema = new Schema({
     number: {
         type: Number,
         required: true,
-        min: 1,
+        min: 0,
     },
     // tiêu đề bài học
     title: {

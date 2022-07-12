@@ -182,7 +182,7 @@ const getLesson = async (req, res, next) => {
         res.status(200).json({ message, lesson })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message, error: error.message })
+        res.status(500).json({ message: error.message, })
     }
 }
 
@@ -192,12 +192,12 @@ const getLessons = async (req, res, next) => {
         const { chapter } = req.query
         const lessons = await LessonModel.find({ chapter }).sort([['number', 1]]).lean()
 
-        lessons ? message = "Chapter id required" : message = "ok"
+        lessons ? message = "ok" : message = "Chapter id required"
 
         res.status(200).json({ message, lessons })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message, error: error.message })
+        res.status(500).json({ message: error.message, })
     }
 }
 
