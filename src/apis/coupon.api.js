@@ -10,14 +10,12 @@ couponApis.get('/login-with-google', couponController.postLoginGoogle)
 couponApis.get('/google/callback', couponController.getGoogleCallback)
 
 // api: xuất mã giảm giá ra google sheet
-// couponApis.post('/export-sheet', couponController.postCreateGoogleSheet)
 couponApis.post('/export-sheet', passport.jwtAuthentication, couponController.postCreateGoogleSheet)
 
 // api: danh sách mã và phân trang
 couponApis.get('/', passport.jwtAuthentication, couponController.getCoupons)
 
 // api: chi tiết mã
-// couponApis.get('/:id', couponController.getCoupon)
 couponApis.get('/:id', passport.jwtAuthentication, couponController.getCoupon)
 
 // api: thêm mã
@@ -26,7 +24,9 @@ couponApis.post('/', passport.jwtAuthentication, couponController.postCoupon)
 // api: cập nhật mã
 couponApis.put('/:id', passport.jwtAuthentication, couponController.updateCoupon)
 
+// api: xoá nhiều mã
 couponApis.delete('/', passport.jwtAuthentication, couponController.deleteManyCoupon)
+
 // api: xoá mã
 couponApis.delete('/:id', passport.jwtAuthentication, couponController.deleteCoupon)
 

@@ -5,13 +5,16 @@ const passport = require('../middlewares/passport.middleware');
 const accessControl = require('../middlewares/access_control.middleware')
 
 
-// api: đánh giá của khoá học
+// api: xem giỏ hàng
 cartApis.get('/', passport.jwtAuthentication, cartController.getCart)
 
+// api: thêm vào giỏ hàng
 cartApis.post('/', passport.jwtAuthentication, cartController.postCart)
 
+// api: cập nhật giỏ hàng
 cartApis.put('/:course', passport.jwtAuthentication, cartController.putCart)
 
+// api: xoá khỏi giỏ hàng
 cartApis.delete('/:course', passport.jwtAuthentication, cartController.deleteCart)
 
 

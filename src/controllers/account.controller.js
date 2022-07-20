@@ -6,6 +6,8 @@ const AccountModel = require("../models/users/account.model")
 const VerifyModel = require("../models/users/verify.model")
 const UserModel = require('../models/users/user.model')
 const HistorySearchModel = require('../models/users/historySearch.model');
+
+
 // fn: gửi mã xác thực để đăng ký tài khoản
 const postSendVerifyCode = async (req, res, next) => {
     try {
@@ -179,7 +181,6 @@ const postResetPassword = async (req, res, next) => {
         return res.status(500).json({ message: 'Thay đổi mật khẩu thất bại' });
     }
 }
-
 
 // fn: đổi mật khẩu
 const postChangePassword = async (req, res, next) => {

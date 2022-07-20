@@ -1307,31 +1307,6 @@ const getDetailPendingCourse = async (req, res, next) => {
 }
 //#endregion
 
-
-// #region lesson
-
-const getLessons = async (req, res, next) => {
-
-}
-const postLesson = async (req, res, next) => {
-    try {
-
-    } catch (error) {
-
-    }
-}
-const putLesson = async (req, res, next) => {
-
-}
-const deleteLesson = async (req, res, next) => {
-
-}
-
-
-// #endregion
-
-
-
 module.exports = {
     postCourse,
     getCourses,

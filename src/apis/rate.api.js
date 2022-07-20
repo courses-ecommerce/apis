@@ -8,6 +8,7 @@ const accessControl = require('../middlewares/access_control.middleware')
 // api: đánh giá của khoá học
 courseApis.post('/', passport.jwtAuthentication, rateController.postRate)
 
+// api: cập nhật đánh giá
 courseApis.put('/:id', passport.jwtAuthentication, rateController.putRate)
 
 

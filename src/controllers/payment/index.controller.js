@@ -15,41 +15,6 @@ const ConversationModel = require('../../models/chats/conversation.model');
 const MessageModel = require('../../models/chats/message.model');
 const ObjectId = mongoose.Types.ObjectId;
 
-/** Tạo hoá đơn cho người dùng (chưa thanh toán)
- * @param {Object} data
- * @property {String} data.user id người dùng
- * @property {String} data.orderId id đơn hàng
- * @property { [Object] } data.courses mảng thông tin khoá học (thông tin khoá học và mã giảm giá cho từng khoá) 
- * @property {Number} data.totalPrice giá tiền cần thanh toán để mua các khoá học ở data.courses
- * @returns {Boolean}
- * @property data.courses data.totalPrice là được xử lý từ hàm handlerCheckoutCart
- * @example data = {
-    "user":"userid"
-    "orderId":"54as4d6asd65as4d3",
-    "totalPrice": 50,
-    "courses": [
-        {
-            "_id": "625306b0427f22199612e141",
-            "name": "API Restful Javascript com Node.js, Typescript, TypeORM, v.v.",
-            "thumbnail": "uri/test.jpg",
-            "currentPrice": 30,
-            "originalPrice": 0,
-            "saleOff": 0,
-            "author": "625060fe1d697fe08f940a5e",
-            "slug": "api-restful-javascript-com-node-js-typescript-typeorm-v-v",
-            "amount": 20,
-            "coupon": {
-                "message": "Áp dụng thành công",
-                "discountAmount": 10,
-                "code": "TESTCODE",
-                "title": "test",
-                "type": "money",
-                "amount": 10
-            }
-        }
-    ]
-}
- */
 
 const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
     try {
@@ -85,7 +50,6 @@ const handlerCreateInvoice = async (data, user, orderId, status = 'Unpaid') => {
         return false
     }
 }
-
 
 const postPaymentCheckout = async (req, res, next) => {
     try {
@@ -218,7 +182,6 @@ const postPaymentCheckout = async (req, res, next) => {
         res.status(500).json({ message: error.message });
     }
 }
-
 
 const getPaymentCallback = async (req, res, next) => {
     try {
