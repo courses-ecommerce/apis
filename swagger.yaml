@@ -7,7 +7,7 @@ info:
 servers:
   - url: https://hnam.works/api
   - url: http://localhost:3000/api
-  - url: https://geny-e-learning.herokuapp.com/api
+  - url: https://ecourse-apis.herokuapp.com/api
 tags:
   - name: login
     description: xác thực và uỷ quyền
