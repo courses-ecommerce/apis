@@ -4,11 +4,12 @@
 [![npm version](https://img.shields.io/badge/npm-v8.5.5-blue)](https://github.com/courses-ecommerce/apis)
 [![GitHub license](https://img.shields.io/badge/license-MIT-c9f)](https://github.com/courses-ecommerce/apis)
 
-Docs: [API Documentation](https://hnam.works/api-docs)
+Docs: [API Documentation](https://ecourse-apis.herokuapp.com/api-docs)
 
 Link Demo Website: [course-ecommerce](https://www.course-ecommerce.tk/)
 
 APIs cho trang web bán khoá học trực tuyến
+
 > Luận văn tốt nghiệp năm 2022
 
 ## Công nghệ sử dụng
@@ -33,12 +34,12 @@ APIs cho trang web bán khoá học trực tuyến
 
 - CRUD khoá học
 - Gợi ý khoá học dựa vào lịch sử tìm kiếm
-- Tự động gắn tags (hot, bestseller) mỗi tháng dựa vào số lượng bán và doanh thu
+- Tự động(cron job) gắn tags (hot, bestseller) mỗi tháng dựa vào số lượng bán và doanh thu
 
 ### Quản lý phiếu giảm giá
 
 - CRUD phiếu giảm giá
-- Export google sheet mã giảm giá  
+- Export google sheet mã giảm giá
 
 ### Quản lý tài khoản người dùng
 
@@ -84,13 +85,13 @@ APIs cho trang web bán khoá học trực tuyến
 
 ## Hướng dẫn cài đặt trên windows
 
-Yêu cầu: đã cài đặt nodejs, npm, mongodb và redis
+Yêu cầu: đã cài đặt nodejs, npm, mongodb và redis (có thể dùng mongo cloud sever, redis cloud sever)
 
 Bước 1: Tải dự án về máy
 
 Mở terminal, gõ lệnh sau:
 
-``` bash
+```bash
 git clone https://github.com/courses-ecommerce/apis.git
 ```
 
@@ -98,7 +99,7 @@ Bước 2: Cài đặt package phụ thuộc
 
 Mở Visual studio code, mở thư mục đã tải ở bước 1. Mở terminal và gõ lệnh:
 
-``` bash
+```bash
 npm install
 ```
 
@@ -108,7 +109,7 @@ Tạo file `.env` nội dung dựa vào file `.env.example`
 
 Bước 4: Khởi động server
 
-``` bash
+```bash
 npm start
 ```
 
