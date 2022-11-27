@@ -4,7 +4,7 @@
 [![npm version](https://img.shields.io/badge/npm-v8.5.5-blue)](https://github.com/courses-ecommerce/apis)
 [![GitHub license](https://img.shields.io/badge/license-MIT-c9f)](https://github.com/courses-ecommerce/apis)
 
-Docs: [API Documentation](https://ecourse-apis.herokuapp.com/api-docs)
+Docs: [API Documentation](https://courses-ecommerce-apis.onrender.com/api-docs)
 
 Link Demo Website: [course-ecommerce](https://www.course-ecommerce.tk/)
 
