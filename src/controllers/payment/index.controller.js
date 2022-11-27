@@ -198,13 +198,13 @@ const getPaymentCallback = async (req, res, next) => {
             let invoice = await InvoiceModel.findOne({ _id: data.transactionId, transactionId: data.gatewayTransactionNo, status: { $ne: "Unpaid" } })
                 .populate('user').lean()
             if (invoice) {
-                res.redirect(`https://www.course-ecommerce.tk/invoice/${invoice._id}`)
+                res.redirect(`${FRONTEND_URL}/invoice/${invoice._id}`)
                 return
             }
             if (data.isSuccess) {
                 // update hoá đơn
                 invoice = await InvoiceModel.findOneAndUpdate({ _id: data.transactionId }, { transactionId: data.gatewayTransactionNo, status: "Paid" }, { new: true })
-                res.redirect(`https://www.course-ecommerce.tk/invoice/${invoice._id}`)
+                res.redirect(`${FRONTEND_URL}/invoice/${invoice._id}`)
                 // thêm khoá học đã mua cho người dùng
                 let user = invoice.user
                 let detailInvoices = await DetailInvoiceModel.find({ invoice: invoice._id }).lean()
@@ -280,7 +280,7 @@ const getPaymentCallback = async (req, res, next) => {
                 await mailConfig.sendEmail(mail);
 
             } else {
-                res.redirect(`https://www.course-ecommerce.tk/invoice/${data.transactionId}`)
+                res.redirect(`${FRONTEND_URL}/invoice/${data.transactionId}`)
                 return
             }
         } else {
