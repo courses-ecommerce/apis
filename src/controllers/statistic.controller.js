@@ -482,7 +482,7 @@ const getTopSaleCoursesOfYear = async (req, res, next) => {
                 [`Top`, 'Khoá học', 'số lượng bán']
             ];
             result.forEach((item, index) => {
-                data.push([index + 1, `=HYPERLINK("https://www.course-ecommerce.tk/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+                data.push([index + 1, `=HYPERLINK("${process.env.FRONTEND_URL}/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
             });
 
             const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4
@@ -554,7 +554,7 @@ const getTopSaleCoursesOfMonth = async (req, res, next) => {
                 ['Top', "Khoá học", "Số lượng bán"]
             ];
             result.forEach((item, index) => {
-                data.push([index + 1, `=HYPERLINK("https://www.course-ecommerce.tk/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+                data.push([index + 1, `=HYPERLINK("${process.env.FRONTEND_URL}/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
             })
 
             const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4

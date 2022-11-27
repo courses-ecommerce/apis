@@ -127,7 +127,7 @@
                     <% invoice.detailInvoices.forEach(item=>{ %>
                         <tr>
                             <td>
-                                <a href="https://www.course-ecommerce.tk/course/<%=item.courseSlug %>">
+                                <a href="<%=url %>/course/<%=item.courseSlug %>">
                                     <%= item.courseName %>
                                 </a>
                             </td>
@@ -150,7 +150,7 @@
     </div>
     <div style="margin: auto;height: auto; width: 200px; padding: 10px;">
         <button onclick="PrintElem()">In hoá đơn</button>
-        <button><a href="https://www.course-ecommerce.tk">Trang chủ</a></button>
+        <button><a href="<%=url %>">Trang chủ</a></button>
     </div>
 
     <script src="/js/qrcode.js"></script>
@@ -158,7 +158,7 @@
     <script src="/js/jquery.min.js"></script>
     <script type="text/javascript">
         new QRCode(document.getElementById("qrcode"), {
-            text: "https://www.course-ecommerce.tk/invoice/<%=invoice._id %>", width: 150,
+            text: "<%=url %>/invoice/<%=invoice._id %>", width: 150,
             height: 150,
         });
         function PrintElem() {

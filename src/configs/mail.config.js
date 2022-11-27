@@ -122,7 +122,7 @@ const htmlInvoices = (invoice) => {
                       <tbody>
                         <tr>
                           <td valign="top">
-                          <a href="https://www.course-ecommerce.tk" target="_blank"
+                          <a href="${process.env.FRONTEND_URL}" target="_blank"
                           data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
                           <img src="https://i.ytimg.com/vi/D_uTgNVxHoc/maxresdefault.jpg" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
                             alt="course-ecommerce.tk" class="CToWUd">
@@ -166,7 +166,7 @@ const htmlInvoices = (invoice) => {
                             </p>`
   invoice.detailInvoices.forEach(item => {
     html += `------------------------------<wbr>------------------------
-      <p> <a href="https://www.course-ecommerce.tk/courses/${item.courseSlug}">${item.courseName}</a><br>
+      <p> <a href="${process.env.FRONTEND_URL}/courses/${item.courseSlug}">${item.courseName}</a><br>
       Giá: ${item.courseCurrentPrice} vnđ<br>
       Giảm giá: ${item.discount} vnđ<br>
       Tạm tính: ${item.amount} vnđ<br>
@@ -178,20 +178,20 @@ const htmlInvoices = (invoice) => {
                         <tbody>
                           <tr>
                             <td valign="top">
-                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                              <a href="${process.env.FRONTEND_URL}/" target="_blank"
                                 data-saferedirecturl="https://www.google.com/url?q=https://manage.maxserver.com&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">visit
                                 our
                                 website</a>
                               <span>
                                 | </span>
-                              <a href="https://www.course-ecommerce.tk/" target="_blank"
-                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
+                              <a href="${process.env.FRONTEND_URL}/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=${process.env.FRONTEND_URL}/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
                                 in to your
                                 account</a>
                               <span>
                                 | </span>
-                              <a href="https://www.course-ecommerce.tk/submitticket.php" target="_blank"
-                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
+                              <a href="${process.env.FRONTEND_URL}/submitticket.php" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=${process.env.FRONTEND_URL}/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
                                 support</a>
                               <br>
                               Copyright ©
@@ -241,7 +241,7 @@ const htmlDenyCourse = (user, course, content) => {
                       <tbody>
                         <tr>
                           <td valign="top">
-                            <a href="https://www.course-ecommerce.tk" target="_blank"
+                            <a href="${process.env.FRONTEND_URL}" target="_blank"
                               data-saferedirecturl="https://www.google.com/url?q=https://hnam.works&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">
                               <img src="https://i.ytimg.com/vi/D_uTgNVxHoc/maxresdefault.jpg" style="max-width:600px;padding:20px" id="m_-4654180294300959301headerImage"
                                 alt="course-ecommerce.tk" class="CToWUd">
@@ -265,7 +265,7 @@ const htmlDenyCourse = (user, course, content) => {
                               thống về việc <b>từ chối duyệt khoá học</b>
                             </p>
                             <p>
-                            <a href="https://www.course-ecommerce.tk/courses/${course.slug}">${course.name}</a>
+                            <a href="${process.env.FRONTEND_URL}/courses/${course.slug}">${course.name}</a>
                             </p>
                             <p>
                               <b>Lý do</b>:
@@ -277,20 +277,20 @@ const htmlDenyCourse = (user, course, content) => {
                         <tbody>
                           <tr>
                             <td valign="top">
-                              <a href="https://www.course-ecommerce.tk/" target="_blank"
+                              <a href="${process.env.FRONTEND_URL}/" target="_blank"
                                 data-saferedirecturl="https://www.google.com/url?q=https://manage.maxserver.com&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw2VmFgDLPl3zdTFRyVOzKJX">visit
                                 our
                                 website</a>
                               <span>
                                 | </span>
-                              <a href="https://www.course-ecommerce.tk/" target="_blank"
-                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
+                              <a href="${process.env.FRONTEND_URL}/" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=${process.env.FRONTEND_URL}/&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw3tvOSiz7rRt2mIv3atFN8Z">log
                                 in to your
                                 account</a>
                               <span>
                                 | </span>
-                              <a href="https://www.course-ecommerce.tk/submitticket.php" target="_blank"
-                                data-saferedirecturl="https://www.google.com/url?q=https://www.course-ecommerce.tk/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
+                              <a href="${process.env.FRONTEND_URL}/submitticket.php" target="_blank"
+                                data-saferedirecturl="https://www.google.com/url?q=${process.env.FRONTEND_URL}/submitticket.php&amp;source=gmail&amp;ust=1655487285912000&amp;usg=AOvVaw1VbMkzl8ZCE0eOQRtVvs7A">get
                                 support</a>
                               <br>
                               Copyright ©

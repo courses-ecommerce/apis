@@ -121,7 +121,7 @@ const getInvoices = async (req, res, next) => {
 //fn : get detail invoice
 const getDetailInvoice = async (req, res, next) => {
     try {
-        const CLIENT_URL = `https://www.course-ecommerce.tk/invoice/`
+        const CLIENT_URL = `${process.env.FRONTEND_URL}/invoice/`
         const { id } = req.params
         const invoice = await InvoiceModel.findOne({ _id: id }).populate('user', "_id fullName").lean()
         if (!invoice) {

@@ -207,7 +207,7 @@ const getDetailMyInvoices = async (req, res, next) => {
         }
         const detailInvoices = await DetailInvoiceModel.find({ invoice: id }).populate('courseAuthor', '_id fullName').lean()
         invoice.detailInvoices = detailInvoices
-        invoice.qrcode = await helper.generateQR(`https://www.course-ecommerce.tk/invoice/${id}`)
+        invoice.qrcode = await helper.generateQR(`${process.env.FRONTEND_URL}/invoice/${id}`)
         res.status(200).json({ message: 'ok', invoice: invoice })
 
     } catch (error) {
