@@ -14,6 +14,22 @@ var fs = require('fs');
 const UserModel = require('../models/users/user.model');
 const mailConfig = require('../configs/mail.config');
 
+const uploadImageToCloudinary = async (req, res, next) => {
+    try {
+        const image = req.file
+        if (image) {
+            const url = await helper.uploadImageToCloudinary(image, `${Date.now()}`)
+            fs.unlinkSync(image.path);
+            return res.status(200).json({ message: 'Upload success', url })
+        }
+        return res.status(400).json({ message: 'File is required' })
+    } catch (error) {
+        console.log(error);
+        return next(error)
+    }
+}
+
+
 //#region  courses
 
 //fn: Thêm khoá học
@@ -1308,6 +1324,7 @@ const getDetailPendingCourse = async (req, res, next) => {
 //#endregion
 
 module.exports = {
+    uploadImageToCloudinary,
     postCourse,
     getCourses,
     putCourse,

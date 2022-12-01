@@ -5,6 +5,8 @@ const { dontStorageUpload } = require('../configs/storage.config');
 const passport = require('../middlewares/passport.middleware');
 const accessControl = require('../middlewares/access_control.middleware')
 
+courseApis.post('/upload/image', passport.jwtAuthentication, dontStorageUpload.single('image'), courseController.uploadImageToCloudinary)
+
 // api tạo mới khoá học 
 courseApis.post('/', passport.jwtAuthentication, dontStorageUpload.single('thumbnail'), courseController.postCourse)
 

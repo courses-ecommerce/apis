@@ -23,6 +23,7 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
         const { secure_url } = result;
         return secure_url;
     } catch (error) {
+        console.log(error,'===ERROR====uploadImageToCloudinary==');
         if (folder == "thumbnail") {
             return 'https://res.cloudinary.com/uthcmc/image/upload/v1653155326/thumbnail/l3g5x9yl.png';
         } else {

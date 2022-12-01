@@ -1791,6 +1791,37 @@ paths:
         500:
           description: "SERVER ERROR"
 
+  /courses/upload/image:
+    post:
+      tags:
+        - course
+      summary: Upload file
+      description: ""
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
   /courses:
     post:
       tags:
