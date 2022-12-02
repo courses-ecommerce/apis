@@ -37,8 +37,7 @@ const postCourse = async (req, res, next) => {
     try {
         const author = req.user
         const account = req.account
-        const image = req.file
-        const { name, category, description, lang, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
+        const {thumbnail, name, category, description, lang, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
         // // tags is array
         if (account.role != 'teacher') {
             return res.status(401).json({ message: "Not permited" })
@@ -56,8 +55,6 @@ const postCourse = async (req, res, next) => {
 
         // tính giảm giá
         let saleOff = (1 - parseInt(currentPrice) / parseInt(originalPrice)) * 100 || 0
-        // upload image lên cloud
-        let thumbnail = await helper.uploadImageToCloudinary(image, name)
         // tạo khoá học
         const course = await CourseModel.create(
             { name, category, description, currentPrice, originalPrice, saleOff, author, thumbnail, lang, intendedLearners, requirements, targets, level, hashtags }
@@ -76,6 +73,7 @@ const postCourse = async (req, res, next) => {
         } catch (error) {
 
         }
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -87,7 +85,6 @@ const postCourse = async (req, res, next) => {
 const putCourse = async (req, res, next) => {
     try {
         const user = req.user
-        const image = req.file
         const account = req.account
         const { slug } = req.params
         var newCourse = req.body
@@ -118,11 +115,6 @@ const putCourse = async (req, res, next) => {
             }
         }
 
-        if (image) {
-            // upload image lên cloud
-            let thumbnail = await helper.uploadImageToCloudinary(image, slug)
-            newCourse.thumbnail = thumbnail
-        }
         // tránh hacker
         if (newCourse.sellNumber) {
             delete newCourse.sellNumber
@@ -168,6 +160,7 @@ const putCourse = async (req, res, next) => {
             fs.unlinkSync(image.path);
         } catch (error) {
         }
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })

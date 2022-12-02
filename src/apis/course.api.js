@@ -8,7 +8,7 @@ const accessControl = require('../middlewares/access_control.middleware')
 courseApis.post('/upload/image', passport.jwtAuthentication, dontStorageUpload.single('image'), courseController.uploadImageToCloudinary)
 
 // api tạo mới khoá học 
-courseApis.post('/', passport.jwtAuthentication, dontStorageUpload.single('thumbnail'), courseController.postCourse)
+courseApis.post('/', passport.jwtAuthentication, courseController.postCourse)
 
 // api lấy danh sách khoá học
 courseApis.get('/', passport.jwtAuthenticationOrNull, courseController.getCourses)
@@ -26,7 +26,7 @@ courseApis.get('/:slug', passport.jwtAuthenticationOrNull, courseController.getC
 courseApis.get('/:slug/related', passport.jwtAuthenticationOrNull, courseController.getRelatedCourses)
 
 // api cập nhật khoá học theo slug
-courseApis.put('/:slug', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), dontStorageUpload.single('thumbnail'), courseController.putCourse)
+courseApis.put('/:slug', passport.jwtAuthentication, accessControl.grantAccess('updateOwn', 'course'), courseController.putCourse)
 
 // api lấy thông tin đánh giá của khoá học
 courseApis.get('/:slug/rate', passport.jwtAuthenticationOrNull, courseController.getRates)

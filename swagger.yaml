@@ -364,6 +364,8 @@ components:
       properties:
         name:
           type: string
+        thumbnail:
+          type: string
         category:
           type: string
         description:
@@ -1831,52 +1833,6 @@ paths:
       requestBody:
         description: "Thông tin khoá học"
         content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                thumbnail:
-                  type: string
-                  format: binary
-                category:
-                  type: string
-                description:
-                  type: string
-                language:
-                  type: string
-                  default: "en"
-                intendedLearners:
-                  type: array
-                  items:
-                    type: string
-                requirements:
-                  type: array
-                  items:
-                    type: string
-                targets:
-                  type: array
-                  items:
-                    type: string
-                level:
-                  type: string
-                  default: "all"
-                currentPrice:
-                  type: number
-                  default: 0
-                originalPrice:
-                  type: number
-                  default: 0
-                hashtags:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - name
-                - category
-                - description
-                - targets
           application/json:
             schema:
               type: object
@@ -1885,7 +1841,6 @@ paths:
                   type: string
                 thumbnail:
                   type: string
-                  format: binary
                 category:
                   type: string
                 description:
@@ -2040,36 +1995,10 @@ paths:
           schema:
             type: string
       requestBody:
-        description: "Nếu update có ảnh thì dùng multipart/form-data, còn lại thì nên dùng application/json"
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateCourseDto"
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                thumbnail:
-                  type: string
-                  format: binary
-                category:
-                  type: string
-                description:
-                  type: string
-                lang:
-                  type: string
-                level:
-                  type: string
-                  enum: ["all", "beginer", "intermediate", "expert"]
-                currentPrice:
-                  type: number
-                originalPrice:
-                  type: number
-                publish:
-                  type: boolean
-
       responses:
         200:
           description: "ok"
