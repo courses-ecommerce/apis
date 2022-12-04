@@ -263,7 +263,7 @@ const putMyInfo = async (req, res, next) => {
 //fn: lấy thống kê doanh thu theo tháng
 const getMyRevenue = async (req, res, next) => {
     try {
-        const { start, end, exports = 'false' } = req.query
+        const { start = Date.now(), end = Date.now() - 1000*60*60*24*30, exports = 'false' } = req.query
         let startDate = new Date(parseInt(start))
         let endDate = new Date(new Date().setDate(new Date(parseInt(end)).getDate() + 1))
         const { _id } = req.user
