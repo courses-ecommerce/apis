@@ -8,7 +8,6 @@ const { google } = require('googleapis');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 
 
-
 // fn: lấy danh sách mã và phân trang
 const getCoupons = async (req, res, next) => {
     try {
@@ -16,6 +15,19 @@ const getCoupons = async (req, res, next) => {
         const { account, user } = req
 
         let aQuery = [
+            {
+                $match: {
+                    ...(active && active === 'true' && {
+                        'expireDate': { $gte: new Date() }
+                    }),
+                    ...(active && active === 'false' && {
+                        'expireDate': { $lte: new Date() }
+                    }),
+                    ...(title && {
+                        title: new RegExp(title, 'img')
+                    }),
+                }
+            },
             {
                 $lookup: {
                     from: 'users',
@@ -71,28 +83,7 @@ const getCoupons = async (req, res, next) => {
                 }
             }
         ]
-        if (active) {
-            if (active == 'true') {
-                aQuery.unshift({
-                    $match: {
-                        expireDate: { $gt: new Date() }
-                    }
-                })
-            } else {
-                aQuery.unshift({
-                    $match: {
-                        expireDate: { $lt: new Date() }
-                    }
-                })
-            }
-        }
-        if (title) {
-            aQuery.unshift({
-                $match: {
-                    title: new RegExp(title, 'img')
-                }
-            })
-        }
+
         if (account.role == 'teacher') {
             aQuery.splice(2, 0, { $match: { "author._id": user._id } })
         }
@@ -263,7 +254,7 @@ const updateCoupon = async (req, res, next) => {
         const { id } = req.params
         const { user } = req
         const newCoupon = req.body
-        if(newCoupon.maxDiscount === null){
+        if (newCoupon.maxDiscount === null) {
             newCoupon.maxDiscount = Infinity
         }
         await CouponModel.updateOne({ _id: id, author: user._id }, newCoupon)
