@@ -1650,6 +1650,16 @@ paths:
           schema:
             type: boolean
             default: true
+        - name: isPending
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: used
+          in: query
+          schema:
+            type: boolean
+            default: true
       responses:
         200:
           description: "ok"

@@ -24,8 +24,14 @@ const postCategory = async (req, res, next) => {
 const getCategories = async (req, res, next) => {
     try {
         const { name, publish = 'true', limit, page, isPending, used } = req.query
-        let aCountQuery = []
         let aQuery = [
+            {
+                $match: {
+                    ...(name && { $text: { $search: name }, publish: publish == 'true' }),
+                    ...(!name && { publish: publish == 'true' }),
+                    ...(isPending && { isPending: isPending == 'true' }),
+                }
+            },
             {
                 $lookup: {
                     from: 'courses',
@@ -33,55 +39,17 @@ const getCategories = async (req, res, next) => {
                     foreignField: 'category',
                     as: "used"
                 }
-            }
-        ]
-        if (name) {
-            aQuery.push(
-                { $match: { $text: { $search: name }, publish: publish == 'true' } },
-                { $sort: { score: { '$meta': 'textScore' } } },
-            )
-            aCountQuery.push(
-                { $match: { $text: { $search: name }, publish: publish == 'true' } },
-                { $sort: { score: { '$meta': 'textScore' } } },
-            )
-        } else {
-            aQuery.push({ $match: { publish: publish == 'true' } })
-            aCountQuery.push({ $match: { publish: publish == 'true' } })
-        }
-
-        if (page && limit) {
-            let nskip = (parseInt(page) - 1) * parseInt(limit)
-            aQuery.push({ $skip: nskip }, { $limit: parseInt(limit) })
-        }
-        if (isPending) {
-            aQuery.push({ $match: { isPending: isPending == 'true' } })
-            aCountQuery.push({ $match: { isPending: isPending == 'true' } })
-        }
-        if (used) {
-            aQuery.push(
-                {
-                    $lookup: {
-                        from: "courses",
-                        localField: '_id',
-                        foreignField: 'category',
-                        as: "used"
-                    }
+            },
+            (used && {
+                $match: {
+                    used: used == 'true' ? { $ne: [] } : { $eq: [] }
                 },
-                { $match: { 'used.0': { $exists: used == 'true' } } }
-            )
-            aCountQuery.push(
-                {
-                    $lookup: {
-                        from: "courses",
-                        localField: '_id',
-                        foreignField: 'category',
-                        as: "used"
-                    }
-                },
-                { $match: { 'used.0': { $exists: used == 'true' } } }
-            )
-        }
-        aQuery.push(
+            }),
+            (name && {
+                $sort: {
+                    score: { '$meta': 'textScore' }
+                }
+            }),
             {
                 $project: {
                     name: 1,
@@ -98,8 +66,17 @@ const getCategories = async (req, res, next) => {
                         }
                     }
                 }
-            })
+            }
+        ]
+
+        aCountQuery = aQuery.filter(item => item != undefined)
         aCountQuery.push({ $count: "total" })
+        aQuery = aQuery.filter(item => item != undefined)
+
+        if (page && limit) {
+            const nskip = (parseInt(page) - 1) * parseInt(limit)
+            aQuery.push({ $skip: nskip }, { $limit: parseInt(limit) })
+        }
 
         const totalCount = await CategoryModel.aggregate(aCountQuery)
         const total = totalCount[0]?.total || 0
