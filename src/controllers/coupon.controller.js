@@ -59,7 +59,7 @@ const getCoupons = async (req, res, next) => {
                     'maxDiscount': {
                         $cond: {
                             if: { $eq: [Infinity, "$maxDiscount"] },
-                            then: "Không giới hạn",
+                            then: null,
                             else: "$maxDiscount"
                         }
                     },
@@ -263,6 +263,9 @@ const updateCoupon = async (req, res, next) => {
         const { id } = req.params
         const { user } = req
         const newCoupon = req.body
+        if(newCoupon.maxDiscount === null){
+            newCoupon.maxDiscount = Infinity
+        }
         await CouponModel.updateOne({ _id: id, author: user._id }, newCoupon)
         return res.status(200).json({ message: "update ok" })
     } catch (error) {
