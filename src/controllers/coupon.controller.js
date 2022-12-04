@@ -93,6 +93,13 @@ const getCoupons = async (req, res, next) => {
                 }
             })
         }
+        if (account.role == 'teacher') {
+            aQuery.splice(2, 0, { $match: { "author._id": user._id } })
+        }
+        aQuery.push({ $count: "total" })
+        const totalCount = await CouponModel.aggregate(aQuery)
+        const total = totalCount[0]?.total || 0
+        aQuery.pop()
         if (page && limit) {
             aQuery.push(
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
@@ -100,9 +107,6 @@ const getCoupons = async (req, res, next) => {
             )
         }
 
-        if (account.role == 'teacher') {
-            aQuery.splice(2, 0, { $match: { "author._id": user._id } })
-        }
         const coupons = await CouponModel.aggregate(aQuery)
 
         let data = coupons.map(item => {
@@ -115,9 +119,6 @@ const getCoupons = async (req, res, next) => {
             }
             return item
         })
-        aQuery.push({ $count: "total" })
-        const totalCount = await CouponModel.aggregate(aQuery)
-        const total = totalCount[0]?.total || 0
 
         return res.status(200).json({ message: 'ok', total, coupons: data })
     } catch (error) {
