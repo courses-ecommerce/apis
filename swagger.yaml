@@ -25,6 +25,8 @@ tags:
     description: apis liên quan đến chương của khoá học
   - name: lesson
     description: apis liên quan đến bài học của khoá học
+  - name: quiz
+    description: apis liên quan đến quiz
   - name: my course
     description: apis liên quan đến khoá học đã mua
   - name: rate
@@ -502,7 +504,7 @@ components:
           type: string
         type:
           type: string
-          enum: ["undefined", "video", "text", "slide"]
+          enum: ["undefined", "video", "text", "slide", "quiz"]
         video:
           type: array
           items:
@@ -558,7 +560,7 @@ components:
           format: binary
         type:
           type: string
-          enum: ["undefined", "video", "text", "slide"]
+          enum: ["undefined", "video", "text", "slide", "quiz"]
         saveIn:
           type: string
           default: cloudinary
@@ -824,6 +826,38 @@ components:
       required:
         - conversation
         - text
+    Quiz:
+      type: object
+      properties:
+        question:
+          type: string
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+              isCorrect:
+                type: boolean
+    CreateBulkQuizDto:
+      type: object
+      properties:
+        lesson:
+          type: string
+        quizs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quiz"
+      required:
+        - lesson
+        - quizs
+    UpdateQuizDto:
+      type: object
+      $ref: "#/components/schemas/Quiz"
+
 
   parameters:
     page:
@@ -2306,11 +2340,6 @@ paths:
           schema:
             type: string
           required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Lesson"
       responses:
         200:
           description: "ok"
@@ -3878,3 +3907,95 @@ paths:
           description: "unauthorize"
         500:
           description: "SERVER ERROR"
+  /quiz/create-bulk:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - quiz
+      summary: create bulk quiz of lesson
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBulkQuizDto"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /quiz/{id}:
+    put:
+      tags:
+        - quiz
+      summary: Cập nhật quiz
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuizDto"
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    delete:
+      tags:
+        - quiz
+      summary: Xoá quiz
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /quiz:
+    get:
+      tags:
+        - quiz
+      summary: Get toàn bộ quiz của 1 lesson
+      description: ""
+      parameters:
+        - name: lesson
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Quiz"
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+      

@@ -16,7 +16,7 @@ lessonApis.get('/:id', passport.jwtAuthentication, lessonController.getLesson)
 lessonApis.get('/', passport.jwtAuthentication, lessonController.getLessons)
 
 // api: cập nhật chapter by id
-lessonApis.put('/:id', passport.jwtAuthentication, lessonController.isPermitted, dontStorageUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), lessonController.putLesson)
+lessonApis.put('/:id', passport.jwtAuthentication, lessonController.isPermitted, dontStorageUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), lessonController.putLessonTypeVideo)
 
 // api: delete chapters
 lessonApis.delete('/:id', passport.jwtAuthentication, lessonController.isPermitted, lessonController.deleteLesson)

@@ -22,7 +22,7 @@ const lessonSchema = new Schema({
     // loại bài học : video, text hay slide show
     type: {
         type: String,
-        enum: ["undefined", "video", "text", "slide"],
+        enum: ["undefined", "video", "text", "slide", "quiz"],
         default: "undefined"
     },
     video: {

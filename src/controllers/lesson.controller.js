@@ -5,6 +5,7 @@ const AccountModel = require('../models/users/account.model');
 const ChapterModel = require('../models/courses/chapter.model');
 const CourseModel = require('../models/courses/course.model');
 var fs = require('fs');
+const QuizModel = require('../models/courses/quiz.model');
 
 
 // fn: cho phép thao tác (chỉ author)
@@ -64,7 +65,7 @@ const postLesson = async (req, res, next) => {
 
 
 // fn: cập nhật lesson
-const putLesson = async (req, res, next) => {
+const putLessonTypeVideo = async (req, res, next) => {
     try {
         var resource, file
         try {
@@ -176,6 +177,9 @@ const getLesson = async (req, res, next) => {
         const { id } = req.params
 
         const lesson = await LessonModel.findById(id).lean()
+        if (lesson.type == "quiz") {
+            lesson.quizs = await QuizModel.find({ lesson: id }).lean()
+        }
 
         lesson ? message = "ok" : message = "Invalid id"
 
@@ -229,7 +233,7 @@ const deleteLesson = async (req, res, next) => {
 module.exports = {
     isPermitted,
     postLesson,
-    putLesson,
+    putLessonTypeVideo,
     getLesson,
     getLessons,
     deleteLesson
