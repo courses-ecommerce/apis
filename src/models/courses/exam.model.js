@@ -1,18 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const answeredSchema = new Schema({
-  question: {
-    type: Schema.Types.ObjectId,
-    ref: "quiz",
-    required: true,
-  },
-  answer: {
-    type: Array,
-    default: []
-  },
-});
-
 const examSchema = new Schema(
   {
     user: {
@@ -27,15 +15,50 @@ const examSchema = new Schema(
     },
     scores: {
       type: Number,
+      default: 0,
     },
-    answered: [answeredSchema],
+    maxScores: {
+      type: Number,
+      default: 0,
+    },
+    answered: [
+      {
+        _id: {
+          type: Schema.Types.ObjectId,
+          ref: "quiz",
+        },
+        question: {
+          type: String,
+          required: true,
+        },
+        answers: [
+          {
+            _id: {
+              type: String,
+            },
+            key: {
+              type: String,
+            },
+            value: {
+              type: String,
+            },
+            isCorrect: {
+              type: Boolean,
+            },
+            isChosen: {
+              type: Boolean,
+            }
+          }
+        ]
+      }
+    ],
   },
   {
     timestamps: true,
   }
 );
 
-const ChapterModel = mongoose.model("exam", examSchema, "exams");
+const ExamModel = mongoose.model("exam", examSchema, "exams");
 
-module.exports = ChapterModel;
+module.exports = ExamModel;
 

@@ -27,6 +27,8 @@ tags:
     description: apis liên quan đến bài học của khoá học
   - name: quiz
     description: apis liên quan đến quiz
+  - name: exam
+    description: apis liên quan đến exam
   - name: my course
     description: apis liên quan đến khoá học đã mua
   - name: rate
@@ -3998,4 +4000,23 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-      
+  /exam:
+    get:
+      tags:
+        - exam
+      summary: review bài thi đã làm
+      description: ""
+      parameters:
+        - name: lesson
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"   
+   

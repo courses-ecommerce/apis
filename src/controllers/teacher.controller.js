@@ -8,6 +8,7 @@ const ChapterModel = require('../models/courses/chapter.model');
 const ObjectId = mongoose.Types.ObjectId;
 var xlsx = require('node-xlsx').default
 var fs = require('fs');
+const ExamModel = require('../models/courses/exam.model');
 
 // fn: lấy list khoá học đã tạo
 const getMyCourses = async (req, res, next) => {
@@ -263,7 +264,7 @@ const putMyInfo = async (req, res, next) => {
 //fn: lấy thống kê doanh thu theo tháng
 const getMyRevenue = async (req, res, next) => {
     try {
-        const { start = Date.now(), end = Date.now() - 1000*60*60*24*30, exports = 'false' } = req.query
+        const { start = Date.now(), end = Date.now() - 1000 * 60 * 60 * 24 * 30, exports = 'false' } = req.query
         let startDate = new Date(parseInt(start))
         let endDate = new Date(new Date().setDate(new Date(parseInt(end)).getDate() + 1))
         const { _id } = req.user
@@ -373,10 +374,87 @@ const getMyRevenue = async (req, res, next) => {
     }
 }
 
+const getScoreExamOfStudentByLessonId = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { page, limit, from, to, statistic = 'false' } = req.query
+
+        let query = [
+            {
+                $match: {
+                    lesson: ObjectId(id),
+                    ...(from && to && { createdAt: { $gte: new Date(parseInt(from)), $lte: new Date(parseInt(to)) } })
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: '$user'
+            },
+            {
+                $project: {
+                    user: { fullName: 1 },
+                    scores: 1,
+                    maxScores: 1,
+                    createdAt: 1,
+                }
+            },
+            (page && limit && { $skip: (parseInt(page) - 1) * parseInt(limit) }),
+            (page && limit && { $limit: parseInt(limit) }),
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ]
+        query = query.filter(item => item != undefined)
+
+        const data = await ExamModel.aggregate(query)
+
+        if (statistic == 'true') {
+            const dataStatistic = await ExamModel.aggregate([
+                {
+                    $match: {
+                        lesson: ObjectId(id),
+                    }
+                },
+                {
+                    $group: {
+                        _id: { scores: '$scores' },
+                        total: { $sum: 1 }
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        scores: '$_id.scores',
+                        total: 1
+                    }
+                }
+
+            ])
+            return res.status(200).json({ message: "Success", data, statistic: dataStatistic })
+        }
+
+        return res.status(200).json({ message: "Success", data })
+    } catch (error) {
+        console.log(error);
+        return next(error)
+    }
+}
+
+
 module.exports = {
     getMyCourses,
     getMyInfo,
     putMyInfo,
     getMyRevenue,
-    getDetailMyCourse
+    getDetailMyCourse,
+    getScoreExamOfStudentByLessonId
 }

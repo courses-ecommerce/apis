@@ -20,6 +20,8 @@ teacherApis.put('/info/:id', passport.jwtAuthentication, teacherController.putMy
 // api: lấy thông tin doanh thu theo tháng
 teacherApis.get('/my-revenue', passport.jwtAuthentication, teacherController.getMyRevenue)
 
+// api: lấy danh sách điểm các học sinh đã làm bài kiểm tra theo lesson id
+teacherApis.get('/lesson/:id/exams', teacherController.getScoreExamOfStudentByLessonId)
 
 
 module.exports = teacherApis

@@ -39,13 +39,14 @@ const myCourseApis = require('./src/apis/myCourse.api');
 const statisticApis = require('./src/apis/statistic.api');
 const webConfigApis = require('./src/apis/webConfig.api');
 const adminUserApis = require('./src/apis/adminUser.api');
+const quizApis = require('./src/apis/quiz.api');
+const examApis = require('./src/apis/exam.api');
 require('./src/services/cron.service')
 
 const dev = app.get('env') !== 'production';
 
 const MONGO_URI = dev ? process.env.MONGO_URI : process.env.MONGO_URI;
 const mongoose = require('mongoose');
-const quizApis = require('./src/apis/quiz.api');
 mongoose.connect(MONGO_URI, {})
     .then(result => console.log('> Connect mongoDB successful ', MONGO_URI))
     .catch(err => console.log(`> Error while connecting to mongoDB : >> : ${err.message}`));
@@ -82,6 +83,7 @@ app.use('/api/admin/users', adminUserApis)
 app.use('/api/statistics', statisticApis)
 app.use('/api/admin/web-configs', webConfigApis)
 app.use('/api/quiz', quizApis)
+app.use('/api/exam', examApis)
 
 
 module.exports = app
