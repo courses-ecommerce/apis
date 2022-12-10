@@ -19,7 +19,7 @@ lessonApis.get('/', passport.jwtAuthentication, lessonController.getLessons)
 // api: cập nhật chapter by id
 lessonApis.put('/:id', passport.jwtAuthentication, lessonController.isPermitted, dontStorageUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), lessonController.putLessonTypeVideo)
 
-lessonApis.put('/:id/type-file', passport.jwtAuthentication, lessonController.isPermitted, lessonController.putLessonTypeFile)
+lessonApis.put('/:id/extend-type', passport.jwtAuthentication, lessonController.isPermitted, lessonController.putLessonTypeDiffVideo)
 
 // api: delete chapters
 lessonApis.delete('/:id', passport.jwtAuthentication, lessonController.isPermitted, lessonController.deleteLesson)
