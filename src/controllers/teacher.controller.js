@@ -439,7 +439,12 @@ const getScoreExamOfStudentByLessonId = async (req, res, next) => {
                 }
 
             ])
-            return res.status(200).json({ message: "Success", data, statistic: dataStatistic })
+            const result = dataStatistic.map(({ scores, total }) => {
+                const item = {}
+                item[`${scores}`] = total
+                return item
+            })
+            return res.status(200).json({ message: "Success", data, statistic: result })
         }
 
         return res.status(200).json({ message: "Success", data })
