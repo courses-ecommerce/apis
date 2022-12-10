@@ -186,7 +186,7 @@ const putLessonTypeVideo = async (req, res, next) => {
 }
 
 // fn: cập nhật lesson
-const putLessonTypeFile = async (req, res, next) => {
+const putLessonTypeDiffVideo = async (req, res, next) => {
     try {
         const { id } = req.params
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
@@ -266,5 +266,5 @@ module.exports = {
     getLessons,
     deleteLesson,
     uploadFileToCloudinary,
-    putLessonTypeFile
+    putLessonTypeDiffVideo
 }
