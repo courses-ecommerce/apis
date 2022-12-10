@@ -8,6 +8,21 @@ var fs = require('fs');
 const QuizModel = require('../models/courses/quiz.model');
 
 
+const uploadFileToCloudinary = async (req, res, next) => {
+    try {
+        const { file } = req
+        if (file) {
+            const url = await helper.uploadFileToCloudinary(file, `${Date.now()}`)
+            fs.unlinkSync(image.path);
+            return res.status(200).json({ message: 'Upload success', url })
+        }
+        return res.status(400).json({ message: 'File is required' })
+    } catch (error) {
+        console.log(error);
+        return next(error)
+    }
+}
+
 // fn: cho phép thao tác (chỉ author)
 const isPermitted = async (req, res, next) => {
     try {
@@ -170,6 +185,19 @@ const putLessonTypeVideo = async (req, res, next) => {
     }
 }
 
+// fn: cập nhật lesson
+const putLessonTypeFile = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
+        // cập nhật lesson
+        const result = await LessonModel.findOneAndUpdate({ _id: id }, data, { new: true })
+        return res.status(200).json({ message: "updating oke", result })
+    } catch (error) {
+        console.log(error);
+        return next(error)
+    }
+}
 
 // fn: lấy detail lesson
 const getLesson = async (req, res, next) => {
@@ -236,5 +264,7 @@ module.exports = {
     putLessonTypeVideo,
     getLesson,
     getLessons,
-    deleteLesson
+    deleteLesson,
+    uploadFileToCloudinary,
+    putLessonTypeFile
 }
