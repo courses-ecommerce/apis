@@ -41,6 +41,7 @@ const webConfigApis = require('./src/apis/webConfig.api');
 const adminUserApis = require('./src/apis/adminUser.api');
 const quizApis = require('./src/apis/quiz.api');
 const examApis = require('./src/apis/exam.api');
+const commentApis = require('./src/apis/comment.api');
 require('./src/services/cron.service')
 
 const dev = app.get('env') !== 'production';
@@ -84,6 +85,7 @@ app.use('/api/statistics', statisticApis)
 app.use('/api/admin/web-configs', webConfigApis)
 app.use('/api/quiz', quizApis)
 app.use('/api/exam', examApis)
+app.use('/api/comment', commentApis)
 
 
 module.exports = app
