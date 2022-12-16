@@ -13,7 +13,7 @@ async function ConnectRedis() {
   console.log("Redis Connected");
 }
 
-const dev = app.get("env") !== "production";
+const dev = process.env.NODE_ENV !== "production";
 if (!dev) {
   ConnectRedis();
 }

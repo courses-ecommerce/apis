@@ -1,15 +1,42 @@
 const CommentModel = require("../models/courses/comment.model");
+const notificationController = require("./notification.controller");
+const LessonModel = require("../models/courses/lesson.model");
 
 module.exports = {
     createComment: async (req, res, next) => {
         try {
             const { content, lessonId, commentId } = req.body;
             const { user } = req;
+
+            const lesson = await LessonModel.findById(lessonId).populate({ path: 'chapter', select: 'course name', populate: { path: 'course', select: 'slug name author' } }).select('chapter number title').lean();
+            if (!lesson) {
+                return res.status(404).json({ message: "Lesson not found" })
+            }
             if (!commentId) {
                 await CommentModel.create({ author: user._id, lesson: lessonId, content });
+                const notiPayload = {
+                    title: `${user.fullName} has commented on ${lesson.chapter.course.name}}`,
+                    content: `${content}`,
+                    data: {
+                        lesson,
+                    }
+                }
+                // create notification for teacher
+                await notificationController.createNotification(lesson.chapter.course.author, notiPayload);
+
             } else {
-                await CommentModel.updateOne({ _id: commentId }, { $push: { replies: { author: user._id, lesson: lessonId, content } } })
+                const comment = await CommentModel.findOneAndUpdate({ _id: commentId }, { $push: { replies: { author: user._id, lesson: lessonId, content, createdAt: new Date() } } }, { new: true })
+                const notiPayload = {
+                    title: `${user.fullName} has replied on your comment`,
+                    content: `${content}`,
+                    data: {
+                        lesson,
+                    }
+                }
+                // create notification for author of old comment
+                await notificationController.createNotification(comment.author, notiPayload);
             }
+
             return res.status(201).json({ message: "Create comment successfully" })
         } catch (error) {
             console.log(error);
@@ -45,6 +72,7 @@ module.exports = {
             if (parentCommentId) {
                 const index = comment.replies.findIndex(reply => reply._id.toString() === id.toString())
                 comment.replies[index].content = content;
+                comment.replies[index].createdAt = new Date();
             } else {
                 comment.content = content;
             }
