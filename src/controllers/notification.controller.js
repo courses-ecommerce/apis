@@ -12,7 +12,7 @@ module.exports = {
 
             // emit notification to user
             socketIds.forEach(socketId => {
-                _io.to(socketId).emit('push-notification', notification.toJSON());
+                _io.to(socketId).emit('push-notification', notification);
             })
 
             return notification;

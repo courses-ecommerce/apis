@@ -44,14 +44,6 @@ const examApis = require('./src/apis/exam.api');
 const commentApis = require('./src/apis/comment.api');
 require('./src/services/cron.service')
 
-const dev = app.get('env') !== 'production';
-
-const MONGO_URI = dev ? process.env.MONGO_URI : process.env.MONGO_URI;
-const mongoose = require('mongoose');
-mongoose.connect(MONGO_URI, {})
-    .then(result => console.log('> Connect mongoDB successful ', MONGO_URI))
-    .catch(err => console.log(`> Error while connecting to mongoDB : >> : ${err.message}`));
-
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsConfig));

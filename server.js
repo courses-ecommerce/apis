@@ -2,25 +2,18 @@ const app = require("./app");
 const port = process.env.PORT || 3000;
 const passport = require("./src/middlewares/passport.middleware");
 const SocketService = require("./src/services/chat.service");
-const redis = require("redis");
-const redis_client = redis.createClient({ url: process.env.REDIS_URI });
+const ConnectRedis = require("./src/configs/redis.config");
+const ConnectMongoDB = require("./src/configs/mongo.config");
 
-global._redis = redis_client;
-
-async function ConnectRedis() {
-  _redis.on("error", (err) => console.log("Redis Client Error", err));
-  await _redis.connect();
-  console.log("Redis Connected");
-}
-
-const dev = process.env.NODE_ENV !== "production";
-if (!dev) {
-  ConnectRedis();
-}
-
-const server = app.listen(port, () =>
+const server = app.listen(port, async () => {
+  const dev = app.get("env") !== "production";
+  // connect redis
+  if (!dev) global._redis = await ConnectRedis();
+  // connect mongo db
+  const MONGO_URI = dev ? process.env.MONGO_URI_LOCAL : process.env.MONGO_URI;
+  ConnectMongoDB(MONGO_URI)
   console.log("> Server is up and running on port : " + port)
-);
+});
 
 const io = require("socket.io")(server, {
   allowEIO3: true,
