@@ -7,9 +7,9 @@ const commentSchema = new Schema({
         ref: 'user',
         required: true
     },
-    course: {
+    lesson: {
         type: Schema.Types.ObjectId,
-        ref: 'course',
+        ref: 'lesson',
         required: true
     },
     content: {
@@ -17,17 +17,30 @@ const commentSchema = new Schema({
         required: true
     },
     replies: {
-        type: Array,
-        author: {
-            type: Schema.Types.ObjectId,
-            ref: 'user',
-            required: true
-        },
-        content: {
-            type: String,
-            required: true
-        },
-    }
+        type: [
+            {
+                author: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'user',
+                    required: true
+                },
+                lesson: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'lesson',
+                    required: true
+                },
+                content: {
+                    type: String,
+                    required: true
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now()
+                }
+            }
+        ],
+    },
+
 },
     {
         timestamps: true
