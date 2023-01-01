@@ -2922,7 +2922,29 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
+  /chat/chatbot:
+    post:
+      tags:
+        - chat
+      summary: Chat with Chat GPT OpenAI
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                text:
+                  type: string
+              required:
+                - text
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  
   # admin region
   /admin/users/teachers:
     get:

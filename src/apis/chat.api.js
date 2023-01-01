@@ -23,5 +23,6 @@ chatApis.get('/conversation/:conversation', passport.jwtAuthentication, chatCont
 // api: cập nhật - đã xem tin nhắn
 chatApis.put('/conversation/:conversation', passport.jwtAuthentication, chatController.updateSeenMessage)
 
+chatApis.post('/chatbot', passport.jwtAuthentication, chatController.postMessageWithBotChat)
 
 module.exports = chatApis

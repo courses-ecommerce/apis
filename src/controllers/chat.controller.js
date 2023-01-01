@@ -1,6 +1,7 @@
 const helper = require('../helper');
 const ConversationModel = require('../models/chats/conversation.model');
 const MessageModel = require('../models/chats/message.model');
+const { handleChatGPTOpenAI } = require('../services/chatgpt.service');
 
 
 
@@ -346,6 +347,25 @@ const updateSeenMessage = async (req, res, next) => {
     }
 }
 
+const postMessageWithBotChat = async (req, res, next) => {
+    try {
+        const { text } = req.body
+        const { user } = req
+
+        const responseMesssage = await handleChatGPTOpenAI(text)
+
+        let socketIdSender = await _redis.SMEMBERS(user._id)
+        socketIdSender.forEach(id => {
+            _io.to(id).emit('send-message', { text: responseMesssage })
+        });
+
+        return res.status(200).json({ message: "ok", responseMesssage })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message })
+    }
+}
+
 
 module.exports = {
     getConversations,
@@ -353,5 +373,6 @@ module.exports = {
     postAcceptConversation,
     postMessage,
     getMessages,
-    updateSeenMessage
+    updateSeenMessage,
+    postMessageWithBotChat
 }
