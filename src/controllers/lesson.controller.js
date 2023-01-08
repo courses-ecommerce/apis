@@ -12,13 +12,54 @@ const uploadFileToCloudinary = async (req, res, next) => {
     try {
         const { file } = req
         if (file) {
-            const url = await helper.uploadFileToCloudinary(file, `${Date.now()}`)
-            fs.unlinkSync(image.path);
+            const { url } = await helper.uploadFileToCloudinary(file, `${Date.now()}`)
+            fs.unlinkSync(file.path);
             return res.status(200).json({ message: 'Upload success', url })
         }
         return res.status(400).json({ message: 'File is required' })
     } catch (error) {
         console.log(error);
+        return next(error)
+    }
+}
+
+const uploadVideoToCloudinary = async (req, res, next) => {
+    try {
+        const { file } = req
+        const { lesson_id } = req.body
+        if (file) {
+            const lesson = await LessonModel.findById(lesson_id)
+            if (!lesson) {
+                return res.status(400).json({ message: 'Lesson not found' })
+            }
+            const public_id = Date.now()
+            let videoInfo = {
+                name: file.originalname,
+                size: (file.size / 1000000).toFixed(2) + " mb",
+                createdAt: new Date(),
+                status: "processing",
+                type: file.mimetype
+            }
+            const video = [
+                `http://res.cloudinary.com/uthcmc/video/upload/sp_hd/videos/${lesson_id}-${public_id}.m3u8`,
+                `http://res.cloudinary.com/uthcmc/video/upload/sp_hd/videos/${lesson_id}-${public_id}.mp4`
+            ]
+            res.status(200).json({ videoInfo, video })
+            const result = await helper.uploadVideoToCloudinary(file, lesson_id, public_id)
+            fs.unlinkSync(file.path);
+            if (result.error) {
+                console.log(`> Upload video fail:`, public_id, '|||', result);
+                // throw new Error('Upload video fail')
+            }
+            // update lesson id
+            videoInfo.status = "success"
+            lesson.videoInfo = videoInfo
+            await lesson.save()
+            return
+        }
+        return res.status(400).json({ message: 'File is required' })
+    } catch (error) {
+        console.log('> Upload video fail:', error);
         return next(error)
     }
 }
@@ -78,24 +119,13 @@ const postLesson = async (req, res, next) => {
     }
 }
 
-
 // fn: cập nhật lesson
 const putLessonTypeVideo = async (req, res, next) => {
     try {
-        var resource, file
-        try {
-            file = req.files['file'][0] // video/slide
-        } catch (error) {
-            file = null
-        }
-        try {
-            resource = req.files['resource'][0] // resource
-        } catch (error) {
-            resource = null
-        }
+        s
         const { id } = req.params
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
-        var { number, title, description, type, text } = data
+        var { number, title, description, type, text, video, videoInfo } = data
         number = parseInt(number)
         const { lesson } = req
         if (number) {
@@ -118,84 +148,12 @@ const putLessonTypeVideo = async (req, res, next) => {
                 }
             }, { $inc: { number: step } })
         }
-
-        if (resource) {
-            const result = await helper.uploadFileToCloudinary(resource, id)
-            if (result.error) {
-                return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
-            }
-            req.body.resource = result.secure_url
-        }
-        // nếu type là video thì tính thời lượng video
-        if (file) {
-            // if (type == "video") {
-            const duration = await helper.getVideoDuration(file.path)
-            req.body.duration = duration
-            let videoInfo = {
-                name: file.originalname,
-                size: (file.size / 1000000).toFixed(2) + " mb",
-                createdAt: new Date(),
-                status: "pending",
-                type: file.mimetype
-            }
-            const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo, ...data, publish: false }, { new: true })
-            res.status(200).json({ message: "oke", info })
-            const result = await helper.uploadVideoToCloudinary(file, id)
-            if (result.error) {
-                console.log(result);
-                videoInfo.status = "failure"
-                await LessonModel.updateOne({ _id: id }, { videoInfo })
-                return
-            }
-            videoInfo.status = "success"
-            let video = [result.eager[0].secure_url, result.secure_url]
-            await LessonModel.updateOne({ _id: id }, { videoInfo, video })
-            try {
-                fs.unlinkSync(resource.path);
-            } catch (error) { }
-            try {
-                fs.unlinkSync(file.path);
-            } catch (error) { }
-            return
-            // } else if (file && type == "slide") {
-            //     const result = await helper.uploadFileToCloudinary(file, id)
-            //     if (result.error) {
-            //         return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
-            //     }
-            //     req.body.slide = result.secure_url
-            // }
-
-        }
-
         // cập nhật lesson
-        await LessonModel.updateOne({ _id: id }, data)
-        res.status(200).json({ message: "updating oke" })
-
-        try {
-            fs.unlinkSync(resource.path);
-        } catch (error) { }
-        try {
-            fs.unlinkSync(file.path);
-        } catch (error) { }
-
-
+        const result = await LessonModel.findOneAndUpdate({ _id: id }, { ...data, publish: false }, { new: true })
+        res.status(200).json({ message: "updating oke", result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message, error: error.message })
-    }
-}
-
-// fn: cập nhật lesson
-const putLessonTypeDiffVideo = async (req, res, next) => {
-    try {
-        const { id } = req.params
-        const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
-        // cập nhật lesson
-        const result = await LessonModel.findOneAndUpdate({ _id: id }, data, { new: true })
-        return res.status(200).json({ message: "updating oke", result })
-    } catch (error) {
-        console.log(error);
-        return next(error)
     }
 }
 
@@ -266,5 +224,5 @@ module.exports = {
     getLessons,
     deleteLesson,
     uploadFileToCloudinary,
-    putLessonTypeDiffVideo
+    uploadVideoToCloudinary
 }

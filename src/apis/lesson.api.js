@@ -6,6 +6,7 @@ const accessControl = require('../middlewares/access_control.middleware')
 const { dontStorageUpload } = require('../configs/storage.config');
 
 lessonApis.post('/upload-file', passport.jwtAuthentication, dontStorageUpload.single('file'), lessonController.uploadFileToCloudinary)
+lessonApis.post('/upload-video', passport.jwtAuthentication, dontStorageUpload.single('file'), lessonController.uploadVideoToCloudinary)
 
 // api: thêm khoá học
 lessonApis.post('/', passport.jwtAuthentication, lessonController.postLesson)
@@ -17,9 +18,7 @@ lessonApis.get('/:id', passport.jwtAuthentication, lessonController.getLesson)
 lessonApis.get('/', passport.jwtAuthentication, lessonController.getLessons)
 
 // api: cập nhật chapter by id
-lessonApis.put('/:id', passport.jwtAuthentication, lessonController.isPermitted, dontStorageUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), lessonController.putLessonTypeVideo)
-
-lessonApis.put('/:id/extend-type', passport.jwtAuthentication, lessonController.isPermitted, lessonController.putLessonTypeDiffVideo)
+lessonApis.put('/:id', passport.jwtAuthentication, lessonController.isPermitted, lessonController.putLessonTypeVideo)
 
 // api: delete chapters
 lessonApis.delete('/:id', passport.jwtAuthentication, lessonController.isPermitted, lessonController.deleteLesson)

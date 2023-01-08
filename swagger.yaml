@@ -451,21 +451,26 @@ components:
     Comment:
       type: object
       properties:
-        course:
-          $ref: "#/components/schemas/Course"
+        lesson:
+          $ref: "#/components/schemas/Lesson"
         author:
           $ref: "#/components/schemas/User"
+        content:
+          type: string
         replies:
           type: array
           items:
             type: object
             properties:
+              lesson:
+                $ref: "#/components/schemas/Lesson"
               author:
                 $ref: "#/components/schemas/User"
               content:
                 type: string
-        content:
-          type: string
+              createdAt:
+                type: string
+ 
 
     Chapter:
       type: object
@@ -552,17 +557,33 @@ components:
           type: string
         description:
           type: string
-        file:
-          type: string
-          format: binary
         text:
           type: string
-        resource:
+        slide:
           type: string
-          format: binary
+          default: "url file dành cho 'type': 'slide'"
         type:
           type: string
           enum: ["undefined", "video", "text", "slide", "quiz"]
+        video:
+          type: array
+          items:
+            type: string
+            default: url video m3u8 lấy từ api upload video
+        videoInfo:
+          type: object
+          properties:
+            name:
+              type: string
+              default: lấy từ api upload video
+            size:
+              type: string
+            createdAt:
+              type: string
+            status:
+              type: string
+            type:
+              type: string
         saveIn:
           type: string
           default: cloudinary
@@ -1238,7 +1259,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
   /teacher/info/{id}:
     get:
       tags:
@@ -1327,7 +1347,78 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  /teacher/lesson/{id}/exam:
+    get:
+      tags:
+        - teacher
+      summary: Lấy danh sách bài thi từ lesson id
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: tìm bài thi từ from
+          schema:
+            type: string
+        - name: to
+          description: tìm bài thi từ from
+          in: query
+          schema:
+            type: string
+        - name: statistic
+          description: xuất data biểu đồ
+          in: query
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id: 
+                          type: string
+                        user.fullName: 
+                          type: string
+                        scores:
+                          type: number
+                        maxScores:
+                          type: number
+                        createdAt:
+                          type: string
+                  statistic:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        0:
+                          type: number
+                        
+                      
 
+
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+    
   /invoices:
     get:
       tags:
@@ -1767,7 +1858,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
   /categories/{slug}:
     get:
       tags:
@@ -2091,7 +2181,6 @@ paths:
                 $ref: "#/components/schemas/Course"
         500:
           description: "SERVER ERROR"
-
   /courses/{slug}/related:
     get:
       tags:
@@ -2362,7 +2451,7 @@ paths:
           required: true
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateLessonDto"
       responses:
@@ -2390,7 +2479,92 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
+  /lessons/upload-file:
+    post:
+      tags:
+        - lesson
+      summary: Upload file
+      description: ""
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: base64
+              required:
+                - file
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                  url:
+                    type: string
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  /lessons/upload-video:
+    post:
+      tags:
+        - lesson
+      summary: Upload video
+      description: ""
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: base64
+                lesson_id:
+                  type: string
+              required:
+                - file
+                - lesson_id
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video:
+                    type: array
+                    items:
+                      type: string
+                      default: url video m3u8 lấy từ api upload video
+                  videoInfo:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        default: lấy từ api upload video
+                      size:
+                        type: string
+                      createdAt:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        type: string
+        
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"
+  
   /my-courses:
     get:
       tags:
@@ -2699,7 +2873,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
   /coupons/{id}:
     put:
       tags:
@@ -2821,7 +2994,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
   /chat/accept-conversation:
     post:
       tags:
@@ -3023,7 +3195,6 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
-
   /admin/users:
     get:
       security:
@@ -3178,7 +3349,6 @@ paths:
           description: "unauthorize"
         500:
           description: "SERVER ERROR"
-
   /admin/users/{id}:
     get:
       security:
@@ -3347,7 +3517,6 @@ paths:
                       type: number
         500:
           description: "SERVER ERROR"
-
   /statistics/revenues/monthly/{year}:
     get:
       security:
@@ -3617,7 +3786,6 @@ paths:
                       type: string
         500:
           description: "SERVER ERROR"
-
   /statistics/coupons:
     get:
       security:
@@ -3649,7 +3817,6 @@ paths:
                     type: number
         500:
           description: "SERVER ERROR"
-
   /statistics/revenues/teachers:
     get:
       security:
@@ -3773,7 +3940,6 @@ paths:
 
         500:
           description: "SERVER ERROR"
-
   /statistics/top-teachers-of-year:
     get:
       security:
@@ -3868,6 +4034,7 @@ paths:
                           type: number
         500:
           description: "SERVER ERROR"
+  
   /admin/web-configs:
     get:
       security:
@@ -3931,6 +4098,7 @@ paths:
           description: "unauthorize"
         500:
           description: "SERVER ERROR"
+  
   /quiz/create-bulk:
     post:
       security:
@@ -4022,6 +4190,7 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"
+  
   /exam:
     get:
       tags:
@@ -4041,4 +4210,106 @@ paths:
           description: "Unauthorize"
         500:
           description: "SERVER ERROR"   
+    post:
+      tags:
+        - exam
+      summary: Nộp bài thi
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lesson:
+                  type: string
+                exams:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      quizId:
+                        type: string
+                      answeredId:
+                        type: string
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"   
    
+  /comment:
+    post:
+      tags:
+        - comment
+      summary: tạo comment trong lesson
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lessonId:
+                  type: string
+                content:
+                  type: string
+                commentId:
+                  type: string
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"   
+  /comment/{id}:  
+    delete:
+      tags:
+        - comment
+      summary: tạo comment trong lesson
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"   
+    put:
+      tags:
+        - comment
+      summary: tạo comment trong lesson
+      description: ""
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parentCommentId:
+                  type: string
+                content:
+                  type: string
+      responses:
+        200:
+          description: "ok"
+        401:
+          description: "Unauthorize"
+        500:
+          description: "SERVER ERROR"   
+     

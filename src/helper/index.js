@@ -23,7 +23,7 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
         const { secure_url } = result;
         return secure_url;
     } catch (error) {
-        console.log(error,'===ERROR====uploadImageToCloudinary==');
+        console.log(error, '===ERROR====uploadImageToCloudinary==');
         if (folder == "thumbnail") {
             return 'https://res.cloudinary.com/uthcmc/image/upload/v1653155326/thumbnail/l3g5x9yl.png';
         } else {
@@ -33,7 +33,7 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
 }
 
 // fn: upload video to cloudinary
-const uploadVideoToCloudinary = async (video, id) => {
+const uploadVideoToCloudinary = async (video, id, timestamp = Date.now()) => {
     try {
         // const result = await cloudinary.uploader.upload_large(video.path, {
         //     resource_type: 'video',
@@ -45,7 +45,7 @@ const uploadVideoToCloudinary = async (video, id) => {
         // })
         const result = await cloudinary.uploader.upload(video.path, {
             resource_type: 'video',
-            public_id: `videos/${id}-${Date.now()}`,
+            public_id: `videos/${id}-${timestamp}`,
             eager: [
                 { streaming_profile: "hd", format: "m3u8" },
             ]
