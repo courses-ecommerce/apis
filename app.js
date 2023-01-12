@@ -79,5 +79,11 @@ app.use('/api/quiz', quizApis)
 app.use('/api/exam', examApis)
 app.use('/api/comment', commentApis)
 
+app.use((error, req, res, next) => {
+    error.status = error.status || 500;
+    return res.status(error.status).json({
+        message: error.message
+    });
+});
 
 module.exports = app
