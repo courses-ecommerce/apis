@@ -10,7 +10,7 @@ const detailInvoiceSchema = new Schema({
     courseId: { type: Schema.Types.ObjectId, ref: 'course', required: true },
     courseSlug: { type: String },
     courseName: { type: String, required: true },
-    courseThumbnail: { type: String, default: "https://res.cloudinary.com/uthcmc/image/upload/v1655482821/thumbnail/62ac78a2fc912b78554ddbe6.png", required: true },
+    courseThumbnail: { type: String, default: 'https://res.cloudinary.com/uthcmc/image/upload/v1655482821/thumbnail/62ac78a2fc912b78554ddbe6.png', required: true },
     courseCurrentPrice: { type: Number, required: true },
     courseAuthor: {
         type: Schema.Types.ObjectId,
@@ -19,7 +19,7 @@ const detailInvoiceSchema = new Schema({
     },
     couponCode: {
         type: String,
-        default: ""
+        default: ''
     },
     amount: { type: Number, required: true },
     discount: { type: Number, required: true },

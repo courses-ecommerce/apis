@@ -1,4 +1,4 @@
-const WebConfigModel = require("../models/webConfig.model")
+const WebConfigModel = require('../models/webConfig.model')
 
 
 
@@ -8,7 +8,7 @@ const getWebConfig = async (req, res, next) => {
         if (!result) {
             result = await WebConfigModel.create({})
         }
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -28,7 +28,7 @@ const putWebConfig = async (req, res, next) => {
         }
 
         const result = await WebConfigModel.findOneAndUpdate({}, data, { new: true })
-        res.status(200).json({ message: "update ok", result })
+        res.status(200).json({ message: 'update ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })

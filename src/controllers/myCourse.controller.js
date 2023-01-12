@@ -1,9 +1,9 @@
-const MyCourseModel = require("../models/users/myCourse.model");
+const MyCourseModel = require('../models/users/myCourse.model');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
-const LessonModel = require("../models/courses/lesson.model");
-const RateModel = require("../models/courses/rate.model");
+const LessonModel = require('../models/courses/lesson.model');
+const RateModel = require('../models/courses/rate.model');
 const ChapterModel = require('../models/courses/chapter.model');
 
 // fn: lấy danh sách khoá học đã mua và phân trang
@@ -15,65 +15,65 @@ const getMyCourses = async (req, res, next) => {
             { $match: { user: ObjectId(user._id) } },
             {
                 $lookup: {
-                    from: "courses",
+                    from: 'courses',
                     localField: 'course',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course'
                 }
             },
             {
                 $unwind: {
-                    "path": "$course",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$course',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
                 $lookup: {
-                    from: "users",
+                    from: 'users',
                     localField: 'course.author',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course.author'
                 }
             },
-            { $unwind: "$course.author" },
+            { $unwind: '$course.author' },
             {
                 $lookup: {
-                    from: "chapters",
+                    from: 'chapters',
                     localField: 'course._id',
-                    foreignField: "course",
+                    foreignField: 'course',
                     as: 'chapters'
                 }
             },
             {
                 $unwind: {
-                    "path": "$chapters",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$chapters',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
                 $lookup: {
-                    from: "lessons",
+                    from: 'lessons',
                     localField: 'chapters._id',
-                    foreignField: "chapter",
+                    foreignField: 'chapter',
                     as: 'chapters.lessons'
                 }
             },
             {
                 $group: {
-                    _id: "$_id",
-                    course: { $first: "$course" },
-                    chapters: { $push: "$chapters" },
-                    progress: { $first: "$progress" },
-                    createdAt: { $first: "$createdAt" },
+                    _id: '$_id',
+                    course: { $first: '$course' },
+                    chapters: { $push: '$chapters' },
+                    progress: { $first: '$progress' },
+                    createdAt: { $first: '$createdAt' },
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
-                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
-                    "progress": 1,
-                    "createdAt": 1,
+                    'course': { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
+                    'chapters': { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    'progress': 1,
+                    'createdAt': 1,
                 }
             }
         ]
@@ -81,75 +81,75 @@ const getMyCourses = async (req, res, next) => {
             { $match: { user: ObjectId(user._id) } },
             {
                 $lookup: {
-                    from: "courses",
+                    from: 'courses',
                     localField: 'course',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course'
                 }
             },
             {
                 $unwind: {
-                    "path": "$course",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$course',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
                 $lookup: {
-                    from: "users",
+                    from: 'users',
                     localField: 'course.author',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course.author'
                 }
             },
-            { $unwind: "$course.author" },
+            { $unwind: '$course.author' },
             {
                 $lookup: {
-                    from: "chapters",
+                    from: 'chapters',
                     localField: 'course._id',
-                    foreignField: "course",
+                    foreignField: 'course',
                     as: 'chapters'
                 }
             },
             {
                 $unwind: {
-                    "path": "$chapters",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$chapters',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
                 $lookup: {
-                    from: "lessons",
+                    from: 'lessons',
                     localField: 'chapters._id',
-                    foreignField: "chapter",
+                    foreignField: 'chapter',
                     as: 'chapters.lessons'
                 }
             },
             {
                 $group: {
-                    _id: "$_id",
-                    course: { $first: "$course" },
-                    chapters: { $push: "$chapters" },
-                    progress: { $first: "$progress" },
+                    _id: '$_id',
+                    course: { $first: '$course' },
+                    chapters: { $push: '$chapters' },
+                    progress: { $first: '$progress' },
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
-                    "chapters": { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
-                    "progress": 1,
+                    'course': { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
+                    'chapters': { _id: 1, name: 1, lessons: { _id: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    'progress': 1,
                 }
             }
         ]
         if (name) {
-            query.push({ $match: { "course.name": new RegExp(name, 'img') } })
-            countQuery.push({ $match: { "course.name": new RegExp(name, 'img') } })
+            query.push({ $match: { 'course.name': new RegExp(name, 'img') } })
+            countQuery.push({ $match: { 'course.name': new RegExp(name, 'img') } })
         }
         // ?sort=createdAt-asc || ?sort=progress-asc
         if (sort) {
             let sortBy = {}
             let [f, v] = sort.split('-')
-            sortBy[f] = v == "asc" || v == '1' ? 1 : -1
+            sortBy[f] = v == 'asc' || v == '1' ? 1 : -1
             sortBy = { ...sortBy, _id: -1 }
             query.push({ $sort: sortBy })
         }
@@ -197,7 +197,7 @@ const getMyCourses = async (req, res, next) => {
             }
         }
 
-        res.status(200).json({ message: "ok", total, myCourses: result })
+        res.status(200).json({ message: 'ok', total, myCourses: result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -213,47 +213,47 @@ const getMyCourse = async (req, res, next) => {
             { $match: { _id: ObjectId(id), user: ObjectId(user._id) } },
             {
                 $lookup: {
-                    from: "courses",
+                    from: 'courses',
                     localField: 'course',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course'
                 }
             },
-            { $unwind: "$course" },
+            { $unwind: '$course' },
             {
                 $lookup: {
-                    from: "users",
+                    from: 'users',
                     localField: 'course.author',
-                    foreignField: "_id",
+                    foreignField: '_id',
                     as: 'course.author'
                 }
             },
-            { $unwind: "$course.author" },
+            { $unwind: '$course.author' },
             {
                 $lookup: {
-                    from: "chapters",
+                    from: 'chapters',
                     localField: 'course._id',
-                    foreignField: "course",
+                    foreignField: 'course',
                     as: 'chapters'
                 }
             },
             {
                 $unwind: {
-                    "path": "$chapters",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$chapters',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             { // lấy những lesson publish = true
                 $lookup: {
-                    from: "lessons",
+                    from: 'lessons',
                     localField: 'chapters._id',
-                    foreignField: "chapter",
+                    foreignField: 'chapter',
                     let: {},
                     pipeline: [
                         {
                             $match: {
                                 $expr: {
-                                    $eq: ["$publish", true]
+                                    $eq: ['$publish', true]
                                 }
                             }
 
@@ -265,20 +265,20 @@ const getMyCourse = async (req, res, next) => {
             },
             {
                 $group: {
-                    _id: "$_id",
-                    course: { $first: "$course" },
-                    chapters: { $push: "$chapters" },
-                    progress: { $first: "$progress" },
-                    lastView: { $first: "$lastView" },
+                    _id: '$_id',
+                    course: { $first: '$course' },
+                    chapters: { $push: '$chapters' },
+                    progress: { $first: '$progress' },
+                    lastView: { $first: '$lastView' },
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    "course": { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
-                    "chapters": { _id: 1, name: 1, number: 1, lessons: { _id: 1, chapter: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
-                    "progress": 1,
-                    "lastView": 1,
+                    'course': { _id: 1, name: 1, thumbnail: 1, slug: 1, author: { _id: 1, fullName: 1 }, description: 1 },
+                    'chapters': { _id: 1, name: 1, number: 1, lessons: { _id: 1, chapter: 1, number: 1, title: 1, type: 1, video: 1, text: 1, slide: 1, description: 1, duration: 1 } },
+                    'progress': 1,
+                    'lastView': 1,
                 }
             }
         ]
@@ -313,7 +313,7 @@ const getMyCourse = async (req, res, next) => {
                 })
             } catch (error) {
                 console.log(error);
-                return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
+                return res.status(500).json({ message: 'Khoá học chưa có bài giảng' })
             }
 
             item.percentProgress = tu * 100 / mau || 0
@@ -334,10 +334,10 @@ const getMyCourse = async (req, res, next) => {
             result[0].chapterOfLastView = chapterOfLastView
         } catch (error) {
             console.log(error);
-            return res.status(500).json({ message: "Khoá học chưa có bài giảng" })
+            return res.status(500).json({ message: 'Khoá học chưa có bài giảng' })
         }
 
-        res.status(200).json({ message: "ok", myCourse: result[0] })
+        res.status(200).json({ message: 'ok', myCourse: result[0] })
 
     } catch (error) {
         console.log(error);
@@ -367,7 +367,7 @@ const putProgress = async (req, res, next) => {
                 await MyCourseModel.updateOne(
                     { _id: id, 'progress.lessonId': lessonId },
                     { $set: dataUpdate }
-                    // { $set: { "progress.$.timeline": parseInt(timeline) } }
+                    // { $set: { 'progress.$.timeline': parseInt(timeline) } }
                 )
             } else {
                 if (parseInt(lesson.duration) * 0.9 <= parseInt(timeline)) {
@@ -377,14 +377,14 @@ const putProgress = async (req, res, next) => {
                     complete = 'true'
                     timeline = parseInt(lesson.duration)
                 }
-                await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline: parseInt(timeline), complete: complete == "true" } } })
+                await MyCourseModel.updateOne({ _id: id }, { $push: { progress: { lessonId, timeline: parseInt(timeline), complete: complete == 'true' } } })
             }
             // cập nhật last view
             await MyCourseModel.updateOne({ _id: id }, { lastView: lessonId })
         } else {
             return res.status(404).json({ message: 'Not found' })
         }
-        res.status(200).json({ message: "update oke" })
+        res.status(200).json({ message: 'update oke' })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })

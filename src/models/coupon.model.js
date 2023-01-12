@@ -8,7 +8,7 @@ const couponSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ["percent", "money"],
+        enum: ['percent', 'money'],
         require: true,
     },
     apply: {

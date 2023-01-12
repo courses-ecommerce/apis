@@ -15,35 +15,35 @@ const getConversations = async (req, res, next) => {
             // lấy danh sách hội thoại đang chờ kết nối
             conversations = await ConversationModel.aggregate([
                 { $match: { pending: user._id } },
-                { $unwind: "$members" },
+                { $unwind: '$members' },
                 {
                     $lookup: {
-                        from: "users",
-                        localField: "members",
-                        foreignField: "_id",
-                        as: "memberObj"
+                        from: 'users',
+                        localField: 'members',
+                        foreignField: '_id',
+                        as: 'memberObj'
                     }
                 },
-                { $unwind: "$memberObj" },
+                { $unwind: '$memberObj' },
                 {
                     $group: {
-                        "_id": "$_id",
-                        "member": { "$push": "$memberObj" },
+                        '_id': '$_id',
+                        'member': { '$push': '$memberObj' },
                     }
                 },
                 {
                     $lookup: {
-                        from: "users",
-                        localField: "pending",
-                        foreignField: "_id",
-                        as: "pending"
+                        from: 'users',
+                        localField: 'pending',
+                        foreignField: '_id',
+                        as: 'pending'
                     }
                 },
-                { $unwind: "$pending" },
+                { $unwind: '$pending' },
                 {
                     $lookup: {
                         from: 'messages',
-                        as: "message",
+                        as: 'message',
                         let: { localId: '$_id' },
                         pipeline: [
                             { $match: { $expr: { $eq: ['$$localId', '$conversation'] } } },
@@ -52,7 +52,7 @@ const getConversations = async (req, res, next) => {
                         ]
                     }
                 },
-                { $unwind: "$message" },
+                { $unwind: '$message' },
                 { $sort: { recentAt: -1 } },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
                 { $limit: parseInt(limit) }
@@ -61,36 +61,36 @@ const getConversations = async (req, res, next) => {
             // lấy danh sách hội đã kết nối thoại kèm 1 tin nhắn gần nhất
             conversations = await ConversationModel.aggregate([
                 { $match: { members: { $in: [user._id] } } },
-                { $unwind: "$members" },
+                { $unwind: '$members' },
                 {
                     $lookup: {
-                        from: "users",
-                        localField: "members",
-                        foreignField: "_id",
-                        as: "memberObj"
+                        from: 'users',
+                        localField: 'members',
+                        foreignField: '_id',
+                        as: 'memberObj'
                     }
                 },
-                { $unwind: "$memberObj" },
+                { $unwind: '$memberObj' },
                 {
                     $lookup: {
-                        from: "accounts",
-                        localField: "memberObj.account",
-                        foreignField: "_id",
-                        as: "memberObj.account"
+                        from: 'accounts',
+                        localField: 'memberObj.account',
+                        foreignField: '_id',
+                        as: 'memberObj.account'
                     }
                 },
-                { $unwind: "$memberObj.account" },
+                { $unwind: '$memberObj.account' },
                 {
                     $group: {
-                        "_id": "$_id",
-                        "member": { "$push": "$memberObj" },
-                        "recentAt": { "$first": "$recentAt" },
+                        '_id': '$_id',
+                        'member': { '$push': '$memberObj' },
+                        'recentAt': { '$first': '$recentAt' },
                     }
                 },
                 {
                     $lookup: {
                         from: 'messages',
-                        as: "message",
+                        as: 'message',
                         let: { localId: '$_id' },
                         pipeline: [
                             { $match: { $expr: { $eq: ['$$localId', '$conversation'] } } },
@@ -99,7 +99,7 @@ const getConversations = async (req, res, next) => {
                         ]
                     }
                 },
-                { $unwind: "$message" },
+                { $unwind: '$message' },
                 { $sort: { recentAt: -1 } },
                 { $skip: (parseInt(page) - 1) * parseInt(limit) },
                 { $limit: parseInt(limit) },
@@ -118,7 +118,7 @@ const getConversations = async (req, res, next) => {
             return item
         })
 
-        return res.status(200).json({ message: "ok", conversations })
+        return res.status(200).json({ message: 'ok', conversations })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -143,7 +143,7 @@ const postConversation = async (req, res, next) => {
         // userId là đối tượng muốn kết nối hội thoại
         const { userId, text } = req.body
         let conversation = null
-        let message = "Gửi tin nhắn thành công. Đã kết nối hội thoại"
+        let message = 'Gửi tin nhắn thành công. Đã kết nối hội thoại'
         // kiểm tra 2 user đã connect với nhau chưa? gửi tn : check tin nhắn chờ ? connect: tạo tn chờ 
         let hadConversation = await ConversationModel.findOne({ members: { $all: [user._id, userId] } })
         if (!hadConversation) {
@@ -170,12 +170,12 @@ const postConversation = async (req, res, next) => {
                         })
                 }
                 conversation = pendingConversation._id
-                message = "Gửi thành công, đã chấp nhận kết nối"
+                message = 'Gửi thành công, đã chấp nhận kết nối'
             } else {
                 // tạo hội thoại
                 const cvst = await ConversationModel.create({ members: [user._id], pending: userId })
                 conversation = cvst._id
-                message = "Gửi thành công, chờ chấp nhận kết nối"
+                message = 'Gửi thành công, chờ chấp nhận kết nối'
             }
         } else {
             conversation = hadConversation._id
@@ -208,10 +208,10 @@ const postAcceptConversation = async (req, res, next) => {
     try {
         const { conversation, text } = req.body
         const { user } = req
-        let message = "Gửi tin nhắn thành công"
+        let message = 'Gửi tin nhắn thành công'
         // lấy hội thoại
         const cvst = await ConversationModel.findById(conversation)
-        if (!cvst) return res.status(400).json({ message: "Mã hội thoại không tồn tại" })
+        if (!cvst) return res.status(400).json({ message: 'Mã hội thoại không tồn tại' })
         // cập nhật tin nhắn seen = true
         let seenAt = new Date()
         await MessageModel.updateMany({ conversation }, { seen: true, seenAt })
@@ -221,7 +221,7 @@ const postAcceptConversation = async (req, res, next) => {
         if (JSON.stringify(cvst.pending) == JSON.stringify(user._id)) {
             let recentAt = new Date()
             await ConversationModel.updateOne({ _id: conversation }, { $push: { members: user._id }, pending: null, recentAt })
-            message = "Gửi tin nhắn thành công, đã chấp nhận hội thoại"
+            message = 'Gửi tin nhắn thành công, đã chấp nhận hội thoại'
         }
         res.status(200).json({ message })
         // lấy mảng socket id người nhận
@@ -256,15 +256,15 @@ const postMessage = async (req, res, next) => {
         const { user } = req
         // kiểm tra hội thoại
         const cvst = await ConversationModel.findById(conversation)
-        if (!cvst) return res.status(400).json({ message: "invalid conversation id " })
+        if (!cvst) return res.status(400).json({ message: 'invalid conversation id ' })
 
         if (images) {
             images.forEach(async image => {
                 const result = await helper.uploadFileToCloudinary(image, Date.now())
 
                 // tạo tin nhắn
-                let newMessage = await MessageModel.create({ conversation, text: result.secure_url, type: "image", sender: user._id })
-                let tinNhan = await MessageModel.findById(newMessage._id).populate("sender", "_id fullName avatar")
+                let newMessage = await MessageModel.create({ conversation, text: result.secure_url, type: 'image', sender: user._id })
+                let tinNhan = await MessageModel.findById(newMessage._id).populate('sender', '_id fullName avatar')
 
                 // lấy mảng socket id thành viên
                 let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
@@ -281,7 +281,7 @@ const postMessage = async (req, res, next) => {
         if (text) {
             // tạo tin nhắn
             let newMessage = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
-            let tinNhan = await MessageModel.findById(newMessage._id).populate("sender", "_id fullName avatar")
+            let tinNhan = await MessageModel.findById(newMessage._id).populate('sender', '_id fullName avatar')
             // lấy mảng socket id thành viên
             let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
             let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
@@ -294,7 +294,7 @@ const postMessage = async (req, res, next) => {
             });
         }
 
-        res.status(201).json({ message: "ok" })
+        res.status(201).json({ message: 'ok' })
 
         // cập nhật hội thoại
         let recentAt = new Date()
@@ -316,7 +316,7 @@ const getMessages = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
-        return res.status(200).json({ message: "ok", messages })
+        return res.status(200).json({ message: 'ok', messages })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -332,7 +332,7 @@ const updateSeenMessage = async (req, res, next) => {
         let seenAt = new Date()
         // lấy hội thoại
         const cvst = await ConversationModel.findById(conversation).lean()
-        if (!cvst) return res.status(400).json({ message: "Mã hội thoại không hợp lệ" })
+        if (!cvst) return res.status(400).json({ message: 'Mã hội thoại không hợp lệ' })
         let sender = JSON.stringify(cvst.members[0]) === JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
         // cập nhật tin nhắn thành đã xem
         await MessageModel.updateMany({ conversation: cvst._id, sender, seen: false }, { seen: true, seenAt })
@@ -341,7 +341,7 @@ const updateSeenMessage = async (req, res, next) => {
         socketIdSender.forEach(id => {
             _io.to(id).emit('seen-message', { conversation, seenAt })
         });
-        return res.status(200).json({ message: "update ok" })
+        return res.status(200).json({ message: 'update ok' })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })

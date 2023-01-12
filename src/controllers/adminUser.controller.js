@@ -42,16 +42,16 @@ const getAccountAndUsers = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$account"
+                $unwind: '$account'
             },
         ]
         if (email) {
-            aQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
-            aCountQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
+            aQuery.push({ $match: { 'account.email': new RegExp(email, 'img') } })
+            aCountQuery.push({ $match: { 'account.email': new RegExp(email, 'img') } })
         }
         if (role) {
-            aQuery.push({ $match: { "account.role": role } })
-            aCountQuery.push({ $match: { "account.role": role } })
+            aQuery.push({ $match: { 'account.role': role } })
+            aCountQuery.push({ $match: { 'account.role': role } })
         }
         if (active) {
             aQuery.push({ $match: { 'account.isActive': active == 'true' } })
@@ -60,7 +60,7 @@ const getAccountAndUsers = async (req, res, next) => {
         if (sort) {
             let sortBy = {}
             let [f, v] = sort.split('-')
-            sortBy[f] = v == "asc" || v == 1 ? 1 : -1
+            sortBy[f] = v == 'asc' || v == 1 ? 1 : -1
             aQuery.push({ $sort: sortBy })
         }
 
@@ -104,17 +104,17 @@ const getAccountAndUsers = async (req, res, next) => {
                 ['Email', 'Tên', 'Số điện thoại', 'Ngày sinh', 'Giới tính', 'Role'],
             ];
             dataUsers.forEach(item => {
-                data.push([item.account.email, item.fullName, item.phone, item.birthday, item.gender ? "Nam" : "Nữ", item.account.role])
+                data.push([item.account.email, item.fullName, item.phone, item.birthday, item.gender ? 'Nam' : 'Nữ', item.account.role])
             })
 
             let range1 = { s: { c: 0, r: 0 }, e: { c: 7, r: 0 } }; // A1:A13
             const sheetOptions = { '!merges': [range1] };
             var buffer = xlsx.build([{ name: 'data', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", total, users, file: '/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx' })
+            return res.status(200).json({ message: 'ok', total, users, file: '/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx' })
         }
 
-        return res.status(200).json({ message: "ok", total, users })
+        return res.status(200).json({ message: 'ok', total, users })
     } catch (error) {
         console.error('> Get account and user fail :: ', error);
         return res.status(500).json({ message: 'error' })
@@ -134,9 +134,9 @@ const getTeachers = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$account"
+                $unwind: '$account'
             },
-            { $match: { "account.role": "teacher" } },
+            { $match: { 'account.role': 'teacher' } },
             {
                 $lookup: {
                     from: 'teachers',
@@ -146,7 +146,7 @@ const getTeachers = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$teacher"
+                $unwind: '$teacher'
             },
         ]
         let aQuery = [
@@ -159,9 +159,9 @@ const getTeachers = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$account"
+                $unwind: '$account'
             },
-            { $match: { "account.role": "teacher" } },
+            { $match: { 'account.role': 'teacher' } },
             {
                 $lookup: {
                     from: 'teachers',
@@ -171,12 +171,12 @@ const getTeachers = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$teacher"
+                $unwind: '$teacher'
             },
         ]
         if (email) {
-            aQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
-            aCountQuery.push({ $match: { "account.email": new RegExp(email, 'img') } })
+            aQuery.push({ $match: { 'account.email': new RegExp(email, 'img') } })
+            aCountQuery.push({ $match: { 'account.email': new RegExp(email, 'img') } })
         }
         if (active) {
             aQuery.push({ $match: { 'account.isActive': active == 'true' } })
@@ -185,7 +185,7 @@ const getTeachers = async (req, res, next) => {
         if (sort) {
             let sortBy = {}
             let [f, v] = sort.split('-')
-            sortBy[f] = v == "asc" || v == 1 ? 1 : -1
+            sortBy[f] = v == 'asc' || v == 1 ? 1 : -1
             aQuery.push({ $sort: sortBy })
         }
 
@@ -214,7 +214,7 @@ const getTeachers = async (req, res, next) => {
         const totalUsers = await UserModel.aggregate(aCountQuery)
         const total = totalUsers[0]?.total || 0
         const teachers = await UserModel.aggregate(aQuery)
-        return res.status(200).json({ message: "ok", total, teachers })
+        return res.status(200).json({ message: 'ok', total, teachers })
     } catch (error) {
         console.error('> Get list teacher fail :: ', error);
         return res.status(500).json({ message: error.message })
@@ -235,9 +235,9 @@ const getDetailTeacher = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$account"
+                $unwind: '$account'
             },
-            { $match: { "account.role": "teacher" } },
+            { $match: { 'account.role': 'teacher' } },
             {
                 $lookup: {
                     from: 'teachers',
@@ -247,7 +247,7 @@ const getDetailTeacher = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$teacher"
+                $unwind: '$teacher'
             },
             {
                 $project: {
@@ -261,9 +261,9 @@ const getDetailTeacher = async (req, res, next) => {
         ]
         const teacher = (await UserModel.aggregate(aQuery))[0]
         if (!teacher) {
-            return res.status(404).json({ message: "Not found" })
+            return res.status(404).json({ message: 'Not found' })
         }
-        return res.status(200).json({ message: "ok", teacher })
+        return res.status(200).json({ message: 'ok', teacher })
     } catch (error) {
         console.log('> Get detail teacher fail :: ', error);
         return res.status(500).json({ message: error.message })
@@ -297,13 +297,13 @@ const postAccountAndUser = async (req, res, next) => {
                 if (newUser) {
                     await HistorySearchModel.create({ user: newUser._id })
                 }
-                if (newUser && role == "teacher") {
+                if (newUser && role == 'teacher') {
                     await TeacherModel.create({ user: newUser._id, isVerified: true })
                 }
             }
-            return res.status(201).json({ message: "ok" })
+            return res.status(201).json({ message: 'ok' })
         }
-        return res.status(400).json({ message: "email không hợp lệ" })
+        return res.status(400).json({ message: 'email không hợp lệ' })
     } catch (error) {
         console.log('> Create account user fail:', error);
         return res.status(500).json({ message: error })
@@ -344,7 +344,7 @@ const postMultiAccountAndUser = async (req, res, next) => {
                             fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} đã được sử dụng \n`);
                         }
                     } else {
-                        fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi password: "${password}" không hợp lệ hoặc bỏ trống \n`);
+                        fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi password: '${password}' không hợp lệ hoặc bỏ trống \n`);
                     }
                 } else {
                     fs.appendFileSync(`./src/public/logs/${logs}`, `dòng ${i + 1}, lỗi email ${email} không hợp lệ \n`);
@@ -404,7 +404,7 @@ const putAccountAndUser = async (req, res, next) => {
         return res.status(200).json({ message: 'update ok' })
     } catch (error) {
         console.log('> Update account user fail', error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: 'error' })
     }
 }
 
@@ -421,7 +421,7 @@ const deleteAccountAndUser = async (req, res, next) => {
         return res.status(200).json({ message: 'ok! isActive : false' })
     } catch (error) {
         console.log('> Delete account user fail', error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: 'error' })
     }
 }
 
@@ -437,15 +437,15 @@ const deleteMultiAccountAndUser = async (req, res, next) => {
             try {
                 user = await UserModel.findById(id)
             } catch (error) {
-                logs += `Lỗi: index:${i}. id "${id}" không hợp lệ \n`
+                logs += `Lỗi: index:${i}. id '${id}' không hợp lệ \n`
             }
             if (!user) {
-                logs += `Lỗi: index:${i}. id "${id}" không tồn tại \n`
+                logs += `Lỗi: index:${i}. id '${id}' không tồn tại \n`
                 continue
             }
             const { modifiedCount } = await AccountModel.updateOne({ _id: user.account }, { isActive: false })
             if (modifiedCount != 1) {
-                logs += `Lỗi: index:${i}. id "${id}" giá trị cập nhật không khác giá trị ban đầu`
+                logs += `Lỗi: index:${i}. id '${id}' giá trị cập nhật không khác giá trị ban đầu`
                 continue
             }
             sucess++
@@ -484,7 +484,7 @@ const getStudentsOfTeacher = async (req, res, next) => {
             }
         ])
         data = data.map(item => item.user)
-        return res.status(200).json({ message: "ok", data })
+        return res.status(200).json({ message: 'ok', data })
     } catch (error) {
         console.log('> Get list student of teacher fail:', error);
         res.status(500).json({ message: error })

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
 const myCourseSchema = new Schema({
@@ -16,7 +16,7 @@ const myCourseSchema = new Schema({
         type: [Object],
         lessonId: {
             type: Schema.Types.ObjectId,
-            ref: "lesson"
+            ref: 'lesson'
         },
         timeline: {
             type: Number,

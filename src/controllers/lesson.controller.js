@@ -78,12 +78,12 @@ const isPermitted = async (req, res, next) => {
         }
         const c = await CourseModel.findById(ct.course).lean()
         if (JSON.stringify(c.author) !== JSON.stringify(user._id)) {
-            return res.status(401).json({ message: "Unauthorize", error: error.message })
+            return res.status(401).json({ message: 'Unauthorize', error: error.message })
         }
         next()
     } catch (error) {
         console.log(error);
-        res.status(401).json({ message: "Unauthorize", error: error.message })
+        res.status(401).json({ message: 'Unauthorize', error: error.message })
     }
 }
 
@@ -94,7 +94,7 @@ const postLesson = async (req, res, next) => {
         var { chapter, number, title, description } = req.body
         number = parseInt(number)
         const objChapter = await ChapterModel.findById(chapter).lean()
-        if (!objChapter) return res.status(400).json({ message: "Chapter not found" })
+        if (!objChapter) return res.status(400).json({ message: 'Chapter not found' })
         // check lesson nào có number = number hay không? dời toàn bộ lesson có number > number
         const currentLesson = await LessonModel.findOne({ chapter, number })
         if (currentLesson) {
@@ -108,10 +108,10 @@ const postLesson = async (req, res, next) => {
         }
 
         await LessonModel.create({ chapter, number, title, description })
-        res.status(201).json({ message: "create ok" })
+        res.status(201).json({ message: 'create ok' })
         const objCourse = await CourseModel.findById(objChapter.course).lean()
         if (objCourse.status == 'approved') {
-            await CourseModel.updateOne({ _id: objCourse._id }, { status: "updating" })
+            await CourseModel.updateOne({ _id: objCourse._id }, { status: 'updating' })
         }
     } catch (error) {
         console.log(error);
@@ -122,7 +122,6 @@ const postLesson = async (req, res, next) => {
 // fn: cập nhật lesson
 const putLessonTypeVideo = async (req, res, next) => {
     try {
-        s
         const { id } = req.params
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
         var { number, title, description, type, text, video, videoInfo } = data
@@ -150,7 +149,7 @@ const putLessonTypeVideo = async (req, res, next) => {
         }
         // cập nhật lesson
         const result = await LessonModel.findOneAndUpdate({ _id: id }, { ...data, publish: false }, { new: true })
-        res.status(200).json({ message: "updating oke", result })
+        res.status(200).json({ message: 'updating oke', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message, error: error.message })
@@ -163,11 +162,11 @@ const getLesson = async (req, res, next) => {
         const { id } = req.params
 
         const lesson = await LessonModel.findById(id).lean()
-        if (lesson.type == "quiz") {
+        if (lesson.type == 'quiz') {
             lesson.quizs = await QuizModel.find({ lesson: id }).lean()
         }
 
-        lesson ? message = "ok" : message = "Invalid id"
+        lesson ? message = 'ok' : message = 'Invalid id'
 
         res.status(200).json({ message, lesson })
     } catch (error) {
@@ -182,7 +181,7 @@ const getLessons = async (req, res, next) => {
         const { chapter } = req.query
         const lessons = await LessonModel.find({ chapter }).sort([['number', 1]]).lean()
 
-        lessons ? message = "ok" : message = "Chapter id required"
+        lessons ? message = 'ok' : message = 'Chapter id required'
 
         res.status(200).json({ message, lessons })
     } catch (error) {
@@ -204,7 +203,7 @@ const deleteLesson = async (req, res, next) => {
             { chapter: lesson.chapter, number: { $gt: lesson.number } },
             { $inc: { number: -1 } }
         )
-        lesson ? message = "delete ok" : message = "Invalid id"
+        lesson ? message = 'delete ok' : message = 'Invalid id'
 
         res.status(200).json({ message })
 

@@ -2,8 +2,8 @@ const helper = require('../helper/index')
 const mailConfig = require('../configs/mail.config');
 const constants = require('../constants/index');
 const bcrypt = require('bcryptjs');
-const AccountModel = require("../models/users/account.model")
-const VerifyModel = require("../models/users/verify.model")
+const AccountModel = require('../models/users/account.model')
+const VerifyModel = require('../models/users/verify.model')
 const UserModel = require('../models/users/user.model')
 const HistorySearchModel = require('../models/users/historySearch.model');
 
@@ -55,7 +55,7 @@ const postSignup = async (req, res, next) => {
 
         // kiểm tra mã xác thực
         const isVerify = await helper.isVerifyEmail(email, verifyCode.trim())
-        if (!isVerify) return res.status(403).json({ message: "Mã xác thực không hợp lệ!" })
+        if (!isVerify) return res.status(403).json({ message: 'Mã xác thực không hợp lệ!' })
 
         const newAccount = await AccountModel.create({
             email, password: password.trim()
@@ -127,7 +127,7 @@ const postResetPassword = async (req, res, next) => {
         const { email, password, verifyCode } = req.body;
 
         const account = await AccountModel.findOne({ email })
-        if (!account) return res.status(401).json({ message: "Tài khoản không tồn tại!" })
+        if (!account) return res.status(401).json({ message: 'Tài khoản không tồn tại!' })
 
         // kiểm tra mã xác thực
         const isVerify = await helper.isVerifyEmail(email, verifyCode);
@@ -164,11 +164,11 @@ const postChangePassword = async (req, res, next) => {
         const { oldPassword, password } = req.body
 
         const isMatch = await bcrypt.compare(oldPassword, account.password)
-        if (!isMatch) return res.status(403).json({ message: "Mật khẩu hiện tại sai" })
+        if (!isMatch) return res.status(403).json({ message: 'Mật khẩu hiện tại sai' })
 
         // kiểm tra mật khẩu cũ có trùng với mật khẩu mới
         const isSame = JSON.stringify(oldPassword) === JSON.stringify(password)
-        if (isSame) return res.status(400).json({ message: "Mật khẩu mới giống mật khẩu cũ" })
+        if (isSame) return res.status(400).json({ message: 'Mật khẩu mới giống mật khẩu cũ' })
 
         //check userName -> hash new password -> change password
         const hashPassword = await bcrypt.hash(
@@ -178,7 +178,7 @@ const postChangePassword = async (req, res, next) => {
 
         const response = await AccountModel.updateOne({ _id: account._id }, { password: hashPassword })
         if (response.modifiedCount == 1) {
-            return res.status(200).json({ message: "Thay đổi mật khẩu thành công!" })
+            return res.status(200).json({ message: 'Thay đổi mật khẩu thành công!' })
         }
         return res.status(400).json({ message: 'Thay đổi mật khẩu thất bại' });
     } catch (error) {

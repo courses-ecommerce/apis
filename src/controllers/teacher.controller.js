@@ -34,18 +34,18 @@ const getMyCourses = async (req, res, next) => {
             let [f, v] = sort.split('-')
             let sortBy = {}
             if (f == 'score') {
-                query.push({ $sort: { score: { $meta: "textScore" }, rating: -1 } })
+                query.push({ $sort: { score: { $meta: 'textScore' }, rating: -1 } })
             } else if (f == 'rating') {
-                sortBy["rating.rate"] = v == "asc" || v == 1 ? 1 : -1
+                sortBy['rating.rate'] = v == 'asc' || v == 1 ? 1 : -1
                 query.push({ $sort: sortBy })
             } else {
-                sortBy[f] = v == "asc" || v == 1 ? 1 : -1
+                sortBy[f] = v == 'asc' || v == 1 ? 1 : -1
                 query.push({ $sort: sortBy })
             }
         }
 
         const courses = await CourseModel.aggregate(query)
-        query.push({ $count: "total" })
+        query.push({ $count: 'total' })
         const totalCourse = await CourseModel.aggregate(query)
         let total = totalCourse[0]?.total || 0
         res.status(200).json({ message: 'ok', total, courses })
@@ -88,8 +88,8 @@ const getDetailMyCourse = async (req, res, next) => {
             },
             { // unwind rating
                 $unwind: {
-                    "path": "$rating",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$rating',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             { // lookup user
@@ -101,7 +101,7 @@ const getDetailMyCourse = async (req, res, next) => {
                 }
             },
             { // unwind author
-                $unwind: "$author"
+                $unwind: '$author'
             },
             { // lookup categorys
                 $lookup: {
@@ -112,7 +112,7 @@ const getDetailMyCourse = async (req, res, next) => {
                 }
             },
             { // unwind category
-                $unwind: "$category"
+                $unwind: '$category'
             },
             { // lookup chapters
                 $lookup: {
@@ -124,7 +124,7 @@ const getDetailMyCourse = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    path: "$chapters",
+                    path: '$chapters',
                     preserveNullAndEmptyArrays: true
                 }
             },
@@ -133,9 +133,9 @@ const getDetailMyCourse = async (req, res, next) => {
             { // lookup lessons
                 $lookup: {
                     from: 'lessons',
-                    let: { chapterId: "$chapters._id" },
+                    let: { chapterId: '$chapters._id' },
                     pipeline: [
-                        { $match: { $expr: { $eq: ['$$chapterId', "$chapter"] } } },
+                        { $match: { $expr: { $eq: ['$$chapterId', '$chapter'] } } },
                         { $sort: { number: 1 } }
 
                     ],
@@ -144,26 +144,26 @@ const getDetailMyCourse = async (req, res, next) => {
             },
             { // group
                 $group: {
-                    _id: "$_id",
-                    name: { $first: "$name" },
-                    slug: { $first: "$slug" },
-                    category: { $first: "$category" },
-                    thumbnail: { $first: "$thumbnail" },
-                    description: { $first: "$description" },
-                    lang: { $first: "$lang" },
-                    intendedLearners: { $first: "$intendedLearners" },
-                    requirements: { $first: "$requirements" },
-                    targets: { $first: "$targets" },
-                    level: { $first: "$level" },
-                    currentPrice: { $first: "$currentPrice" },
-                    originalPrice: { $first: "$originalPrice" },
-                    saleOff: { $first: "$saleOff" },
-                    rating: { $first: "$rating" },
-                    author: { $first: "$author" },
-                    hashtags: { $first: "$hashtags" },
-                    publish: { $first: "$publish" },
-                    status: { $first: "$status" },
-                    chapters: { $push: "$chapters" },
+                    _id: '$_id',
+                    name: { $first: '$name' },
+                    slug: { $first: '$slug' },
+                    category: { $first: '$category' },
+                    thumbnail: { $first: '$thumbnail' },
+                    description: { $first: '$description' },
+                    lang: { $first: '$lang' },
+                    intendedLearners: { $first: '$intendedLearners' },
+                    requirements: { $first: '$requirements' },
+                    targets: { $first: '$targets' },
+                    level: { $first: '$level' },
+                    currentPrice: { $first: '$currentPrice' },
+                    originalPrice: { $first: '$originalPrice' },
+                    saleOff: { $first: '$saleOff' },
+                    rating: { $first: '$rating' },
+                    author: { $first: '$author' },
+                    hashtags: { $first: '$hashtags' },
+                    publish: { $first: '$publish' },
+                    status: { $first: '$status' },
+                    chapters: { $push: '$chapters' },
                 }
             },
             {
@@ -220,14 +220,14 @@ const getMyInfo = async (req, res, next) => {
             { $match: { _id: ObjectId(id) } },
             {
                 $lookup: {
-                    from: "teachers",
-                    localField: "_id",
-                    foreignField: "user",
-                    as: "teacher"
+                    from: 'teachers',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'teacher'
                 }
             },
             {
-                $unwind: "$teacher"
+                $unwind: '$teacher'
             },
             {
                 $project: {
@@ -236,9 +236,9 @@ const getMyInfo = async (req, res, next) => {
             }
         ]))[0]
         if (!user) {
-            return res.status(404).json({ message: "Not found" })
+            return res.status(404).json({ message: 'Not found' })
         }
-        res.status(200).json({ message: "oke", user })
+        res.status(200).json({ message: 'oke', user })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -254,7 +254,7 @@ const putMyInfo = async (req, res, next) => {
             delete data.isVerified
         }
         const teacher = await TeacherModel.findOneAndUpdate({ user: user._id }, data, { new: true })
-        res.status(200).json({ message: "update oke", teacher })
+        res.status(200).json({ message: 'update oke', teacher })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'error' })
@@ -297,7 +297,7 @@ const getMyRevenue = async (req, res, next) => {
         ]
         // lấy data teacher
         const teacher = (await UserModel.aggregate(query))[0]
-        if (!teacher) { return res.status(404).json({ message: "Not found" }) }
+        if (!teacher) { return res.status(404).json({ message: 'Not found' }) }
         // lấy hoá đơn có tác giả in users id
         const invoices = await DetailInvoiceModel.aggregate([
             {
@@ -322,9 +322,9 @@ const getMyRevenue = async (req, res, next) => {
                     courseAuthor: 1,
                     createdAt: {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%d-%m-%Y',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -345,7 +345,7 @@ const getMyRevenue = async (req, res, next) => {
         if (exports == 'true') {
             const data = [
                 [`BẢNG THỐNG KÊ DOANH THU TỪ NGÀY ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`],
-                ["ID", "Tên", "Giá", "Giảm giá", "Tổng"],
+                ['ID', 'Tên', 'Giá', 'Giảm giá', 'Tổng'],
             ];
             invoices.forEach(item => {
                 let slug = item.courseSlug
@@ -355,18 +355,18 @@ const getMyRevenue = async (req, res, next) => {
                 let amount = item.amount
                 data.push([slug, name, price, discount, amount])
             })
-            data.push([null, null, null, "Tổng", teacher.revenue * 10 / 8])
-            data.push([null, null, null, "Khấu hao", 0.2])
-            data.push([null, null, null, "Tổng nhận thực tế", teacher.revenue])
+            data.push([null, null, null, 'Tổng', teacher.revenue * 10 / 8])
+            data.push([null, null, null, 'Khấu hao', 0.2])
+            data.push([null, null, null, 'Tổng nhận thực tế', teacher.revenue])
 
             const range = { s: { c: 0, r: 0 }, e: { c: 8, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-thu-giang-vien.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", teacher, detailInvoices, file: '/statistics/thong-ke-doanh-thu-giang-vien.xlsx' })
+            return res.status(200).json({ message: 'ok', teacher, detailInvoices, file: '/statistics/thong-ke-doanh-thu-giang-vien.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", teacher, detailInvoices })
+        res.status(200).json({ message: 'ok', teacher, detailInvoices })
 
     } catch (error) {
         console.log(error);
@@ -444,10 +444,10 @@ const getScoreExamOfStudentByLessonId = async (req, res, next) => {
                 item[`${scores}`] = total
                 return item
             })
-            return res.status(200).json({ message: "Success", data, statistic: result })
+            return res.status(200).json({ message: 'Success', data, statistic: result })
         }
 
-        return res.status(200).json({ message: "Success", data })
+        return res.status(200).json({ message: 'Success', data })
     } catch (error) {
         console.log(error);
         return next(error)
