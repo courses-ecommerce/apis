@@ -9,7 +9,7 @@ const getConversations = async (req, res, next) => {
     try {
         const { page = 1, limit = 10, pending = false } = req.query
         const { user } = req
-        var conversations = null
+        let conversations = null
         if (pending) {
             // lấy danh sách hội thoại đang chờ kết nối
             conversations = await ConversationModel.aggregate([
@@ -117,10 +117,10 @@ const getConversations = async (req, res, next) => {
             return item
         })
 
-        res.status(200).json({ message: "ok", conversations })
+        return res.status(200).json({ message: "ok", conversations })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -192,7 +192,7 @@ const postConversation = async (req, res, next) => {
         });
 
         let recentAt = new Date()
-        await ConversationModel.updateOne({ _id: conversation }, { recentAt })
+        return await ConversationModel.updateOne({ _id: conversation }, { recentAt })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -233,6 +233,7 @@ const postAcceptConversation = async (req, res, next) => {
         socketIdsMem2.forEach(id => {
             _io.to(id).emit('send-message', { text: tinNhan })
         });
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -244,7 +245,7 @@ const postAcceptConversation = async (req, res, next) => {
  */
 const postMessage = async (req, res, next) => {
     try {
-        var images = null
+        let images = null
         try {
             images = req.files['images']
         } catch (error) {
@@ -296,10 +297,10 @@ const postMessage = async (req, res, next) => {
 
         // cập nhật hội thoại
         let recentAt = new Date()
-        await ConversationModel.updateOne({ _id: conversation }, { recentAt })
+        return await ConversationModel.updateOne({ _id: conversation }, { recentAt })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -314,10 +315,10 @@ const getMessages = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
-        res.status(200).json({ message: "ok", messages })
+        return res.status(200).json({ message: "ok", messages })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -339,10 +340,10 @@ const updateSeenMessage = async (req, res, next) => {
         socketIdSender.forEach(id => {
             _io.to(id).emit('seen-message', { conversation, seenAt })
         });
-        res.status(200).json({ message: "update ok" })
+        return res.status(200).json({ message: "update ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
