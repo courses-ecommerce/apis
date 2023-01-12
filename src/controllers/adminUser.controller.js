@@ -90,7 +90,7 @@ const getAccountAndUsers = async (req, res, next) => {
             $count: 'total'
         })
         const totalUsers = await UserModel.aggregate(aCountQuery)
-        let total = totalUsers[0]?.total || 0
+        const total = totalUsers[0]?.total || 0
         const users = await UserModel.aggregate(aQuery)
 
         if (exports.toLowerCase().trim() == 'true') {
@@ -111,13 +111,12 @@ const getAccountAndUsers = async (req, res, next) => {
             const sheetOptions = { '!merges': [range1] };
             var buffer = xlsx.build([{ name: 'data', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", total, users, file: '/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx' })
-            return
+            return res.status(200).json({ message: "ok", total, users, file: '/statistics/danh-sach-tai-khoan-nguoi-dung.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", total, users })
+        return res.status(200).json({ message: "ok", total, users })
     } catch (error) {
-        console.error('> error :: ', error);
+        console.error('> Get account and user fail :: ', error);
         return res.status(500).json({ message: 'error' })
     }
 }
@@ -213,12 +212,11 @@ const getTeachers = async (req, res, next) => {
             $count: 'total'
         })
         const totalUsers = await UserModel.aggregate(aCountQuery)
-        let total = totalUsers[0]?.total || 0
+        const total = totalUsers[0]?.total || 0
         const teachers = await UserModel.aggregate(aQuery)
-        res.status(200).json({ message: "ok", total, teachers })
-
+        return res.status(200).json({ message: "ok", total, teachers })
     } catch (error) {
-        console.error('> error :: ', error);
+        console.error('> Get list teacher fail :: ', error);
         return res.status(500).json({ message: error.message })
     }
 }
@@ -265,10 +263,10 @@ const getDetailTeacher = async (req, res, next) => {
         if (!teacher) {
             return res.status(404).json({ message: "Not found" })
         }
-        res.status(200).json({ message: "ok", teacher })
-
+        return res.status(200).json({ message: "ok", teacher })
     } catch (error) {
-
+        console.log('> Get detail teacher fail :: ', error);
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -281,7 +279,7 @@ const getDetailAccountAndUser = async (req, res, next) => {
             .lean()
         return res.status(200).json({ message: 'ok', user })
     } catch (error) {
-        console.error('> error :: ', error);
+        console.error('> Get detail account user :: ', error);
         return res.status(500).json({ message: 'error' })
     }
 }
@@ -304,13 +302,11 @@ const postAccountAndUser = async (req, res, next) => {
                 }
             }
             return res.status(201).json({ message: "ok" })
-        } else {
-            return res.status(400).json({ message: "email không hợp lệ" })
         }
-
+        return res.status(400).json({ message: "email không hợp lệ" })
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "error" })
+        console.log('> Create account user fail:', error);
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -320,10 +316,9 @@ const postMultiAccountAndUser = async (req, res, next) => {
     try {
         const file = req.file
         // đọc data
-        var data = xlsx.parse(file.path)[0].data
+        let data = xlsx.parse(file.path)[0].data
         // xoá dòng trống
         data = data.filter(row => row.length != 0)
-        let errorEmails = []
         let sucess = 0
         let logs = Date.now() + '.txt'
         // lặp tạo tài khoản
@@ -365,10 +360,10 @@ const postMultiAccountAndUser = async (req, res, next) => {
         }
         // xoá file
         fs.unlinkSync(file.path);
-
+        return
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "error" })
+        console.log('> Create many account user fail:', error);
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -408,7 +403,7 @@ const putAccountAndUser = async (req, res, next) => {
         }
         return res.status(200).json({ message: 'update ok' })
     } catch (error) {
-        console.log(error);
+        console.log('> Update account user fail', error);
         return res.status(500).json({ message: "error" })
     }
 }
@@ -425,7 +420,7 @@ const deleteAccountAndUser = async (req, res, next) => {
         await AccountModel.updateOne({ _id: user.account }, { isActive: false })
         return res.status(200).json({ message: 'ok! isActive : false' })
     } catch (error) {
-        console.log(error);
+        console.log('> Delete account user fail', error);
         return res.status(500).json({ message: "error" })
     }
 }
@@ -457,13 +452,11 @@ const deleteMultiAccountAndUser = async (req, res, next) => {
         }
         if (logs == '') {
             return res.status(200).json({ message: `update ${sucess}/${ids.length} oke` })
-        } else {
-            return res.status(200).json({ message: `update ${sucess}/${ids.length} oke`, error: logs })
         }
-
+        return res.status(200).json({ message: `update ${sucess}/${ids.length} oke`, error: logs })
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "error" })
+        console.log('> Delete many account fail:', error);
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -471,7 +464,7 @@ const deleteMultiAccountAndUser = async (req, res, next) => {
 const getStudentsOfTeacher = async (req, res, next) => {
     try {
         const { id } = req.params
-        var data = await MyCourseModel.aggregate([
+        let data = await MyCourseModel.aggregate([
             {
                 $lookup: {
                     from: 'courses',
@@ -491,10 +484,10 @@ const getStudentsOfTeacher = async (req, res, next) => {
             }
         ])
         data = data.map(item => item.user)
-        res.status(200).json({ message: "ok", data })
+        return res.status(200).json({ message: "ok", data })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "ok" })
+        console.log('> Get list student of teacher fail:', error);
+        res.status(500).json({ message: error })
     }
 }
 
