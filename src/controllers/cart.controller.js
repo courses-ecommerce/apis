@@ -59,10 +59,10 @@ const postCart = async (req, res, next) => {
         await CartModel.create({ user: user._id, course })
         const { result, wishlist, carts } = await handlerCheckoutCart(user)
 
-        res.status(201).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
+        return res.status(201).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message })
+        console.log('> Add cart fail', error);
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -76,10 +76,10 @@ const getCart = async (req, res, next) => {
         if (result.error) {
             return res.status(500).json({ message: error.message })
         }
-        res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
+        return res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: "error" })
     }
 }
 
@@ -126,10 +126,10 @@ const putCart = async (req, res, next) => {
             }
         }
         const data = await handlerCheckoutCart(user)
-        res.status(statusCode).json({ message: message, numOfCarts: data.result.carts.length, totalPrice: data.result.totalPrice, totalDiscount: data.result.totalDiscount, estimatedPrice: data.result.estimatedPrice, carts: data.result.carts, wishlist: data.wishlist })
+        return res.status(statusCode).json({ message: message, numOfCarts: data.result.carts.length, totalPrice: data.result.totalPrice, totalDiscount: data.result.totalDiscount, estimatedPrice: data.result.estimatedPrice, carts: data.result.carts, wishlist: data.wishlist })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -141,10 +141,10 @@ const deleteCart = async (req, res, next) => {
         const { course } = req.params
         await CartModel.deleteOne({ user, course })
         const { result, wishlist, carts } = await handlerCheckoutCart(user)
-        res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
+        return res.status(200).json({ message: "ok", numOfCarts: carts.length, totalPrice: result.totalPrice, totalDiscount: result.totalDiscount, estimatedPrice: result.estimatedPrice, carts: result.carts, wishlist })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: error })
     }
 }
 
