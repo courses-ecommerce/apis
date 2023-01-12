@@ -35,14 +35,13 @@ const sendEmail = async ({ to, subject, text, html, ...rest }) => {
         ...rest,
       };
       //Tiến hành gửi email
-      const info = await transporter.sendMail(mail);
-      if (info) {
-        return true;
-      }
+      const result = await transporter.sendMail(mail);
+      return { result };
     }
+    throw new Error('> An error occurred while sending the email');
   } catch (err) {
     console.error('ERROR MAILER: ', err);
-    return false;
+    return { err };
   }
 };
 

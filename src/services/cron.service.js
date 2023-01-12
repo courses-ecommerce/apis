@@ -10,7 +10,7 @@ var jobSetTagCoursesMonthly = new CronJob(
     async function () {
         try {
             const { numOfTopCourses, numOfSalesOfBestSellerCourses } = await WebConfigModel.findOne({})
-            // console.log('Xếp nhãn khoá học vào 00:00:00 ngày 1 mỗi tháng');
+            console.log('> Xếp nhãn khoá học vào 00:00:00 ngày 1 mỗi tháng');
             let year = new Date().getFullYear()
             let month = new Date().getMonth()  // 0 - 11
             if (month == 0) {
