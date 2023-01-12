@@ -18,10 +18,10 @@ const isPermitted = async (req, res, next) => {
         // kiểm tra user có phải là author không
         if (JSON.stringify(user._id) === JSON.stringify(course.author)) {
             req.chapter = chapter
-            next()
-        } else {
-            return res.status(403).json({ message: "Not permitted" })
+            return next()
         }
+        return res.status(403).json({ message: "Not permitted" })
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -34,9 +34,9 @@ const postChapter = async (req, res, next) => {
         var { course, name, number } = req.body
         const { user } = req
         const c = await CourseModel.findById(course).lean()
-        // if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
-        //     return res.status(403).json({ message: "Not permitted" })
-        // }
+        if (JSON.stringify(user._id) !== JSON.stringify(c.author)) {
+            return res.status(403).json({ message: "Not permitted" })
+        }
         number = parseInt(number)
         // check chapter nào có number = number hay không? dời toàn bộ chapter có number > number
         const currentChapter = await ChapterModel.findOne({ course, number })
@@ -50,10 +50,10 @@ const postChapter = async (req, res, next) => {
             number = latestChapter?.number + 1 || 0
         }
         await ChapterModel.create({ number, course, name })
-        res.status(201).json({ message: "ok" })
+        return res.status(201).json({ message: "ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -90,10 +90,10 @@ const getChapters = async (req, res, next) => {
             $sort: { number: 1 }
         })
         const chapters = await ChapterModel.aggregate(query)
-        res.status(200).json({ message: "ok", chapters })
+        return res.status(200).json({ message: "ok", chapters })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -127,11 +127,10 @@ const putChapter = async (req, res, next) => {
         }
 
         await ChapterModel.updateOne({ _id: id }, data)
-
-        res.status(200).json({ message: " update ok" })
+        return res.status(200).json({ message: " update ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -150,10 +149,10 @@ const deleteChapter = async (req, res, next) => {
         await ChapterModel.deleteOne({ _id: id })
         // xoá lesson liên quan
         await LessonModel.deleteMany({ chapter: id })
-        res.status(200).json({ message: "delete ok" })
+        return res.status(200).json({ message: "delete ok" })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
