@@ -240,7 +240,7 @@ const postCoupon = async (req, res, next) => {
                 coupon, code
             })
         }
-
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -286,12 +286,12 @@ const deleteCoupon = async (req, res, next) => {
 // fn: xoá nhiều mã
 const deleteManyCoupon = async (req, res, next) => {
     try {
-        var { ids } = req.body
+        let { ids } = req.body
         const { account, user } = req
         ids = ids.map(id => ObjectId(id))
         let logs = ''
         let success = 0
-        var coupons = null
+        let coupons = null
         if (account.role === 'admin') {
             coupons = await CouponModel.aggregate([
                 { $match: { _id: { $in: ids } } },
@@ -383,9 +383,10 @@ const postLoginGoogle = (req, res, next) => {
         //     'Location': url
         // });
         res.status(200).json({ location: url })
-        res.end();
+        return res.end();
     } catch (error) {
         console.log(error);
+        next(error)
     }
 }
 
@@ -406,7 +407,7 @@ const getGoogleCallback = async (req, res, next) => {
         //lấy access_token
         const { tokens } = await oauth2Client.getToken(code)
         req.tokens = tokens
-        res.status(200).json({ message: 'oke', tokens })
+        return res.status(200).json({ message: 'oke', tokens })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -484,7 +485,7 @@ const postCreateGoogleSheet = async (req, res) => {
             }
         ])
 
-        var doc
+        let doc
         // trường hợp: user 1 đã exports sheet rồi => tồn tại sheetId.
         // nếu user 2 exports lại => k có quyền chỉnh sửa (vì sheet của user 1) => tạo sheet mới
         if (coupon[0].sheetId) {
@@ -584,10 +585,10 @@ const postCreateGoogleSheet = async (req, res) => {
 
         //#endregion
 
-        res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
+        return res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
     } catch (error) {
-        // console.log(error);
-        res.status(200).json({ message: error.message })
+        console.log(error);
+        return res.status(500).json({ message: error.message })
     }
 }
 
