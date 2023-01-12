@@ -10,7 +10,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const didYouMean = require('google-did-you-mean')
 const helper = require('../helper');
 const MyCourseModel = require('../models/users/myCourse.model');
-var fs = require('fs');
+const fs = require('fs');
 const UserModel = require('../models/users/user.model');
 const mailConfig = require('../configs/mail.config');
 
@@ -37,7 +37,7 @@ const postCourse = async (req, res, next) => {
     try {
         const author = req.user
         const account = req.account
-        const {thumbnail, name, category, description, lang, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
+        const { thumbnail, name, category, description, lang, intendedLearners, requirements, targets, level, currentPrice, originalPrice, hashtags = [] } = req.body
         // // tags is array
         if (account.role != 'teacher') {
             return res.status(401).json({ message: "Not permited" })
@@ -87,7 +87,7 @@ const putCourse = async (req, res, next) => {
         const user = req.user
         const account = req.account
         const { slug } = req.params
-        var newCourse = req.body
+        let newCourse = req.body
         let content = newCourse.content
         delete newCourse.content
         // lấy thông tin hiện tại
@@ -173,7 +173,7 @@ const putCourse = async (req, res, next) => {
 const getCourses = async (req, res, next) => {
     try {
         const { user } = req
-        var { page = 1, limit = 10, sort, name, category, min, max, hashtags, rating, level, publish, status, author } = req.query
+        let { page = 1, limit = 10, sort, name, category, min, max, hashtags, rating, level, publish, status, author } = req.query
         const nSkip = (parseInt(page) - 1) * parseInt(limit)
         let searchKey = await didYouMean(name) || null
         let aCountQuery = [
@@ -696,6 +696,7 @@ const getCourse = async (req, res, next) => {
                 { upsert: true }
             )
         }
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -787,8 +788,8 @@ const getRelatedCourses = async (req, res, next) => {
             }
         ]
         if (user) {
-            var coursesBuyed = await MyCourseModel.find({ user }).lean()
-            var idsCourseBuyed = coursesBuyed.map(item => ObjectId(item.course))
+            let coursesBuyed = await MyCourseModel.find({ user }).lean()
+            let idsCourseBuyed = coursesBuyed.map(item => ObjectId(item.course))
             query.unshift({ $match: { _id: { $nin: idsCourseBuyed } } })
             countQuery.unshift({ $match: { _id: { $nin: idsCourseBuyed } } })
         }
@@ -813,10 +814,10 @@ const getSuggestCourses = async (req, res, next) => {
         const { page, limit } = req.query
         const user = req.user
         let searchKey = {}
-        var courses = []
-        var total = 0
-        var keyword = ''
-        var query = [
+        let courses = []
+        let total = 0
+        let keyword = ''
+        let query = [
             {
                 // tính rate trung bình
                 $lookup: {
@@ -909,7 +910,7 @@ const getSuggestCourses = async (req, res, next) => {
                 }
             },
         ]
-        var countQuery = JSON.parse(JSON.stringify(query))
+        let countQuery = JSON.parse(JSON.stringify(query))
         countQuery.push({ $count: "total" })
         if (page && limit) {
             query.push(
@@ -1112,7 +1113,7 @@ const getRates = async (req, res, next) => {
             .populate('author', '_id fullName')
             .skip((parseInt(page) - 1) * parseInt(limit))
             .limit(parseInt(limit))
-        var userRating = null
+        let userRating = null
         if (user) {
             userRating = await RateModel.findOne({ user, course }).lean()
         }
@@ -1156,10 +1157,10 @@ const deleteCourse = async (req, res, next) => {
         // xoá chapters và lesson của từng chapter
         await LessonModel.deleteMany({ chapter: { $in: chapters } })
         await ChapterModel.deleteMany({ course: course._id })
-
+        return
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error", error: error.message })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -1308,10 +1309,10 @@ const getDetailPendingCourse = async (req, res, next) => {
             return res.status(200).json({ message: 'ok', course: course[0] })
         }
 
-        res.status(404).json({ message: 'không tìm thấy' })
+        return res.status(404).json({ message: 'không tìm thấy' })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error })
     }
 }
 //#endregion
