@@ -110,10 +110,10 @@ const getInvoices = async (req, res, next) => {
         countQuery.push({ $count: "total" })
         const totalCount = await InvoiceModel.aggregate(countQuery)
         const total = totalCount[0]?.total || 0
-        res.status(200).json({ message: 'ok', total, invoices, page, limit })
+        return res.status(200).json({ message: 'ok', total, invoices, page, limit })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -130,7 +130,7 @@ const getDetailInvoice = async (req, res, next) => {
         const detailInvoices = await DetailInvoiceModel.find({ invoice: id }).populate('courseAuthor', '_id fullName').lean()
         invoice.detailInvoices = detailInvoices
         invoice.qrcode = await helper.generateQR(CLIENT_URL + id)
-        res.status(200).json({ message: 'ok', invoice })
+        return res.status(200).json({ message: 'ok', invoice })
 
     } catch (error) {
         console.log(error);
@@ -145,10 +145,10 @@ const putInvoice = async (req, res, next) => {
         const { status } = req.body
 
         await InvoiceModel.updateOne({ _id: id }, { status })
-        res.status(200).json({ message: 'update ok' })
+        return res.status(200).json({ message: 'update ok' })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: error })
     }
 }
 
