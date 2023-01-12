@@ -1,16 +1,16 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const examSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: "user",
+      ref: 'user',
       required: true,
     },
     lesson: {
       type: Schema.Types.ObjectId,
-      ref: "lesson",
+      ref: 'lesson',
       required: true,
     },
     scores: {
@@ -25,7 +25,7 @@ const examSchema = new Schema(
       {
         _id: {
           type: Schema.Types.ObjectId,
-          ref: "quiz",
+          ref: 'quiz',
         },
         question: {
           type: String,
@@ -58,7 +58,7 @@ const examSchema = new Schema(
   }
 );
 
-const ExamModel = mongoose.model("exam", examSchema, "exams");
+const ExamModel = mongoose.model('exam', examSchema, 'exams');
 
 module.exports = ExamModel;
 

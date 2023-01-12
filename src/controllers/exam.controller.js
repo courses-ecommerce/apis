@@ -1,6 +1,6 @@
-const ExamModel = require("../models/courses/exam.model");
-const LessonModel = require("../models/courses/lesson.model");
-const QuizModel = require("../models/courses/quiz.model");
+const ExamModel = require('../models/courses/exam.model');
+const LessonModel = require('../models/courses/lesson.model');
+const QuizModel = require('../models/courses/quiz.model');
 
 
 module.exports = {

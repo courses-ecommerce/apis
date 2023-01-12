@@ -1,5 +1,5 @@
-const AccountModel = require("../models/users/account.model")
-const UserModel = require("../models/users/user.model")
+const AccountModel = require('../models/users/account.model')
+const UserModel = require('../models/users/user.model')
 const bcrypt = require('bcryptjs');
 const jwtConfig = require('../configs/jwt.config');
 const jwt = require('jsonwebtoken');
@@ -13,12 +13,12 @@ const postLogin = async (req, res, next) => {
 
         // check account is existing?
         const account = await AccountModel.findOne({ email }).lean()
-        if (!account) return res.status(401).json({ message: "Email không tồn tại!" })
-        if (account.isActive == false) return res.status(401).json({ message: "Tài khoản đã bị khoá." })
+        if (!account) return res.status(401).json({ message: 'Email không tồn tại!' })
+        if (account.isActive == false) return res.status(401).json({ message: 'Tài khoản đã bị khoá.' })
 
         // check password
-        const isMatch = await bcrypt.compare(password ? password : "", account.password)
-        if (!isMatch) return res.status(401).json({ message: "Email hoặc mật khẩu không đúng!" })
+        const isMatch = await bcrypt.compare(password ? password : '', account.password)
+        if (!isMatch) return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng!' })
 
         // get user 
         const user = await UserModel.findOne({ account: account._id }).lean()
@@ -53,7 +53,7 @@ const postLogin = async (req, res, next) => {
         //     expires: expiresIn,
         // });
         return res.status(200).json({
-            message: "Login success!",
+            message: 'Login success!',
             refreshToken,
             token: { expiresIn, accessToken },
             role: account.role,
@@ -61,7 +61,7 @@ const postLogin = async (req, res, next) => {
         })
     } catch (error) {
         console.log('> error :', error);
-        return res.status(500).json({ message: "Error", error })
+        return res.status(500).json({ message: 'Error', error })
     }
 }
 
@@ -101,7 +101,7 @@ const postLoginWithGoogle = async (req, res, next) => {
         //     expires: expiresIn,
         // });
         return res.status(200).json({
-            message: "Login success!",
+            message: 'Login success!',
             refreshToken,
             token: { expiresIn, accessToken },
             role: account.role,
@@ -109,7 +109,7 @@ const postLoginWithGoogle = async (req, res, next) => {
         })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "error" })
+        return res.status(500).json({ message: 'error' })
     }
 }
 
@@ -119,7 +119,7 @@ const postSignup = async (req, res, next) => {
         const { email, password, fullName, birthday, gender } = req.body
         // check email account is exist?
         const account = await AccountModel.findOne({ email })
-        if (account) return res.status(401).json({ message: "Email already in use!" })
+        if (account) return res.status(401).json({ message: 'Email already in use!' })
 
         // create account
         const newAcc = await AccountModel.create({
@@ -129,11 +129,11 @@ const postSignup = async (req, res, next) => {
             await UserModel.create({
                 accountId: newAcc._id, fullName, birthday, gender
             })
-            return res.status(200).json({ message: "Create success" })
+            return res.status(200).json({ message: 'Create success' })
         }
     } catch (error) {
         console.log('> error :', error);
-        return res.status(500).json({ message: "Error", error })
+        return res.status(500).json({ message: 'Error', error })
     }
 }
 
@@ -148,11 +148,11 @@ const postLogout = async (req, res, next) => {
         )
         // res.clearCookie('access_token');
         res.status(200).json({
-            message: "Đăng xuất thành công!",
+            message: 'Đăng xuất thành công!',
         })
     } catch (error) {
         return res.status(500).json({
-            message: "Đăng xuất thất bại!",
+            message: 'Đăng xuất thất bại!',
             error
         })
     }
@@ -165,7 +165,7 @@ const postRefreshToken = async (req, res, next) => {
         const account = await AccountModel.findOne({
             refreshToken
         })
-        if (!account) return res.status(401).json({ message: "Refresh token không hợp lệ!" })
+        if (!account) return res.status(401).json({ message: 'Refresh token không hợp lệ!' })
 
         // Xác nhận token
         const decoded = await jwt.verify(
@@ -185,7 +185,7 @@ const postRefreshToken = async (req, res, next) => {
             ? new Date(Date.now() + constants.COOKIE_EXPIRES_TIME)
             : 0
         return res.status(200).json({
-            message: "refresh token thành công!",
+            message: 'refresh token thành công!',
             token: newAccessToken,
             refreshToken,
             role: account.role,
@@ -193,7 +193,7 @@ const postRefreshToken = async (req, res, next) => {
         })
     } catch (error) {
         return res.status(500).json({
-            message: "Không được phép!",
+            message: 'Không được phép!',
             error
         })
     }

@@ -7,9 +7,9 @@ class SocketService {
 
         // // test log data
         // const data = await _redis.SMEMBERS(socket.user._id)
-        // console.log("data ", data);
+        // console.log('data ', data);
 
-        socket.on("disconnect", () => {
+        socket.on('disconnect', () => {
             // xoá socket id trong db
             _redis.SREM(socket.user._id, socket.id)
         })

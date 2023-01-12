@@ -6,7 +6,7 @@ mongoose.plugin(slug);
 const courseSchema = new Schema({
     slug: {
         type: String,
-        slug: "name",
+        slug: 'name',
         unique: true,
         slugPaddingSize: 2,
     },
@@ -17,7 +17,7 @@ const courseSchema = new Schema({
     },
     category: {
         type: Schema.Types.ObjectId,
-        ref: "category",
+        ref: 'category',
         required: true
     },
     thumbnail: {
@@ -30,7 +30,7 @@ const courseSchema = new Schema({
     },
     lang: {
         type: String,
-        default: "vi"
+        default: 'vi'
     },
     // dành cho đối tượng nào? 
     intendedLearners: {

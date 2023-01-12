@@ -37,12 +37,12 @@ const isPermitted = async (req, res, next) => {
         }
         const c = await CourseModel.findById(ct.course).lean()
         if (JSON.stringify(c.author) !== JSON.stringify(user._id)) {
-            return res.status(401).json({ message: "Unauthorize", error: error.message })
+            return res.status(401).json({ message: 'Unauthorize', error: error.message })
         }
         next()
     } catch (error) {
         console.log(error);
-        res.status(401).json({ message: "Unauthorize", error: error.message })
+        res.status(401).json({ message: 'Unauthorize', error: error.message })
     }
 }
 
@@ -53,7 +53,7 @@ const postLesson = async (req, res, next) => {
         var { chapter, number, title, description } = req.body
         number = parseInt(number)
         const objChapter = await ChapterModel.findById(chapter).lean()
-        if (!objChapter) return res.status(400).json({ message: "Chapter not found" })
+        if (!objChapter) return res.status(400).json({ message: 'Chapter not found' })
         // check lesson nào có number = number hay không? dời toàn bộ lesson có number > number
         const currentLesson = await LessonModel.findOne({ chapter, number })
         if (currentLesson) {
@@ -67,10 +67,10 @@ const postLesson = async (req, res, next) => {
         }
 
         await LessonModel.create({ chapter, number, title, description })
-        res.status(201).json({ message: "create ok" })
+        res.status(201).json({ message: 'create ok' })
         const objCourse = await CourseModel.findById(objChapter.course).lean()
         if (objCourse.status == 'approved') {
-            await CourseModel.updateOne({ _id: objCourse._id }, { status: "updating" })
+            await CourseModel.updateOne({ _id: objCourse._id }, { status: 'updating' })
         }
     } catch (error) {
         console.log(error);
@@ -122,32 +122,32 @@ const putLessonTypeVideo = async (req, res, next) => {
         if (resource) {
             const result = await helper.uploadFileToCloudinary(resource, id)
             if (result.error) {
-                return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
+                return res.status(500).json({ message: 'Lỗi tải lên file (cloudinary)' })
             }
             req.body.resource = result.secure_url
         }
         // nếu type là video thì tính thời lượng video
         if (file) {
-            // if (type == "video") {
+            // if (type == 'video') {
             const duration = await helper.getVideoDuration(file.path)
             req.body.duration = duration
             let videoInfo = {
                 name: file.originalname,
-                size: (file.size / 1000000).toFixed(2) + " mb",
+                size: (file.size / 1000000).toFixed(2) + ' mb',
                 createdAt: new Date(),
-                status: "pending",
+                status: 'pending',
                 type: file.mimetype
             }
             const info = await LessonModel.findOneAndUpdate({ _id: id }, { videoInfo, ...data, publish: false }, { new: true })
-            res.status(200).json({ message: "oke", info })
+            res.status(200).json({ message: 'oke', info })
             const result = await helper.uploadVideoToCloudinary(file, id)
             if (result.error) {
                 console.log(result);
-                videoInfo.status = "failure"
+                videoInfo.status = 'failure'
                 await LessonModel.updateOne({ _id: id }, { videoInfo })
                 return
             }
-            videoInfo.status = "success"
+            videoInfo.status = 'success'
             let video = [result.eager[0].secure_url, result.secure_url]
             await LessonModel.updateOne({ _id: id }, { videoInfo, video })
             try {
@@ -157,10 +157,10 @@ const putLessonTypeVideo = async (req, res, next) => {
                 fs.unlinkSync(file.path);
             } catch (error) { }
             return
-            // } else if (file && type == "slide") {
+            // } else if (file && type == 'slide') {
             //     const result = await helper.uploadFileToCloudinary(file, id)
             //     if (result.error) {
-            //         return res.status(500).json({ message: "Lỗi tải lên file (cloudinary)" })
+            //         return res.status(500).json({ message: 'Lỗi tải lên file (cloudinary)' })
             //     }
             //     req.body.slide = result.secure_url
             // }
@@ -169,7 +169,7 @@ const putLessonTypeVideo = async (req, res, next) => {
 
         // cập nhật lesson
         await LessonModel.updateOne({ _id: id }, data)
-        res.status(200).json({ message: "updating oke" })
+        res.status(200).json({ message: 'updating oke' })
 
         try {
             fs.unlinkSync(resource.path);
@@ -192,7 +192,7 @@ const putLessonTypeDiffVideo = async (req, res, next) => {
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
         // cập nhật lesson
         const result = await LessonModel.findOneAndUpdate({ _id: id }, data, { new: true })
-        return res.status(200).json({ message: "updating oke", result })
+        return res.status(200).json({ message: 'updating oke', result })
     } catch (error) {
         console.log(error);
         return next(error)
@@ -205,11 +205,11 @@ const getLesson = async (req, res, next) => {
         const { id } = req.params
 
         const lesson = await LessonModel.findById(id).lean()
-        if (lesson.type == "quiz") {
+        if (lesson.type == 'quiz') {
             lesson.quizs = await QuizModel.find({ lesson: id }).lean()
         }
 
-        lesson ? message = "ok" : message = "Invalid id"
+        lesson ? message = 'ok' : message = 'Invalid id'
 
         res.status(200).json({ message, lesson })
     } catch (error) {
@@ -224,7 +224,7 @@ const getLessons = async (req, res, next) => {
         const { chapter } = req.query
         const lessons = await LessonModel.find({ chapter }).sort([['number', 1]]).lean()
 
-        lessons ? message = "ok" : message = "Chapter id required"
+        lessons ? message = 'ok' : message = 'Chapter id required'
 
         res.status(200).json({ message, lessons })
     } catch (error) {
@@ -246,7 +246,7 @@ const deleteLesson = async (req, res, next) => {
             { chapter: lesson.chapter, number: { $gt: lesson.number } },
             { $inc: { number: -1 } }
         )
-        lesson ? message = "delete ok" : message = "Invalid id"
+        lesson ? message = 'delete ok' : message = 'Invalid id'
 
         res.status(200).json({ message })
 

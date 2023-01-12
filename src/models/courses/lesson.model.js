@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const lessonSchema = new Schema({
     chapter: {
         type: Schema.Types.ObjectId,
-        ref: "chapter",
+        ref: 'chapter',
         required: true
     },
     // số thứ tự bài học
@@ -22,8 +22,8 @@ const lessonSchema = new Schema({
     // loại bài học : video, text hay slide show
     type: {
         type: String,
-        enum: ["undefined", "video", "text", "slide", "quiz"],
-        default: "undefined"
+        enum: ['undefined', 'video', 'text', 'slide', 'quiz'],
+        default: 'undefined'
     },
     video: {
         type: [String],

@@ -12,7 +12,7 @@ var QRCode = require('qrcode')
 
 
 // fn: upload image to cloudinary
-const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") => {
+const uploadImageToCloudinary = async (imageFile, name, folder = 'thumbnail') => {
     try {
         let slug = urlSlug(name)
         const result = await cloudinary.uploader.upload(imageFile.path, {
@@ -23,8 +23,8 @@ const uploadImageToCloudinary = async (imageFile, name, folder = "thumbnail") =>
         const { secure_url } = result;
         return secure_url;
     } catch (error) {
-        console.log(error,'===ERROR====uploadImageToCloudinary==');
-        if (folder == "thumbnail") {
+        console.log(error, '===ERROR====uploadImageToCloudinary==');
+        if (folder == 'thumbnail') {
             return 'https://res.cloudinary.com/uthcmc/image/upload/v1653155326/thumbnail/l3g5x9yl.png';
         } else {
             return 'https://res.cloudinary.com/uthcmc/image/upload/v1653154696/avatar/l3g5jrl7.png';
@@ -40,14 +40,14 @@ const uploadVideoToCloudinary = async (video, id) => {
         //     public_id: `videos/${id}-${Date.now()}`,
         //     chunk_size: 6000000,
         //     eager: [
-        //         { streaming_profile: "hd", format: "m3u8" },
+        //         { streaming_profile: 'hd', format: 'm3u8' },
         //     ]
         // })
         const result = await cloudinary.uploader.upload(video.path, {
             resource_type: 'video',
             public_id: `videos/${id}-${Date.now()}`,
             eager: [
-                { streaming_profile: "hd", format: "m3u8" },
+                { streaming_profile: 'hd', format: 'm3u8' },
             ]
         })
         return result
@@ -153,21 +153,21 @@ const hanlderCheckoutCarts = async (carts) => {
 //fn: kiểm tra mã giảm giá cho khoá học
 const hanlderApplyDiscountCode = (course, code) => {
     try {
-        var message = "Không đủ điều kiện"
+        var message = 'Không đủ điều kiện'
         var statusCode = 400
         // kiểm tra khoá học miễn phí
         if (course.currentPrice == 0) {
-            return { isApply: false, statusCode, discountAmount: 0, message: "Không thể áp dụng cho khoá học miễn phí." }
+            return { isApply: false, statusCode, discountAmount: 0, message: 'Không thể áp dụng cho khoá học miễn phí.' }
         }
 
         // kiểm tra mã đã dùng chưa
         if (code.isActive == false) {
-            return { isApply: false, statusCode, discountAmount: 0, message: "Mã giảm giá đã dùng" }
+            return { isApply: false, statusCode, discountAmount: 0, message: 'Mã giảm giá đã dùng' }
         }
         // kiểm tra hết hạn
         const isExpired = new Date(code.coupon.expireDate) < new Date()
         if (isExpired) {
-            return { isApply: false, statusCode, discountAmount: 0, message: "Mã giảm giá đã hết hạn" }
+            return { isApply: false, statusCode, discountAmount: 0, message: 'Mã giảm giá đã hết hạn' }
         }
 
         // giá tối tiểu <= giá khoá học && số lượng >= 1
@@ -186,7 +186,7 @@ const hanlderApplyDiscountCode = (course, code) => {
         // tính tiền giảm nếu áp dụng thành công
         let discountAmount = 0
         if (isApply) {
-            message = "Áp dụng thành công"
+            message = 'Áp dụng thành công'
             statusCode = 200
             // tính tiền giảm giá theo tiền mặt và giảm giá %
             discountAmount = code.coupon.type === 'money' ? code.coupon.amount : code.coupon.amount * course.currentPrice / 100
@@ -199,7 +199,7 @@ const hanlderApplyDiscountCode = (course, code) => {
         return { isApply, statusCode, discountAmount, message }
     } catch (error) {
         console.log(error);
-        return { isApply: false, statusCode: 400, discountAmount: 0, message: "Mã lỗi" }
+        return { isApply: false, statusCode: 400, discountAmount: 0, message: 'Mã lỗi' }
     }
 }
 
@@ -227,7 +227,7 @@ const generateDiscountCode = (length = 10, number = 1) => {
     return voucher_codes.generate({
         length: length,
         count: number,
-        charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        charset: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     });
 
 }

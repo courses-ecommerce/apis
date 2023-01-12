@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const chapterSchema = new Schema({
     course: {
         type: Schema.Types.ObjectId,
-        ref: "course",
+        ref: 'course',
         required: true
     },
     number: {

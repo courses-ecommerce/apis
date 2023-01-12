@@ -34,9 +34,9 @@ const getCategories = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'courses',
-                    localField: "_id",
+                    localField: '_id',
                     foreignField: 'category',
-                    as: "used"
+                    as: 'used'
                 }
             },
             (used && {
@@ -58,7 +58,7 @@ const getCategories = async (req, res, next) => {
                     used: {
                         $cond: {
                             if: {
-                                $eq: [{ $size: "$used" }, 0]
+                                $eq: [{ $size: '$used' }, 0]
                             },
                             then: false,
                             else: true
@@ -69,7 +69,7 @@ const getCategories = async (req, res, next) => {
         ]
 
         aCountQuery = aQuery.filter(item => item != undefined)
-        aCountQuery.push({ $count: "total" })
+        aCountQuery.push({ $count: 'total' })
         aQuery = aQuery.filter(item => item != undefined)
 
         if (page && limit) {
@@ -164,7 +164,7 @@ const deleteManyCategory = async (req, res, next) => {
         if (logs != '') {
             let file = Date.now()
             fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
-            return res.status(400).json({ message: "có lỗi", urlLogs: `/logs/${file}.txt` })
+            return res.status(400).json({ message: 'có lỗi', urlLogs: `/logs/${file}.txt` })
         }
 
         return res.status(200).json({ message: 'delete ok' })

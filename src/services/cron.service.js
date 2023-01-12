@@ -23,8 +23,8 @@ var jobSetTagCoursesMonthly = new CronJob(
                     $project: {
                         courseId: 1,
                         createdAt: 1,
-                        month: { $month: "$createdAt" },
-                        year: { $year: "$createdAt" },
+                        month: { $month: '$createdAt' },
+                        year: { $year: '$createdAt' },
                     }
                 },
                 {
@@ -35,7 +35,7 @@ var jobSetTagCoursesMonthly = new CronJob(
                 },
                 {
                     $group: {
-                        _id: { courseId: "$courseId" },
+                        _id: { courseId: '$courseId' },
                         count: { $count: {} }
                     }
                 },
@@ -49,8 +49,8 @@ var jobSetTagCoursesMonthly = new CronJob(
                     $project: {
                         courseId: 1,
                         createdAt: 1,
-                        month: { $month: "$createdAt" },
-                        year: { $year: "$createdAt" },
+                        month: { $month: '$createdAt' },
+                        year: { $year: '$createdAt' },
                     }
                 },
                 {
@@ -61,12 +61,12 @@ var jobSetTagCoursesMonthly = new CronJob(
                 },
                 {
                     $group: {
-                        _id: { courseId: "$courseId" },
+                        _id: { courseId: '$courseId' },
                         count: { $count: {} }
                     }
                 },
                 {
-                    $sort: { "count": -1 }
+                    $sort: { 'count': -1 }
                 },
                 {
                     $limit: numOfTopCourses
@@ -84,7 +84,7 @@ var jobSetTagCoursesMonthly = new CronJob(
             await CourseModel.updateMany({ _id: { $in: ids } }, { type: 'Hot' })
 
         } catch (error) {
-            console.log("cronjob error >>", error);
+            console.log('cronjob error >>', error);
         }
     },
     null,

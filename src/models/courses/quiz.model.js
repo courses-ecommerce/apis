@@ -19,7 +19,7 @@ const answerSchema = new Schema({
 const quizSchema = new Schema({
     lesson: {
         type: Schema.Types.ObjectId,
-        ref: "lesson",
+        ref: 'lesson',
         required: true
     },
     question: {

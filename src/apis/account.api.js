@@ -1,6 +1,6 @@
 var express = require('express');
 var accountApi = express.Router();
-const accountController = require("../controllers/account.controller")
+const accountController = require('../controllers/account.controller')
 const passportAuth = require('../middlewares/passport.middleware')
 
 // #region =========== CLIENT =============
