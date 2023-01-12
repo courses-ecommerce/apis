@@ -4,7 +4,7 @@ const UserModel = require('../models/users/user.model');
 const AccountModel = require('../models/users/account.model');
 const ChapterModel = require('../models/courses/chapter.model');
 const CourseModel = require('../models/courses/course.model');
-var fs = require('fs');
+const fs = require('fs');
 const QuizModel = require('../models/courses/quiz.model');
 
 
@@ -28,12 +28,13 @@ const isPermitted = async (req, res, next) => {
     try {
         const { user, account } = req
         const { id, chapter } = req.params
+        let ct
         if (chapter) {
-            var ct = await ChapterModel.findById(chapter).lean()
+            ct = await ChapterModel.findById(chapter).lean()
         } else {
             const lesson = await LessonModel.findById(id).lean()
             req.lesson = lesson
-            var ct = await ChapterModel.findById(lesson.chapter).lean()
+            ct = await ChapterModel.findById(lesson.chapter).lean()
         }
         const c = await CourseModel.findById(ct.course).lean()
         if (JSON.stringify(c.author) !== JSON.stringify(user._id)) {
@@ -42,7 +43,7 @@ const isPermitted = async (req, res, next) => {
         next()
     } catch (error) {
         console.log(error);
-        res.status(401).json({ message: 'Unauthorize', error: error.message })
+        return res.status(401).json({ message: 'Unauthorize', error: error.message })
     }
 }
 
@@ -50,7 +51,7 @@ const isPermitted = async (req, res, next) => {
 // fn: tạo mới lesson
 const postLesson = async (req, res, next) => {
     try {
-        var { chapter, number, title, description } = req.body
+        let { chapter, number, title, description } = req.body
         number = parseInt(number)
         const objChapter = await ChapterModel.findById(chapter).lean()
         if (!objChapter) return res.status(400).json({ message: 'Chapter not found' })
@@ -72,9 +73,10 @@ const postLesson = async (req, res, next) => {
         if (objCourse.status == 'approved') {
             await CourseModel.updateOne({ _id: objCourse._id }, { status: 'updating' })
         }
+        return
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message, error: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
 
@@ -82,7 +84,7 @@ const postLesson = async (req, res, next) => {
 // fn: cập nhật lesson
 const putLessonTypeVideo = async (req, res, next) => {
     try {
-        var resource, file
+        let resource, file
         try {
             file = req.files['file'][0] // video/slide
         } catch (error) {
@@ -95,7 +97,7 @@ const putLessonTypeVideo = async (req, res, next) => {
         }
         const { id } = req.params
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
-        var { number, title, description, type, text } = data
+        let { number, title, description, type, text } = data
         number = parseInt(number)
         const { lesson } = req
         if (number) {
