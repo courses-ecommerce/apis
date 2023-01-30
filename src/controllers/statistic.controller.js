@@ -1,11 +1,11 @@
-const CouponModel = require("../models/coupon.model");
-const CourseModel = require("../models/courses/course.model");
-const InvoiceModel = require("../models/invoice.model");
-const UserModel = require("../models/users/user.model");
+const CouponModel = require('../models/coupon.model');
+const CourseModel = require('../models/courses/course.model');
+const InvoiceModel = require('../models/invoice.model');
+const UserModel = require('../models/users/user.model');
 var xlsx = require('node-xlsx').default
 var fs = require('fs');
-const AccountModel = require("../models/users/account.model");
-const DetailInvoiceModel = require("../models/detailInvoice.model");
+const AccountModel = require('../models/users/account.model');
+const DetailInvoiceModel = require('../models/detailInvoice.model');
 const _ = require('lodash')
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
@@ -23,7 +23,7 @@ const getDailyRevenue = async (req, res) => {
         // tính khoản cách giữa 2 ngày
         let numberOfDays = Math.ceil((end - start) / (24 * 60 * 60 * 1000));
         if (numberOfDays > 31) {
-            type = "month"
+            type = 'month'
         }
 
         var invoices = await InvoiceModel.aggregate([
@@ -41,9 +41,9 @@ const getDailyRevenue = async (req, res) => {
                     paymentPrice: 1,
                     createdAt: {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%Y-%m-%d',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -66,8 +66,8 @@ const getDailyRevenue = async (req, res) => {
             preResult = []
             let startDateISO = new Date(startDate)
             for (let i = 0; i < differenceInDays + 1; i++) {
-                let startDateString = startDateISO.toISOString().split("T")[0]
-                preResult.push({ "date": startDateString, value: 0 })
+                let startDateString = startDateISO.toISOString().split('T')[0]
+                preResult.push({ 'date': startDateString, value: 0 })
                 result[startDateString] = 0
                 startDateISO.setDate(startDateISO.getDate() + 1)
             }
@@ -95,7 +95,7 @@ const getDailyRevenue = async (req, res) => {
             preResult = []
             for (let i = 0; i < numOfMonth; i++) {
                 let dateString = startDate.toISOString().slice(0, 7)
-                preResult.push({ "date": dateString, value: 0 })
+                preResult.push({ 'date': dateString, value: 0 })
                 result[dateString] = 0
                 startDate.setMonth(startDate.getMonth() + 1)
             }
@@ -115,8 +115,8 @@ const getDailyRevenue = async (req, res) => {
         }
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
-                [`BẢNG THỐNG KÊ DOANH THU THEO ${type == 'day' ? 'NGÀY' : "THÁNG"} TỪ ${startDate.toISOString().split("T")[0]} ĐẾN ${endDate.toISOString().split("T")[0]}`],
-                [`${type == 'day' ? 'NGÀY' : "THÁNG"}`, `Doanh thu (vnđ)`],
+                [`BẢNG THỐNG KÊ DOANH THU THEO ${type == 'day' ? 'NGÀY' : 'THÁNG'} TỪ ${startDate.toISOString().split('T')[0]} ĐẾN ${endDate.toISOString().split('T')[0]}`],
+                [`${type == 'day' ? 'NGÀY' : 'THÁNG'}`, `Doanh thu (vnđ)`],
             ];
             for (const key in result) {
                 data.push([key, result[key]])
@@ -125,10 +125,10 @@ const getDailyRevenue = async (req, res) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-ngay.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-ngay.xlsx' })
+            return res.status(200).json({ message: 'ok', result: preResult, file: '/statistics/thong-ke-doanh-so-theo-ngay.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", result: preResult })
+        res.status(200).json({ message: 'ok', result: preResult })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -159,9 +159,9 @@ const getMonthlyRevenue = async (req, res, next) => {
                     paymentPrice: 1,
                     createdAt: {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%Y-%m-%d',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -203,10 +203,10 @@ const getMonthlyRevenue = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-thang.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-thang.xlsx' })
+            return res.status(200).json({ message: 'ok', result: preResult, file: '/statistics/thong-ke-doanh-so-theo-thang.xlsx' })
         }
 
-        res.status(200).json({ message: "ok", result: preResult })
+        res.status(200).json({ message: 'ok', result: preResult })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -233,9 +233,9 @@ const getYearlyRevenue = async (req, res) => {
                     paymentPrice: 1,
                     createdAt: {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%Y-%m-%d',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -267,8 +267,8 @@ const getYearlyRevenue = async (req, res) => {
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
                 [`BẢNG THỐNG KÊ DOANH THU TỪ NĂM ${start} - ${end}`],
-                ["Năm"],
-                [`Doanh thu`, ...result, `Doanh thu ${end} ${raise >= 0 ? "tăng" : "giảm"} ${Math.abs(raise)}% so với năm ${start}`],
+                ['Năm'],
+                [`Doanh thu`, ...result, `Doanh thu ${end} ${raise >= 0 ? 'tăng' : 'giảm'} ${Math.abs(raise)}% so với năm ${start}`],
             ];
             for (let i = parseInt(start); i < parseInt(end) + 1; i++) {
                 data[1].push(i)
@@ -277,9 +277,9 @@ const getYearlyRevenue = async (req, res) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê doanh thu', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-doanh-so-theo-nam.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result: preResult, file: '/statistics/thong-ke-doanh-so-theo-nam.xlsx' })
+            return res.status(200).json({ message: 'ok', result: preResult, file: '/statistics/thong-ke-doanh-so-theo-nam.xlsx' })
         }
-        res.status(200).json({ message: "ok", result: preResult })
+        res.status(200).json({ message: 'ok', result: preResult })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -334,10 +334,10 @@ const getCountUsersByYear = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê người dùng', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-user.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", raise, newUsers: result, activating, notActivating, file: '/statistics/thong-ke-user.xlsx' })
+            res.status(200).json({ message: 'ok', raise, newUsers: result, activating, notActivating, file: '/statistics/thong-ke-user.xlsx' })
             return
         }
-        res.status(200).json({ message: "ok", raise, newUsers: result, activating, notActivating })
+        res.status(200).json({ message: 'ok', raise, newUsers: result, activating, notActivating })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -360,8 +360,8 @@ const getCountUsersByMonth = async (req, res, next) => {
             {
                 $project: {
                     createdAt: 1,
-                    month: { $month: "$createdAt" },
-                    year: { $year: "$createdAt" },
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
                 }
             },
             {
@@ -412,11 +412,11 @@ const getCountUsersByMonth = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê người dùng', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-user.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", thisYear, lastYear, file: '/statistics/thong-ke-user.xlsx' })
+            res.status(200).json({ message: 'ok', thisYear, lastYear, file: '/statistics/thong-ke-user.xlsx' })
             return
         }
 
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -452,9 +452,9 @@ const getTopSaleCoursesOfYear = async (req, res, next) => {
             },
             {
                 $group: {
-                    _id: { courseId: "$courseId" },
-                    courseName: { $first: "$courseName" },
-                    courseSlug: { $first: "$courseSlug" },
+                    _id: { courseId: '$courseId' },
+                    courseName: { $first: '$courseName' },
+                    courseSlug: { $first: '$courseSlug' },
                     count: { $count: {} },
                 }
             },
@@ -482,16 +482,16 @@ const getTopSaleCoursesOfYear = async (req, res, next) => {
                 [`Top`, 'Khoá học', 'số lượng bán']
             ];
             result.forEach((item, index) => {
-                data.push([index + 1, `=HYPERLINK("${process.env.FRONTEND_URL}/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+                data.push([index + 1, `=HYPERLINK('${process.env.FRONTEND_URL}/courses/${item.courseSlug}','${item.courseName}' )`, item.count])
             });
 
             const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê khoá học', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-top-khoa-hoc.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-top-khoa-hoc.xlsx' })
+            return res.status(200).json({ message: 'ok', result, file: '/statistics/thong-ke-top-khoa-hoc.xlsx' })
         }
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -511,8 +511,8 @@ const getTopSaleCoursesOfMonth = async (req, res, next) => {
                     couponCode: 1,
                     courseSlug: 1,
                     discount: 1,
-                    month: { $month: "$createdAt" },
-                    year: { $year: "$createdAt" },
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
                 }
             },
             {
@@ -523,9 +523,9 @@ const getTopSaleCoursesOfMonth = async (req, res, next) => {
             },
             {
                 $group: {
-                    _id: { courseId: "$courseId" },
-                    courseName: { $first: "$courseName" },
-                    courseSlug: { $first: "$courseSlug" },
+                    _id: { courseId: '$courseId' },
+                    courseName: { $first: '$courseName' },
+                    courseSlug: { $first: '$courseSlug' },
                     count: { $count: {} },
                 }
             },
@@ -551,20 +551,20 @@ const getTopSaleCoursesOfMonth = async (req, res, next) => {
         if (exports.toLowerCase().trim() == 'true') {
             const data = [
                 [`BẢNG THỐNG KÊ TOP ${top} KHOÁ HỌC CÓ SỐ LƯỢNG BÁN TRONG THÁNG ${month}-${year}`],
-                ['Top', "Khoá học", "Số lượng bán"]
+                ['Top', 'Khoá học', 'Số lượng bán']
             ];
             result.forEach((item, index) => {
-                data.push([index + 1, `=HYPERLINK("${process.env.FRONTEND_URL}/courses/${item.courseSlug}","${item.courseName}" )`, item.count])
+                data.push([index + 1, `=HYPERLINK('${process.env.FRONTEND_URL}/courses/${item.courseSlug}','${item.courseName}' )`, item.count])
             })
 
             const range = { s: { c: 0, r: 0 }, e: { c: 12, r: 0 } }; // A1:A4
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê khoá học', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-top-khoa-hoc.xlsx').write(buffer);
-            return res.status(200).json({ message: "ok", result, file: '/statistics/thong-ke-top-khoa-hoc.xlsx' })
+            return res.status(200).json({ message: 'ok', result, file: '/statistics/thong-ke-top-khoa-hoc.xlsx' })
 
         }
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -630,8 +630,8 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    "path": "$teacherInfo",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$teacherInfo',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
@@ -720,11 +720,11 @@ const getTeachersRevenueByMonth = async (req, res, next) => {
             const sheetOptions = { '!merges': [range] };
             var buffer = xlsx.build([{ name: 'Thống kê hoa hồng theo tháng', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-hoa-hong-theo-thang.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", total, result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
+            res.status(200).json({ message: 'ok', total, result, file: '/statistics/thong-ke-hoa-hong-theo-thang.xlsx' })
             return
         }
 
-        res.status(200).json({ message: "ok", total, result })
+        res.status(200).json({ message: 'ok', total, result })
 
     } catch (error) {
         console.log(error);
@@ -765,8 +765,8 @@ const getDetailTeachersRevenue = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    "path": "$teacherInfo",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$teacherInfo',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
@@ -824,9 +824,9 @@ const getDetailTeachersRevenue = async (req, res, next) => {
                     status: 1,
                     createdAt: {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%d-%m-%Y %H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -872,10 +872,10 @@ const getDetailTeachersRevenue = async (req, res, next) => {
             const sheetOptions = { '!merges': [range1] };
             var buffer = xlsx.build([{ name: 'data', data: data }], { sheetOptions }); // Returns a buffer
             fs.createWriteStream('./src/public/statistics/thong-ke-chi-tiet-hoa-hong-theo-thang.xlsx').write(buffer);
-            res.status(200).json({ message: "ok", teacher, file: '/statistics/thong-ke-chi-tiet-hoa-hong-theo-thang.xlsx' })
+            res.status(200).json({ message: 'ok', teacher, file: '/statistics/thong-ke-chi-tiet-hoa-hong-theo-thang.xlsx' })
             return
         }
-        res.status(200).json({ message: "ok", teacher })
+        res.status(200).json({ message: 'ok', teacher })
 
     } catch (error) {
         console.log(error);
@@ -910,8 +910,8 @@ const getTopMonthlyTeachers = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    "path": "$teacherInfo",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$teacherInfo',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
@@ -950,7 +950,7 @@ const getTopMonthlyTeachers = async (req, res, next) => {
             {
                 $project: {
                     invoice: 1,
-                    month: { $month: "$createdAt" },
+                    month: { $month: '$createdAt' },
                     courseAuthor: 1,
                     amount: 1,
                 }
@@ -977,7 +977,7 @@ const getTopMonthlyTeachers = async (req, res, next) => {
             preResult = preResult.filter(item => item.total > 0)
             result[i] = _.orderBy(JSON.parse(JSON.stringify(preResult)), ['total'], ['desc']).slice(0, parseInt(top))
         }
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })
@@ -1011,8 +1011,8 @@ const getTopYearTeachers = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    "path": "$teacherInfo",
-                    "preserveNullAndEmptyArrays": true
+                    'path': '$teacherInfo',
+                    'preserveNullAndEmptyArrays': true
                 }
             },
             {
@@ -1075,7 +1075,7 @@ const getTopYearTeachers = async (req, res, next) => {
 
         result = _.orderBy(JSON.parse(JSON.stringify(result)), ['total'], ['desc']).slice(0, parseInt(top))
 
-        res.status(200).json({ message: "ok", result })
+        res.status(200).json({ message: 'ok', result })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message })

@@ -1,4 +1,4 @@
-const NotificationModel = require("../models/notification.model");
+const NotificationModel = require('../models/notification.model');
 
 
 module.exports = {

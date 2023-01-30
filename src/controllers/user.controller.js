@@ -14,10 +14,10 @@ const getUser = async (req, res, next) => {
     try {
         const { _id } = req.user
         const user = await UserModel.findById(_id).populate('account', 'email role')
-        res.status(200).json({ message: "ok", user })
+        res.status(200).json({ message: 'ok', user })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: 'error' })
     }
 }
 
@@ -38,7 +38,7 @@ const putUser = async (req, res, next) => {
         res.status(200).json({ message: "update oke", user })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: 'error' })
     }
 }
 
@@ -48,9 +48,9 @@ const postActiveTeacherRole = async (req, res, next) => {
         const { user } = req
         // kiểm tra đã kích hoạt chưa
         var teacher = await TeacherModel.findOne({ user }).lean()
-        let message = "kích hoạt thành công"
+        let message = 'kích hoạt thành công'
         if (teacher) {
-            message = "Đã kích hoạt role teacher"
+            message = 'Đã kích hoạt role teacher'
         }
         else {
             teacher = await TeacherModel.create({ user })
@@ -58,7 +58,7 @@ const postActiveTeacherRole = async (req, res, next) => {
         res.status(200).json({ message, teacher })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error" })
+        res.status(500).json({ message: 'error' })
     }
 }
 
@@ -73,10 +73,10 @@ const getHistorySearchAndView = async (req, res, next) => {
             .populate({ path: 'historyViews', model: 'course', select: '_id name slug thumbnail' })
             .lean()
 
-        res.status(200).json({ message: "ok", historySearch, historyView })
+        res.status(200).json({ message: 'ok', historySearch, historyView })
     } catch (error) {
         console.log(error);
-        res.status(200).json({ message: "error" })
+        res.status(200).json({ message: 'error' })
     }
 }
 
@@ -88,7 +88,7 @@ const getMyInvoices = async (req, res, next) => {
         let query = [
             {
                 $match: {
-                    user: user._id, status: "Paid"
+                    user: user._id, status: 'Paid'
                 }
             },
             {
@@ -96,18 +96,18 @@ const getMyInvoices = async (req, res, next) => {
                     from: 'users',
                     localField: 'user',
                     foreignField: '_id',
-                    as: "user"
+                    as: 'user'
                 }
             },
             {
-                $unwind: "$user"
+                $unwind: '$user'
             },
             {
                 $lookup: {
                     from: 'detailInvoices',
                     localField: '_id',
                     foreignField: 'invoice',
-                    as: "detailInvoices"
+                    as: 'detailInvoices'
                 }
             },
             {
@@ -119,12 +119,12 @@ const getMyInvoices = async (req, res, next) => {
                     'paymentMethod': 1,
                     'status': 1,
                     // 'user': 1
-                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'user': { '_id': 1, 'fullName': 1, 'phone': 1, 'avatar': 1 },
                     'createdAt': {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -135,7 +135,7 @@ const getMyInvoices = async (req, res, next) => {
         let aCountQuery = [
             {
                 $match: {
-                    user: user._id, status: "Paid"
+                    user: user._id, status: 'Paid'
                 }
             },
             {
@@ -143,18 +143,18 @@ const getMyInvoices = async (req, res, next) => {
                     from: 'users',
                     localField: 'user',
                     foreignField: '_id',
-                    as: "user"
+                    as: 'user'
                 }
             },
             {
-                $unwind: "$user"
+                $unwind: '$user'
             },
             {
                 $lookup: {
                     from: 'detailInvoices',
                     localField: '_id',
                     foreignField: 'invoice',
-                    as: "detailInvoices"
+                    as: 'detailInvoices'
                 }
             },
             {
@@ -166,12 +166,12 @@ const getMyInvoices = async (req, res, next) => {
                     'paymentMethod': 1,
                     'status': 1,
                     // 'user': 1
-                    'user': { "_id": 1, "fullName": 1, 'phone': 1, 'avatar': 1 },
+                    'user': { '_id': 1, 'fullName': 1, 'phone': 1, 'avatar': 1 },
                     'createdAt': {
                         $dateToString: {
-                            date: "$createdAt",
+                            date: '$createdAt',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                 }
@@ -183,7 +183,7 @@ const getMyInvoices = async (req, res, next) => {
         }
 
         const invoices = await InvoiceModel.aggregate(query)
-        aCountQuery.push({ $count: "total" })
+        aCountQuery.push({ $count: 'total' })
         const totalCount = await InvoiceModel.aggregate(aCountQuery)
         const total = totalCount[0]?.total || 0
 
@@ -200,9 +200,9 @@ const getDetailMyInvoices = async (req, res, next) => {
     try {
         const { id } = req.params
         const { user } = req
-        const invoice = await InvoiceModel.findOne({ _id: id, user: user._id }).populate('user', "_id fullName").lean()
+        const invoice = await InvoiceModel.findOne({ _id: id, user: user._id }).populate('user', '_id fullName').lean()
         if (!invoice) {
-            return res.status(404).json({ message: "Not found" })
+            return res.status(404).json({ message: 'Not found' })
         }
         const detailInvoices = await DetailInvoiceModel.find({ invoice: id }).populate('courseAuthor', '_id fullName').lean()
         invoice.detailInvoices = detailInvoices

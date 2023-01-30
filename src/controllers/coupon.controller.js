@@ -31,20 +31,20 @@ const getCoupons = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'users',
-                    localField: "author",
-                    foreignField: "_id",
-                    as: "author"
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
                 }
             },
             {
-                $unwind: "$author"
+                $unwind: '$author'
             },
             {
                 $lookup: {
                     from: 'codes',
-                    localField: "_id",
-                    foreignField: "coupon",
-                    as: "codes"
+                    localField: '_id',
+                    foreignField: 'coupon',
+                    as: 'codes'
                 }
             },
             {
@@ -56,28 +56,28 @@ const getCoupons = async (req, res, next) => {
                     'amount': 1,
                     'startDate': {
                         $dateToString: {
-                            date: "$startDate",
+                            date: '$startDate',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     'expireDate': {
                         $dateToString: {
-                            date: "$expireDate",
+                            date: '$expireDate',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     'maxDiscount': {
                         $cond: {
-                            if: { $eq: [Infinity, "$maxDiscount"] },
+                            if: { $eq: [Infinity, '$maxDiscount'] },
                             then: null,
-                            else: "$maxDiscount"
+                            else: '$maxDiscount'
                         }
                     },
                     'minPrice': 1,
                     'number': 1,
-                    'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                    'remain': { $size: { $filter: { 'input': '$codes', 'cond': { $eq: ['$$this.isActive', true] } } } },
                     'author._id': 1,
                     'author.fullName': 1,
                 }
@@ -85,9 +85,9 @@ const getCoupons = async (req, res, next) => {
         ]
 
         if (account.role == 'teacher') {
-            aQuery.splice(2, 0, { $match: { "author._id": user._id } })
+            aQuery.splice(2, 0, { $match: { 'author._id': user._id } })
         }
-        aQuery.push({ $count: "total" })
+        aQuery.push({ $count: 'total' })
         const totalCount = await CouponModel.aggregate(aQuery)
         const total = totalCount[0]?.total || 0
         aQuery.pop()
@@ -126,22 +126,22 @@ const getCoupon = async (req, res, next) => {
             { $match: { _id: ObjectId(id) } },
             {
                 $lookup: {
-                    from: "codes",
-                    localField: "_id",
-                    foreignField: "coupon",
+                    from: 'codes',
+                    localField: '_id',
+                    foreignField: 'coupon',
                     as: 'codes'
                 }
             },
             {
                 $lookup: {
                     from: 'users',
-                    localField: "author",
-                    foreignField: "_id",
-                    as: "author"
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
                 }
             },
             {
-                $unwind: "$author"
+                $unwind: '$author'
             },
             {
                 $project: {
@@ -152,28 +152,28 @@ const getCoupon = async (req, res, next) => {
                     'amount': 1,
                     'startDate': {
                         $dateToString: {
-                            date: "$startDate",
+                            date: '$startDate',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     'expireDate': {
                         $dateToString: {
-                            date: "$expireDate",
+                            date: '$expireDate',
                             format: '%Y-%m-%dT%H:%M:%S',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     'maxDiscount': {
                         $cond: {
-                            if: { $eq: [Infinity, "$maxDiscount"] },
-                            then: "Không giới hạn",
-                            else: "$maxDiscount"
+                            if: { $eq: [Infinity, '$maxDiscount'] },
+                            then: 'Không giới hạn',
+                            else: '$maxDiscount'
                         }
                     },
                     'minPrice': 1,
                     'number': 1,
-                    'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                    'remain': { $size: { $filter: { 'input': '$codes', 'cond': { $eq: ['$$this.isActive', true] } } } },
                     'author._id': 1,
                     'author.fullName': 1,
                     'codes.code': 1,
@@ -203,36 +203,36 @@ const postCoupon = async (req, res, next) => {
         }
         if (type == 'percent') {
             if (amount > 100 || amount <= 0) {
-                return res.status(400).json({ message: "amount phải > 0 và <= 100" })
+                return res.status(400).json({ message: 'amount phải > 0 và <= 100' })
             }
         } else if (type == 'money') {
             if (amount <= 0) {
-                return res.status(400).json({ message: "amount phải là số dương" })
+                return res.status(400).json({ message: 'amount phải là số dương' })
             }
         }
 
         if (startDate && new Date(startDate) < new Date()) {
-            return res.status(400).json({ message: "startDate không hợp lệ" })
+            return res.status(400).json({ message: 'startDate không hợp lệ' })
         }
 
         if (expireDate && new Date(expireDate) < new Date()) {
-            return res.status(400).json({ message: "expireDate không hợp lệ" })
+            return res.status(400).json({ message: 'expireDate không hợp lệ' })
         }
 
         if (maxDiscount && maxDiscount <= 0) {
-            return res.status(400).json({ message: "maxDiscount phải là số dương" })
+            return res.status(400).json({ message: 'maxDiscount phải là số dương' })
         }
 
         if (minPrice && minPrice < 0) {
-            return res.status(400).json({ message: "minPrice phải là số dương" })
+            return res.status(400).json({ message: 'minPrice phải là số dương' })
         }
 
         if (number && number <= 0) {
-            return res.status(400).json({ message: "number phải là số dương" })
+            return res.status(400).json({ message: 'number phải là số dương' })
         }
 
         const coupon = await CouponModel.create(data)
-        res.status(201).json({ message: "oke" })
+        res.status(201).json({ message: 'oke' })
         const codes = helper.generateDiscountCode(10, parseInt(number) || 100)
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -240,7 +240,7 @@ const postCoupon = async (req, res, next) => {
                 coupon, code
             })
         }
-
+        return
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -258,7 +258,7 @@ const updateCoupon = async (req, res, next) => {
             newCoupon.maxDiscount = Infinity
         }
         await CouponModel.updateOne({ _id: id, author: user._id }, newCoupon)
-        return res.status(200).json({ message: "update ok" })
+        return res.status(200).json({ message: 'update ok' })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -276,7 +276,7 @@ const deleteCoupon = async (req, res, next) => {
             await CouponModel.deleteOne({ _id: id, author: user._id })
         }
         await CodeModel.deleteMany({ coupon: id })
-        return res.status(200).json({ message: "delete ok" })
+        return res.status(200).json({ message: 'delete ok' })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -286,28 +286,28 @@ const deleteCoupon = async (req, res, next) => {
 // fn: xoá nhiều mã
 const deleteManyCoupon = async (req, res, next) => {
     try {
-        var { ids } = req.body
+        let { ids } = req.body
         const { account, user } = req
         ids = ids.map(id => ObjectId(id))
         let logs = ''
         let success = 0
-        var coupons = null
+        let coupons = null
         if (account.role === 'admin') {
             coupons = await CouponModel.aggregate([
                 { $match: { _id: { $in: ids } } },
                 {
                     $lookup: {
                         from: 'codes',
-                        localField: "_id",
-                        foreignField: "coupon",
-                        as: "codes"
+                        localField: '_id',
+                        foreignField: 'coupon',
+                        as: 'codes'
                     }
                 },
                 {
                     $project: {
                         'title': 1,
                         'number': 1,
-                        'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                        'remain': { $size: { $filter: { 'input': '$codes', 'cond': { $eq: ['$$this.isActive', true] } } } },
                     }
                 }
             ])
@@ -318,16 +318,16 @@ const deleteManyCoupon = async (req, res, next) => {
                 {
                     $lookup: {
                         from: 'codes',
-                        localField: "_id",
-                        foreignField: "coupon",
-                        as: "codes"
+                        localField: '_id',
+                        foreignField: 'coupon',
+                        as: 'codes'
                     }
                 },
                 {
                     $project: {
                         'title': 1,
                         'number': 1,
-                        'remain': { $size: { $filter: { 'input': "$codes", "cond": { $eq: ["$$this.isActive", true] } } } },
+                        'remain': { $size: { $filter: { 'input': '$codes', 'cond': { $eq: ['$$this.isActive', true] } } } },
                     }
                 }
             ])
@@ -383,9 +383,10 @@ const postLoginGoogle = (req, res, next) => {
         //     'Location': url
         // });
         res.status(200).json({ location: url })
-        res.end();
+        return res.end();
     } catch (error) {
         console.log(error);
+        next(error)
     }
 }
 
@@ -406,7 +407,7 @@ const getGoogleCallback = async (req, res, next) => {
         //lấy access_token
         const { tokens } = await oauth2Client.getToken(code)
         req.tokens = tokens
-        res.status(200).json({ message: 'oke', tokens })
+        return res.status(200).json({ message: 'oke', tokens })
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: error.message })
@@ -437,17 +438,17 @@ const postCreateGoogleSheet = async (req, res) => {
             { $match: { _id: ObjectId(id) } },
             {
                 $lookup: {
-                    from: "codes",
-                    localField: "_id",
-                    foreignField: "coupon",
+                    from: 'codes',
+                    localField: '_id',
+                    foreignField: 'coupon',
                     as: 'codes'
                 }
             },
             {
                 $lookup: {
-                    from: "users",
-                    localField: "author",
-                    foreignField: "_id",
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
                     as: 'author'
                 }
             },
@@ -463,16 +464,16 @@ const postCreateGoogleSheet = async (req, res) => {
                     number: 1,
                     startDate: {
                         $dateToString: {
-                            date: "$startDate",
+                            date: '$startDate',
                             format: '%H:%M:%S %d-%m-%Y',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     expireDate: {
                         $dateToString: {
-                            date: "$expireDate",
+                            date: '$expireDate',
                             format: '%H:%M:%S %d-%m-%Y',
-                            timezone: "Asia/Ho_Chi_Minh"
+                            timezone: 'Asia/Ho_Chi_Minh'
                         }
                     },
                     maxDiscount: 1,
@@ -484,7 +485,7 @@ const postCreateGoogleSheet = async (req, res) => {
             }
         ])
 
-        var doc
+        let doc
         // trường hợp: user 1 đã exports sheet rồi => tồn tại sheetId.
         // nếu user 2 exports lại => k có quyền chỉnh sửa (vì sheet của user 1) => tạo sheet mới
         if (coupon[0].sheetId) {
@@ -523,35 +524,35 @@ const postCreateGoogleSheet = async (req, res) => {
 
         // #region format và ghi data
         await sheet.mergeCells({
-            "startRowIndex": 0,
-            "endRowIndex": 1,
-            "startColumnIndex": 0,
-            "endColumnIndex": 12
+            'startRowIndex': 0,
+            'endRowIndex': 1,
+            'startColumnIndex': 0,
+            'endColumnIndex': 12
         })
         await sheet.mergeCells({
-            "startRowIndex": 1,
-            "endRowIndex": 2,
-            "startColumnIndex": 0,
-            "endColumnIndex": 7
+            'startRowIndex': 1,
+            'endRowIndex': 2,
+            'startColumnIndex': 0,
+            'endColumnIndex': 7
         })
         await sheet.mergeCells({
-            "startRowIndex": 2,
-            "endRowIndex": 3,
-            "startColumnIndex": 0,
-            "endColumnIndex": 7
+            'startRowIndex': 2,
+            'endRowIndex': 3,
+            'startColumnIndex': 0,
+            'endColumnIndex': 7
         })
         await sheet.mergeCells({
-            "startRowIndex": 3,
-            "endRowIndex": 4,
-            "startColumnIndex": 0,
-            "endColumnIndex": 7
+            'startRowIndex': 3,
+            'endRowIndex': 4,
+            'startColumnIndex': 0,
+            'endColumnIndex': 7
         })
 
         await sheet.setHeaderRow([`${coupon[0].number} MÃ ${coupon[0].title.toUpperCase()} (Updated at: ${new Date().toLocaleString()})`], 1);
-        await sheet.setHeaderRow([`Giảm ${coupon[0].amount}${coupon[0].type == 'money' ? " VNĐ" : "%"}. Áp dụng toàn bộ khoá học${coupon[0].apply == 'all' ? " trên hệ thống" : ` của tác giả ${coupon[0].author.fullName}`}.`], 2);
+        await sheet.setHeaderRow([`Giảm ${coupon[0].amount}${coupon[0].type == 'money' ? ' VNĐ' : '%'}. Áp dụng toàn bộ khoá học${coupon[0].apply == 'all' ? ' trên hệ thống' : ` của tác giả ${coupon[0].author.fullName}`}.`], 2);
         await sheet.setHeaderRow([`Hiệu lực từ: ${coupon[0].startDate} đến ${coupon[0].expireDate})`], 3);
-        await sheet.setHeaderRow([`Áp dụng ${coupon[0].maxDiscount == Infinity ? "" : `giảm giá tối đa ${coupon[0].maxDiscount} vnđ`} cho khoá học từ ${coupon[0].minPrice} vnđ`], 4);
-        await sheet.setHeaderRow(['code', "isActive"], 5);
+        await sheet.setHeaderRow([`Áp dụng ${coupon[0].maxDiscount == Infinity ? '' : `giảm giá tối đa ${coupon[0].maxDiscount} vnđ`} cho khoá học từ ${coupon[0].minPrice} vnđ`], 4);
+        await sheet.setHeaderRow(['code', 'isActive'], 5);
 
         // load data sẵn
         await sheet.loadCells({ // GridRange object
@@ -559,35 +560,35 @@ const postCreateGoogleSheet = async (req, res) => {
         });
         var cellA1 = sheet.getCell(0, 0)
         cellA1.textFormat = {
-            "fontSize": 16,
-            "bold": true
+            'fontSize': 16,
+            'bold': true
         }
         cellA1.padding = {
-            "top": 5,
-            "right": 5,
-            "bottom": 5,
-            "left": 5
+            'top': 5,
+            'right': 5,
+            'bottom': 5,
+            'left': 5
         }
         for (let i = 1; i < 4; i++) {
             let cellA1 = sheet.getCell(i, 0)
             cellA1.textFormat = {
-                "fontSize": 14,
+                'fontSize': 14,
             }
             cellA1.padding = {
-                "top": 5,
-                "right": 5,
-                "bottom": 5,
-                "left": 5
+                'top': 5,
+                'right': 5,
+                'bottom': 5,
+                'left': 5
             }
         }
         await sheet.addRows(coupon[0].codes);
 
         //#endregion
 
-        res.status(200).json({ message: "ok", link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
+        return res.status(200).json({ message: 'ok', link: 'https://docs.google.com/spreadsheets/d/' + doc.spreadsheetId + '/edit?usp=sharing' })
     } catch (error) {
-        // console.log(error);
-        res.status(200).json({ message: error.message })
+        console.log(error);
+        return res.status(500).json({ message: error.message })
     }
 }
 

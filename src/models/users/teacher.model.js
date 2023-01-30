@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
 const teacherSchema = new Schema({
@@ -8,14 +8,14 @@ const teacherSchema = new Schema({
         ref: 'user',
     },
     payments: {
-        accountNumber: { type: String, default: "" },
-        cardNumber: { type: String, default: "" },
-        name: { type: String, default: "" },
-        bankName: { type: String, default: "" },
+        accountNumber: { type: String, default: '' },
+        cardNumber: { type: String, default: '' },
+        name: { type: String, default: '' },
+        bankName: { type: String, default: '' },
     },
     description: {
         type: String,
-        default: ""
+        default: ''
     },
     isVerified: {
         type: Boolean,

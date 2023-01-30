@@ -6,7 +6,6 @@ var fs = require('fs');
 // fn: tạo category
 const postCategory = async (req, res, next) => {
     try {
-        const { name } = req.body
         const { account } = req
         if (account.role == 'admin') {
             req.body.publish = true
@@ -16,7 +15,7 @@ const postCategory = async (req, res, next) => {
         return res.status(201).json({ message: 'ok' })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -35,9 +34,9 @@ const getCategories = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'courses',
-                    localField: "_id",
+                    localField: '_id',
                     foreignField: 'category',
-                    as: "used"
+                    as: 'used'
                 }
             },
             (used && {
@@ -59,7 +58,7 @@ const getCategories = async (req, res, next) => {
                     used: {
                         $cond: {
                             if: {
-                                $eq: [{ $size: "$used" }, 0]
+                                $eq: [{ $size: '$used' }, 0]
                             },
                             then: false,
                             else: true
@@ -70,7 +69,7 @@ const getCategories = async (req, res, next) => {
         ]
 
         aCountQuery = aQuery.filter(item => item != undefined)
-        aCountQuery.push({ $count: "total" })
+        aCountQuery.push({ $count: 'total' })
         aQuery = aQuery.filter(item => item != undefined)
 
         if (page && limit) {
@@ -85,7 +84,7 @@ const getCategories = async (req, res, next) => {
         return res.status(200).json({ message: 'ok', total, categories })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 // fn: lấy category
@@ -97,7 +96,7 @@ const getCategory = async (req, res, next) => {
         return res.status(200).json({ message: 'ok', category })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -107,13 +106,12 @@ const putCategory = async (req, res, next) => {
     try {
         const { slug } = req.params
 
-        var newCategory = req.body
-
+        const newCategory = req.body
         await CategoryModel.updateOne({ slug: slug }, newCategory)
         return res.status(200).json({ message: 'ok' })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -121,7 +119,7 @@ const putCategory = async (req, res, next) => {
 const deleteCategory = async (req, res, next) => {
     try {
         const { slug } = req.params
-        const { account, user } = req
+        const { account } = req
         if (account.role !== 'admin') {
             return res.status(401).json({ message: 'Not permitted' })
         }
@@ -134,7 +132,7 @@ const deleteCategory = async (req, res, next) => {
         return res.status(200).json({ message: 'ok' })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 
@@ -166,13 +164,13 @@ const deleteManyCategory = async (req, res, next) => {
         if (logs != '') {
             let file = Date.now()
             fs.appendFileSync(`./src/public/logs/${file}.txt`, logs);
-            return res.status(400).json({ message: "có lỗi", urlLogs: `/logs/${file}.txt` })
+            return res.status(400).json({ message: 'có lỗi', urlLogs: `/logs/${file}.txt` })
         }
 
         return res.status(200).json({ message: 'delete ok' })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'error' })
+        return res.status(500).json({ message: error })
     }
 }
 

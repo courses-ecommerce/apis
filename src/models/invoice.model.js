@@ -27,7 +27,7 @@ const invoiceSchema = new Schema({
     paymentMethod: {
         type: String,
         required: true,
-        default: "VNpay"
+        default: 'VNpay'
     },
     paymentPrice: {
         type: Number,
@@ -36,7 +36,7 @@ const invoiceSchema = new Schema({
     status: {
         type: String,
         enum: ['Unpaid', 'Paid', 'Refund', 'Cancel'],
-        default: "Unpaid",
+        default: 'Unpaid',
     }
 },
     {

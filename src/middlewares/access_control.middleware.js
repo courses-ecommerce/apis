@@ -8,7 +8,7 @@ const grantAccess = function (action, resource) {
             const account = req.account
             const permission = ac.can(account.role)[action](resource)
             if (!permission.granted) {
-                return res.status(401).json({ message: "Unauthorized" })
+                return res.status(401).json({ message: 'Unauthorized' })
             }
             next()
         } catch (error) {

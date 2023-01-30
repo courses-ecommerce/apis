@@ -8,8 +8,8 @@ const accountSchema = new Schema({
     password: { type: String, required: true, trim: true },
     role: {
         type: String,
-        enum: ["student", "teacher", "admin"],
-        default: "student",
+        enum: ['student', 'teacher', 'admin'],
+        default: 'student',
     },
     refreshToken: {
         type: String,
@@ -30,7 +30,7 @@ const accountSchema = new Schema({
 );
 
 // hash password with bcrypt 
-// Note: callback should be a nomal function -> use "this"
+// Note: callback should be a nomal function -> use 'this'
 
 accountSchema.pre('save', async function (next) {
     try {
