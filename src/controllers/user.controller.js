@@ -24,18 +24,17 @@ const getUser = async (req, res, next) => {
 // fn: cập nhật thông tin user
 const putUser = async (req, res, next) => {
     try {
-        var newUser = req.body
-        if (newUser.gender) {
-            newUser.gender = newUser.gender === 'true'
-        }
+        let payload = req.body
         const image = req.file
         const { _id } = req.user
-        let avatar = ""
+
+        payload.gender = !!payload.gender
+        
+
         if (image) {
-            avatar = await helper.uploadImageToCloudinary(image, uniqid.time(), 'avatar')
-            newUser.avatar = avatar
+            payload.avatar = await helper.uploadImageToCloudinary(image, uniqid.time(), 'avatar')
         }
-        const user = await UserModel.findOneAndUpdate({ _id }, newUser, { new: true })
+        const user = await UserModel.findOneAndUpdate({ _id }, payload, { new: true })
         res.status(200).json({ message: "update oke", user })
     } catch (error) {
         console.log(error);

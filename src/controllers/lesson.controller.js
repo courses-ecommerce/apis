@@ -41,8 +41,8 @@ const uploadVideoToCloudinary = async (req, res, next) => {
                 type: file.mimetype
             }
             const video = [
-                `http://res.cloudinary.com/uthcmc/video/upload/sp_hd/videos/${lesson_id}-${public_id}.m3u8`,
-                `http://res.cloudinary.com/uthcmc/video/upload/sp_hd/videos/${lesson_id}-${public_id}.mp4`
+                `https://res.cloudinary.com/uthcmc/video/upload/sp_hd/videos/${lesson_id}-${public_id}.m3u8`,
+                `https://res.cloudinary.com/uthcmc/video/upload/videos/${lesson_id}-${public_id}.mp4`
             ]
             res.status(200).json({ videoInfo, video })
             const result = await helper.uploadVideoToCloudinary(file, lesson_id, public_id)
@@ -55,6 +55,7 @@ const uploadVideoToCloudinary = async (req, res, next) => {
             videoInfo.status = "success"
             lesson.videoInfo = videoInfo
             await lesson.save()
+            console.log(`> Process video success:`, lesson_id);
             return
         }
         return res.status(400).json({ message: 'File is required' })
@@ -122,7 +123,6 @@ const postLesson = async (req, res, next) => {
 // fn: cập nhật lesson
 const putLessonTypeVideo = async (req, res, next) => {
     try {
-        s
         const { id } = req.params
         const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
         var { number, title, description, type, text, video, videoInfo } = data
