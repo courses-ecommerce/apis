@@ -148,12 +148,37 @@ const putLessonTypeVideo = async (req, res, next) => {
                 }
             }, { $inc: { number: step } })
         }
+        let payload = { ...data, publish: false }
+        switch (type) {
+            case 'video':
+                payload.text = null
+                payload.slide = null
+                break;
+            case 'text':
+                payload.video = []
+                payload.videoInfo = {}
+                payload.slide = null
+                break;
+            case 'quiz':
+                payload.video = []
+                payload.videoInfo = {}
+                payload.slide = null
+                payload.text = null
+                break;
+            case 'slide':
+                payload.video = []
+                payload.videoInfo = {}
+                payload.text = null
+                break;
+            default:
+                break;
+        }
         // cập nhật lesson
-        const result = await LessonModel.findOneAndUpdate({ _id: id }, { ...data, publish: false }, { new: true })
-        res.status(200).json({ message: 'updating oke', result })
+        const result = await LessonModel.findOneAndUpdate({ _id: id }, payload, { new: true })
+        return res.status(200).json({ message: 'updating oke', result })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: error.message, error: error.message })
+        return res.status(500).json({ message: error.message, error: error.message })
     }
 }
 
