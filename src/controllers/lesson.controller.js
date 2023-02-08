@@ -124,8 +124,7 @@ const postLesson = async (req, res, next) => {
 const putLessonTypeVideo = async (req, res, next) => {
     try {
         const { id } = req.params
-        const data = Object.fromEntries(Object.entries(req.body).filter(([_, v]) => v != null));
-        var { number, title, description, type, text, video, videoInfo } = data
+        var { number, title, description, type, text, video, videoInfo } = req.body
         number = parseInt(number)
         const { lesson } = req
         if (number) {
@@ -148,7 +147,7 @@ const putLessonTypeVideo = async (req, res, next) => {
                 }
             }, { $inc: { number: step } })
         }
-        let payload = { ...data, publish: false }
+        let payload = { ...req.body, publish: false }
         switch (type) {
             case 'video':
                 payload.text = null
