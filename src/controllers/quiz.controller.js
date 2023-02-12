@@ -75,4 +75,19 @@ module.exports = {
       return next(error)
     }
   },
+
+  deleteManyQuizByIds: async (req, res, next) => {
+    try {
+      const { ids } = req.params
+
+      if (!ids || !ids.length) {
+        return res.status(400).json({ message: 'Invalid quiz ids' })
+      }
+      await QuizModel.deleteMany({ _id: ids })
+      return res.status(200).json({ message: 'Delete quiz successfully' })
+    } catch (error) {
+      console.error('> ERROR::deleteManyQuizByIds::', error);
+      return next(error)
+    }
+  },
 };
