@@ -55,8 +55,8 @@ const jwtAuthenticationSocket = async (socket, next) => {
             const acc = await AccountModel.findById(account).lean();
             const user = await UserModel.findOne({ account: account }).lean()
             if (user) {
-                socket.user = user;
-                socket.account = acc;
+                socket.user = JSON.parse(JSON.stringify(user));
+                socket.account = JSON.parse(JSON.stringify(acc));
             }
         }
         next();
