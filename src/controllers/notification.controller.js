@@ -8,7 +8,7 @@ module.exports = {
             const notification = await NotificationModel.create({ user: userId, title, content, data });
 
             // get socketIds of user
-            const socketIds = await _redis.SMEMBERS(userId)
+            const socketIds = await _redis.SMEMBERS(JSON.parse(JSON.stringify(userId)))
 
             // emit notification to user
             socketIds.forEach(socketId => {

@@ -225,8 +225,8 @@ const postAcceptConversation = async (req, res, next) => {
         }
         res.status(200).json({ message })
         // lấy mảng socket id người nhận
-        let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[0])
-        let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[1])
+        let socketIdsMem1 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[0])))
+        let socketIdsMem2 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[1])))
         // gửi tới từng socket id
         socketIdsMem1.forEach(id => {
             _io.to(id).emit('send-message', { text: tinNhan })
@@ -267,8 +267,8 @@ const postMessage = async (req, res, next) => {
                 let tinNhan = await MessageModel.findById(newMessage._id).populate('sender', '_id fullName avatar')
 
                 // lấy mảng socket id thành viên
-                let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
-                let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
+                let socketIdsMem1 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[1])))
+                let socketIdsMem2 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[0])))
                 // gửi tới từng socket id
                 socketIdsMem1.forEach(id => {
                     _io.to(id).emit('send-message', { text: tinNhan })
@@ -283,8 +283,8 @@ const postMessage = async (req, res, next) => {
             let newMessage = await MessageModel.create({ conversation, text: text.trim(), sender: user._id })
             let tinNhan = await MessageModel.findById(newMessage._id).populate('sender', '_id fullName avatar')
             // lấy mảng socket id thành viên
-            let socketIdsMem1 = await _redis.SMEMBERS(cvst.members[1])
-            let socketIdsMem2 = await _redis.SMEMBERS(cvst.members[0])
+            let socketIdsMem1 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[1])))
+            let socketIdsMem2 = await _redis.SMEMBERS(JSON.parse(JSON.stringify(cvst.members[0])))
             // gửi tới từng socket id
             socketIdsMem1.forEach(id => {
                 _io.to(id).emit('send-message', { text: tinNhan })
@@ -336,7 +336,7 @@ const updateSeenMessage = async (req, res, next) => {
         let sender = JSON.stringify(cvst.members[0]) === JSON.stringify(user._id) ? cvst.members[1] : cvst.members[0]
         // cập nhật tin nhắn thành đã xem
         await MessageModel.updateMany({ conversation: cvst._id, sender, seen: false }, { seen: true, seenAt })
-        let socketIdSender = await _redis.SMEMBERS(sender)
+        let socketIdSender = await _redis.SMEMBERS(JSON.parse(JSON.stringify(sender)))
         // gửi tới từng socket id
         socketIdSender.forEach(id => {
             _io.to(id).emit('seen-message', { conversation, seenAt })
@@ -355,7 +355,7 @@ const postMessageWithBotChat = async (req, res, next) => {
 
         const responseMesssage = await handleChatGPTOpenAI(text)
 
-        let socketIdSender = await _redis.SMEMBERS(user._id)
+        let socketIdSender = await _redis.SMEMBERS(JSON.parse(JSON.stringify(user._id)))
         socketIdSender.forEach(id => {
             _io.to(id).emit('send-message', { text: responseMesssage })
         });
